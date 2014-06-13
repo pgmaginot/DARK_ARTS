@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/meh/!svn/ver/2/trunk/cmake/Modules/genwindef
+END
+genwindef.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/meh/!svn/ver/2/trunk/cmake/Modules/genwindef/genwindef.cpp
+END
+LibSymbolInfo.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/meh/!svn/ver/2/trunk/cmake/Modules/genwindef/LibSymbolInfo.cpp
+END
+LibSymbolInfo.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/meh/!svn/ver/2/trunk/cmake/Modules/genwindef/LibSymbolInfo.h
+END

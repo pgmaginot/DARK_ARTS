@@ -1,0 +1,582 @@
+
+#include "XML_Helper.h"
+#ifndef Data_Transfer_Object_h
+#define Data_Transfer_Object_h
+#include "Data_Transfer_Object.h"
+#endif
+#ifndef Specific_Heat_Object_h
+#define Specific_Heat_Object_h
+#include "Specific_Heat_Object.h"
+#endif
+#ifndef Common_Utils_h
+#define Common_Utils_h
+#include "Common_Utils.h"
+#endif
+#ifndef Constants_h
+#define Constants_h
+#include "Constants.h"
+#endif
+#ifndef stdlib_h
+#define stdlib_h
+#include <stdlib.h>
+#endif
+#include <hash_map>
+#include <list>
+#include <sstream>
+
+using std::stringstream;
+using std::cout;
+using std::string;
+
+
+
+
+
+Data_Transfer_Object XML_Helper::loadInputValues(string xmlFileName){
+	Data_Transfer_Object data_Transfer_Object;
+	
+	int no_of_cells;
+	int no_of_directions;
+	char left_boundary;
+	double dleft_inp_current;
+	double dleft_inp_flux;
+	char right_boundary;
+	double dright_inp_current;
+	double dright_inp_flux;
+	double delta_t;
+	double final_time;
+	char isDsa;
+	int iTimeDependentFlag;
+	int mfgFlag;
+	int iTransportFlag;
+	int no_of_moments;
+	Specific_Heat_Object c_v_object;
+	double conv_tol_in_grp;
+	double conv_tol_out_grp;
+	double conv_tol_out_T;	
+	Common_Utils common_Utils;
+	string difference_type;
+	int dynamic_time_step;
+
+	//Temporary variables
+	int iTypeSelected;
+	double dFlux;
+	double dTemp;
+	double dPlanckianFlux;
+	double dPlanckianSrc;
+	double dConvertedTemp;
+	double x_max;
+	double x_min;
+	double dSrc;
+	//Temporary variables
+
+	//TiXmlDocument doc( "inp_rad_su_olsen_Daryll.xml" );
+
+	TiXmlDocument doc( xmlFileName.c_str() );
+	//TiXmlDocument doc( "inp_rad_parallel_shape.xml" );
+	bool loadOkay = doc.LoadFile();
+
+	if ( !loadOkay )
+	{
+		printf( "Could not load input file . Error='%s'. Exiting.\n", doc.ErrorDesc() );
+		exit( 1 );
+	}
+	printf( "Successfully loaded input file " );
+	TiXmlHandle docHandle( &doc );
+	TiXmlHandle input_deck_handle=docHandle.FirstChildElement();
+	no_of_cells=atoi(input_deck_handle.FirstChild("no_of_cells").ToElement()->FirstChild()->ToText()->Value());
+	no_of_directions=atoi(input_deck_handle.FirstChild("no_of_directions").ToElement()->FirstChild()->ToText()->Value());
+	dynamic_time_step=atoi(input_deck_handle.FirstChild("dynamic_time_step").ToElement()->FirstChild()->ToText()->Value());
+	left_boundary=(input_deck_handle.FirstChild("left_boundary").ToElement()->FirstChild()->ToText()->Value())[0];
+	dleft_inp_current=atof(input_deck_handle.FirstChild("left_inp_current").ToElement()->FirstChild()->ToText()->Value());
+	dleft_inp_flux=atof(input_deck_handle.FirstChild("left_inp_flux").ToElement()->FirstChild()->ToText()->Value());
+	right_boundary=(input_deck_handle.FirstChild("right_boundary").ToElement()->FirstChild()->ToText()->Value())[0];
+	dright_inp_current=atof(input_deck_handle.FirstChild("right_inp_current").ToElement()->FirstChild()->ToText()->Value());
+	dright_inp_flux=atof(input_deck_handle.FirstChild("right_inp_flux").ToElement()->FirstChild()->ToText()->Value());
+	//delta_t=atof(input_deck_handle.FirstChild("delta_t").ToElement()->FirstChild()->ToText()->Value());
+	final_time=atof(input_deck_handle.FirstChild("final_time").ToElement()->FirstChild()->ToText()->Value());
+	difference_type=(input_deck_handle.FirstChild("difference_type").ToElement()->FirstChild()->ToText()->Value());
+	isDsa=(input_deck_handle.FirstChild("is_dsa_enabled").ToElement()->FirstChild()->ToText()->Value())[0];
+	iTimeDependentFlag=atoi(input_deck_handle.FirstChild("iTimeDependentFlag").ToElement()->FirstChild()->ToText()->Value());
+	mfgFlag=atoi(input_deck_handle.FirstChild("is_mfg_enabled").ToElement()->FirstChild()->ToText()->Value());
+	iTransportFlag=atoi(input_deck_handle.FirstChild("iTransportFlag").ToElement()->FirstChild()->ToText()->Value());
+	no_of_moments=atoi(input_deck_handle.FirstChild("no_of_moments").ToElement()->FirstChild()->ToText()->Value());	
+	conv_tol_in_grp=atof(input_deck_handle.FirstChild("conv_tol_in_grp").ToElement()->FirstChild()->ToText()->Value());
+	conv_tol_out_grp=atof(input_deck_handle.FirstChild("conv_tol_out_grp").ToElement()->FirstChild()->ToText()->Value());
+	conv_tol_out_T=atof(input_deck_handle.FirstChild("conv_tol_out_T").ToElement()->FirstChild()->ToText()->Value());	
+	string opacities_file_name(input_deck_handle.FirstChild("opacities_file_name").ToElement()->FirstChild()->ToText()->Value());
+	c_v_object.constA=atof(input_deck_handle.FirstChild("c_v").FirstChild("const_A").ToElement()->FirstChild()->ToText()->Value());
+	c_v_object.constB=atof(input_deck_handle.FirstChild("c_v").FirstChild("const_B").ToElement()->FirstChild()->ToText()->Value());
+	c_v_object.constC=atof(input_deck_handle.FirstChild("c_v").FirstChild("const_C").ToElement()->FirstChild()->ToText()->Value());
+	
+
+	
+	vector<double> initial_flux_lr(2,0.0);
+	vector<vector<double> > initial_flux_cen(no_of_cells,initial_flux_lr);
+	vector<vector<vector<double> > > initial_flux_grp(no_of_directions,initial_flux_cen);
+	vector<double> delta_x(no_of_cells,0.0);
+	
+
+	TiXmlElement* elem = docHandle.FirstChildElement().FirstChild("initial_flux").ToElement();
+	iTypeSelected=atoi( elem->Attribute("distributionType")) ;
+	TiXmlElement* eleminnerFlux=docHandle.FirstChildElement().FirstChild("initial_flux").Child("flux" ,(iTypeSelected-1)).ToElement();
+	TiXmlText* fluxTypeText=eleminnerFlux->FirstChildElement()->FirstChild()->ToText();
+
+	switch(iTypeSelected)
+	{
+	case 1:
+		{
+			dFlux=atof(fluxTypeText->Value());
+			for(int iDir=0;iDir <no_of_directions;iDir++)
+			{
+				for(int iCen=0;iCen < no_of_cells;iCen++ )
+				{
+					initial_flux_grp[iDir][iCen][0]=dFlux;
+					initial_flux_grp[iDir][iCen][1]=dFlux;
+				}
+			}
+			break;
+		}
+	case 2:
+		{
+			dFlux=atof(fluxTypeText->Value());
+			dPlanckianFlux=((common_Utils.integrate_B_grey(dFlux)))/(4*PI);
+			for(int iDir=0;iDir <no_of_directions;iDir++)
+			{
+				for(int iCen=0;iCen < no_of_cells;iCen++ )
+				{
+					initial_flux_grp[iDir][iCen][0]=dPlanckianFlux;
+					initial_flux_grp[iDir][iCen][1]=dPlanckianFlux;
+				}
+			}
+			break;
+		}
+	case 3:
+		{
+			string inpStr(fluxTypeText->Value());
+			TiXmlText* defaultFluxText=eleminnerFlux->FirstChildElement("default_value")->FirstChild()->ToText();
+			string sDefaultFlux(defaultFluxText->Value());
+			vector<string> splitData(no_of_cells,sDefaultFlux);
+			common_Utils.split(inpStr," ",splitData);
+			for(int iDir=0;iDir <no_of_directions;iDir++)
+			{
+				for(int iCen=0;iCen < no_of_cells;iCen++ )
+				{
+					/*!-- Convert String to Double */
+					const char * pch=(splitData[iCen]).c_str();
+					double dVal=atof(pch);
+					initial_flux_grp[iDir][iCen][0]=(dVal)/(4*PI);
+					initial_flux_grp[iDir][iCen][1]=(dVal)/(4*PI);
+				}
+			}			
+		}
+	}
+
+	elem = docHandle.FirstChildElement().FirstChild("delta_x").ToElement();
+	iTypeSelected=atoi( elem->Attribute("discretisationType")) ;
+	TiXmlElement* eleminnerVal=docHandle.FirstChildElement().FirstChild("delta_x").Child("del_x" ,(iTypeSelected-1)).ToElement();
+	TiXmlText* innValTxt;
+
+	switch(iTypeSelected)
+	{
+	case 1:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("x_min")->FirstChild()->ToText();
+			x_min=atof(innValTxt->Value());
+			innValTxt=eleminnerVal->FirstChildElement("x_max")->FirstChild()->ToText();
+			x_max=atof(innValTxt->Value());
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				delta_x[iCel]=(x_max-x_min)/(no_of_cells);
+			}
+			break;
+		}
+	case 2:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("values")->FirstChild()->ToText();
+			string inpStr(innValTxt->Value());
+			vector<string> splitData(no_of_cells,"0.0");
+			common_Utils.split(inpStr," ",splitData);
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				/*!-- Convert String to Double */
+				const char * pch=(splitData[iCel]).c_str();
+				double dVal=atof(pch);
+				delta_x[iCel]=dVal;
+			}
+		}
+	}
+
+	vector<double> q_source_mesh_lr(2,0);
+	vector<vector<double> > q_source_mesh(no_of_cells,q_source_mesh_lr);	
+
+	elem = docHandle.FirstChildElement().FirstChild("external_source").ToElement();
+	iTypeSelected=atoi( elem->Attribute("srcType")) ;
+	eleminnerVal=docHandle.FirstChildElement().FirstChild("external_source").Child("src" ,(iTypeSelected-1)).ToElement();
+	
+	switch(iTypeSelected)
+	{
+	case 1:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("source")->FirstChild()->ToText();
+			dSrc=atof(innValTxt->Value());
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				q_source_mesh[iCel][0]=dSrc;
+				q_source_mesh[iCel][1]=dSrc;
+			}
+			break;
+		}
+	case 2:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("source")->FirstChild()->ToText();
+			dSrc=atof(innValTxt->Value());
+			dPlanckianSrc=common_Utils.integrate_B_grey(dSrc);
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				q_source_mesh[iCel][0]=dPlanckianSrc;
+				q_source_mesh[iCel][1]=dPlanckianSrc;
+			}	
+			break;
+		}
+	case 3:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("source")->FirstChild()->ToText();
+			dSrc=atof(innValTxt->Value());
+
+			//Read the distribution of source from xml;
+			innValTxt=eleminnerVal->FirstChildElement("distribution")->FirstChild()->ToText();
+			string inpStr(innValTxt->Value());
+			vector<string> splitData(no_of_cells,"null");
+			common_Utils.split(inpStr," ",splitData);
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				if(splitData[iCel] != "null")
+				{
+					/*!-- Convert String to Double */
+					const char * pch=(splitData[iCel]).c_str();
+					int iVal=atoi(pch);
+					q_source_mesh[iVal-1][0]=dSrc;
+					q_source_mesh[iVal-1][1]=dSrc;
+				}				
+			}	
+			break;
+		}
+	case 4:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("source")->FirstChild()->ToText();
+			dSrc=atof(innValTxt->Value());
+			dPlanckianSrc=common_Utils.integrate_B_grey(dSrc);
+			//Read the distribution of source from xml;
+			innValTxt=eleminnerVal->FirstChildElement("distribution")->FirstChild()->ToText();
+			string inpStr(innValTxt->Value());
+			vector<string> splitData(no_of_cells,"null");
+			common_Utils.split(inpStr," ",splitData);
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				if(splitData[iCel] != "null")
+				{
+					/*!-- Convert String to Double */
+					const char * pch=(splitData[iCel]).c_str();
+					int iVal=atoi(pch);
+					q_source_mesh[iVal-1][0]=dPlanckianSrc;
+					//Just fixup for this specific problem
+					q_source_mesh[iVal-1][1]=0;
+					//q_source_mesh[iVal-1][1]=dPlanckianSrc;
+				}				
+			}
+			break;
+		}
+	case 5:
+		{
+			innValTxt=eleminnerVal->FirstChildElement("source")->FirstChild()->ToText();
+			string inpStr(innValTxt->Value());
+			vector<string> splitData(no_of_cells,"0.0");
+			common_Utils.split(inpStr," ",splitData);
+			for(int iCel=0;iCel < no_of_cells;iCel++)
+			{
+				/*!-- Convert String to Double */
+				const char * pch=(splitData[iCel]).c_str();
+				double dVal=atof(pch);
+				q_source_mesh[iCel][0]=dVal;
+				q_source_mesh[iCel][1]=dVal;				
+			}
+		}
+	}
+
+	vector<double> initial_temp_mat_LR(2,0);
+	vector< vector<double> > initial_temp_LR_mat(no_of_cells,initial_temp_mat_LR);
+
+	elem = docHandle.FirstChildElement().FirstChild("initial_temp").ToElement();
+	iTypeSelected=atoi( elem->Attribute("distributionType")) ;
+	TiXmlElement* eleminnerTemp=docHandle.FirstChildElement().FirstChild("initial_temp").Child("temp" ,(iTypeSelected-1)).ToElement();
+	TiXmlText* tempTypeText=eleminnerTemp->FirstChildElement()->FirstChild()->ToText();
+
+	switch(iTypeSelected)
+	{
+	case 1:
+		{
+			dTemp=atof(tempTypeText->Value());
+			for(int iCen=0;iCen < no_of_cells;iCen++ )
+			{
+				initial_temp_LR_mat[iCen][0]=dTemp;
+				initial_temp_LR_mat[iCen][1]=dTemp;
+			}			
+			break;
+		}
+	case 2:
+		{
+			dTemp=atof(tempTypeText->Value());
+			dConvertedTemp=((common_Utils.convert_K_to_eV(dTemp)));
+			for(int iCen=0;iCen < no_of_cells;iCen++ )
+			{
+				initial_temp_LR_mat[iCen][0]=dConvertedTemp;
+				initial_temp_LR_mat[iCen][1]=dConvertedTemp;
+			}
+			break;
+		}
+	case 3:
+		{
+			string inpStr(tempTypeText->Value());
+			TiXmlText* defaultTempText=eleminnerTemp->FirstChildElement("default_value")->FirstChild()->ToText();
+			string sDefaultTemp(defaultTempText->Value());
+			vector<string> splitData(no_of_cells,sDefaultTemp);
+			common_Utils.split(inpStr," ",splitData);
+			for(int iCen=0;iCen < no_of_cells;iCen++ )
+			{
+				/*!-- Convert String to Double */
+				const char * pch=(splitData[iCen]).c_str();
+				double dVal=atof(pch);
+				initial_temp_LR_mat[iCen][0]=(dVal);
+				initial_temp_LR_mat[iCen][1]=(dVal);
+			}	
+			break;
+		}
+	case 4:
+		{
+			string inpStr(tempTypeText->Value());
+			TiXmlText* defaultTempText=eleminnerTemp->FirstChildElement("default_value")->FirstChild()->ToText();
+			string sDefaultTemp(defaultTempText->Value());
+			vector<string> splitData(no_of_cells,sDefaultTemp);
+			common_Utils.split(inpStr," ",splitData);
+			for(int iCen=0;iCen < no_of_cells;iCen++ )
+			{
+				/*!-- Convert String to Double */
+				const char * pch=(splitData[iCen]).c_str();
+				double dVal=atof(pch);
+				dConvertedTemp=((common_Utils.convert_eV_to_K(dVal)));
+				initial_temp_LR_mat[iCen][0]=(dConvertedTemp);
+				initial_temp_LR_mat[iCen][1]=(dConvertedTemp);
+			}						
+		}
+	}
+
+	int delta_t_periodic_count=atoi(input_deck_handle.FirstChild("delta_t_periodic_count").ToElement()->FirstChild()->ToText()->Value());
+	string strSpecificTime=docHandle.FirstChildElement().FirstChild("delta_t_periodic").ToElement()->FirstChild()->ToText()->Value();
+	vector<string> splitData(delta_t_periodic_count,"0.0");
+	common_Utils.split(strSpecificTime," ",splitData);
+	vector<double> delta_t_period(delta_t_periodic_count/2,0);
+	vector<int> delta_t_iter(delta_t_periodic_count/2,0);
+	int iRowCntr=0;
+	for(int iCen=0;iCen < delta_t_periodic_count;iCen++ )
+	{
+		/*!-- Convert String to Double */
+		const char * pch=(splitData[iCen]).c_str();		
+		if(iCen%2 == 0)
+		{
+			double dVal=atof(pch);
+			delta_t_period[iRowCntr]=dVal*100000000;
+			iRowCntr++;
+		}
+		else
+		{
+			int dVal=atoi(pch);
+			delta_t_iter[iRowCntr-1]=dVal;
+		}
+	}
+		
+		
+	elem = docHandle.FirstChildElement().FirstChild("specific_time").ToElement();
+	iTypeSelected=atoi( elem->Attribute("flag")) ; 
+	data_Transfer_Object.specific_output_time_flag=iTypeSelected;
+	//if(iTypeSelected == 1)
+	{
+		iTypeSelected=atoi( elem->Attribute("no_values"));
+		string strSpecificTime=docHandle.FirstChildElement().FirstChild("specific_time").FirstChild("specific_time_output").ToElement()->FirstChild()->ToText()->Value();
+		vector<string> splitData(iTypeSelected,"0.0");
+		vector<double> time_data_mat(iTypeSelected,0.0);
+		common_Utils.split(strSpecificTime," ",splitData);
+		for(int iCen=0;iCen < iTypeSelected;iCen++ )
+		{
+			/*!-- Convert String to Double */
+			const char * pch=(splitData[iCen]).c_str();
+			double dVal=atof(pch);
+			time_data_mat[iCen]=dVal*100000000;			
+		}
+		data_Transfer_Object.specific_output_time=time_data_mat;
+	}
+
+
+
+	//elem = docHandle.FirstChildElement().FirstChild("specific_time").ToElement();
+	//iTypeSelected=atoi( elem->Attribute("flag")) ;
+	//data_Transfer_Object.specific_output_time_flag=iTypeSelected;
+	////if(iTypeSelected == 1)
+	//{
+	//	iTypeSelected=atoi( elem->Attribute("no_values"));
+	//	string strSpecificTime=docHandle.FirstChildElement().FirstChild("specific_time").FirstChild("specific_time_iteration").ToElement()->FirstChild()->ToText()->Value();
+	//	vector<string> splitData(iTypeSelected,"0.0");
+	//	vector<int> time_data_mat(iTypeSelected,0.0);
+	//	common_Utils.split(strSpecificTime," ",splitData);
+	//	for(int iCen=0;iCen < iTypeSelected;iCen++ )
+	//	{
+	//		/*!-- Convert String to Double */
+	//		const char * pch=(splitData[iCen]).c_str();
+	//		double dVal=atoi(pch);
+	//		time_data_mat[iCen]=dVal;			
+	//	}
+	//	data_Transfer_Object.specific_output_time_iter=time_data_mat;
+	//}
+
+
+
+	//if(iTypeSelected == 2)
+	//{
+	//	iTypeSelected=atoi( elem->Attribute("no_values"));
+	//	string strSpecificTime=docHandle.FirstChildElement().FirstChild("specific_time").FirstChild("specific_time_output").ToElement()->FirstChild()->ToText()->Value();
+	//	vector<string> splitData(iTypeSelected,"0.0");
+	//	vector<double> time_data_mat(iTypeSelected,0.0);
+	//	map<string,int> specificTimeMap;
+	//	common_Utils.split(strSpecificTime," ",splitData);
+	//	for(int iCen=0;iCen < iTypeSelected;iCen++ )
+	//	{
+	//		/*!-- Convert String to Double */
+	//		const char * pch=(splitData[iCen]).c_str();
+	//		double dVal=atof(pch);
+	//		time_data_mat[iCen]=dVal*100000000;
+	//		specificTimeMap[pch]=iCen+1;
+	//	}
+	//	data_Transfer_Object.specific_output_time=time_data_mat;
+	//}
+	//else
+	//{
+	//	iTypeSelected=1;
+	//	vector<string> splitData(1,"0.0");
+	//	vector<double> time_data_mat(iTypeSelected,0.0);
+	//	for(int iCen=0;iCen < iTypeSelected;iCen++ )
+	//	{
+	//		/*!-- Convert String to Double */
+	//		const char * pch=(splitData[iCen]).c_str();
+	//		double dVal=atof(pch);
+	//		time_data_mat[iCen]=dVal;
+	//	}
+	//	data_Transfer_Object.specific_output_time=time_data_mat;
+	//}
+	//
+
+
+	vector<double> density_mat(no_of_cells,0);
+
+	elem = docHandle.FirstChildElement().FirstChild("material_density").ToElement();
+	iTypeSelected=atoi( elem->Attribute("distributionType")) ;
+	eleminnerTemp=docHandle.FirstChildElement().FirstChild("material_density").Child("density" ,(iTypeSelected-1)).ToElement();
+	tempTypeText=eleminnerTemp->FirstChildElement()->FirstChild()->ToText();
+
+	switch(iTypeSelected)
+	{
+	case 1:
+		{
+			dTemp=atof(tempTypeText->Value());
+			for(int iCen=0;iCen < no_of_cells;iCen++ )
+			{
+				density_mat[iCen]=dTemp;				
+			}			
+			break;
+		}	
+	case 2:
+		{
+			map<int,string> frac_Den_map;
+			int iNumFractions=atoi(docHandle.FirstChildElement().FirstChild("material_density").Child("density" ,(iTypeSelected-1)).ToElement()->Attribute("number_fractions"));
+			for(int iLoop=0;iLoop < iNumFractions;iLoop ++)
+			{
+				double dFrac=atof(((docHandle.FirstChildElement().FirstChild("material_density").Child("density" ,(iTypeSelected-1)).Child("fraction_counter",(iLoop)).Child("fraction",0)).ToElement()->FirstChild()->ToText()->Value()));
+				double dDen=atof(((docHandle.FirstChildElement().FirstChild("material_density").Child("density" ,(iTypeSelected-1)).Child("fraction_counter",(iLoop)).Child("density",0)).ToElement()->FirstChild()->ToText()->Value()));
+				stringstream sStringStrm;
+				sStringStrm << (dFrac*no_of_cells) << ":" << dDen;
+				frac_Den_map[iLoop]=sStringStrm.str();
+			}		
+
+			
+			map<int,string>::iterator it;
+			it=frac_Den_map.begin();
+			double dInstVal=0;
+			string complexStr=((*it).second);	
+			int iPosSep=complexStr.find(':');
+			string strKey=(complexStr.substr(0,(iPosSep)));
+							
+			for(int iCen1=0;iCen1 < no_of_cells;iCen1++ )
+			{
+				double dKey=atof(strKey.c_str());
+				if(dInstVal < dKey)
+				{
+					string strDens=(complexStr.substr((iPosSep+1),(complexStr.length()-(iPosSep+1))));			
+					double dDens=atof(strDens.c_str());				
+					density_mat[iCen1]=dDens;
+				}
+				else
+				{
+					dInstVal=0;
+					frac_Den_map.erase(it);
+					it=frac_Den_map.begin();
+					complexStr=((*it).second);	
+					iPosSep=complexStr.find(':');
+					strKey=(complexStr.substr(0,(iPosSep)));
+					string strDens=(complexStr.substr((iPosSep+1),(complexStr.length()-(iPosSep+1))));			
+					double dDens=atof(strDens.c_str());
+					density_mat[iCen1]=(dDens);
+				}
+				dInstVal++;
+			}			
+		}	
+	}
+
+	data_Transfer_Object.no_cells=no_of_cells;
+	data_Transfer_Object.no_directions=no_of_directions;
+	data_Transfer_Object.left_boundary=left_boundary;
+	data_Transfer_Object.j_left_current=dleft_inp_current;
+	data_Transfer_Object.j_left_flux=dleft_inp_flux;
+	data_Transfer_Object.right_boundary=right_boundary;
+	data_Transfer_Object.j_rght_current=dright_inp_current;
+	data_Transfer_Object.j_rght_flux=dright_inp_flux;
+	//Convert seconds to sh
+	data_Transfer_Object.delta_t=(delta_t_period[0]);
+	data_Transfer_Object.initial_delta_t=(delta_t_period[0]);
+	data_Transfer_Object.final_time=(100000000*(final_time));
+	int dSumTimerIter=0;
+	for (int i=0;i < (delta_t_periodic_count/2);i++)
+	{
+		dSumTimerIter=dSumTimerIter+delta_t_iter[i];
+	}	
+	data_Transfer_Object.time_iter=dSumTimerIter;
+	data_Transfer_Object.is_dsa=isDsa;
+	data_Transfer_Object.iTimeDependentFlag=iTimeDependentFlag;
+	data_Transfer_Object.iTransportFlag=iTransportFlag;
+	data_Transfer_Object.mfgFlag=mfgFlag;
+	data_Transfer_Object.c_v_object=c_v_object;
+	data_Transfer_Object.initial_flux=initial_flux_grp;
+	data_Transfer_Object.delta_x_mat=delta_x;
+	data_Transfer_Object.external_source=q_source_mesh;
+	data_Transfer_Object.l_no_of_moments=no_of_moments;
+	data_Transfer_Object.conv_tol_in_grp=conv_tol_in_grp;
+	data_Transfer_Object.conv_tol_out_grp=conv_tol_out_grp;
+	data_Transfer_Object.conv_tol_out_T=conv_tol_out_T;
+	data_Transfer_Object.initial_temp_LR_mat=initial_temp_LR_mat;
+	data_Transfer_Object.opacitiesFileName=opacities_file_name;
+	data_Transfer_Object.difference_type=difference_type;
+	data_Transfer_Object.density_mat=density_mat;
+	data_Transfer_Object.dynamic_time_step=dynamic_time_step;
+	data_Transfer_Object.delta_t_period=delta_t_period;
+	data_Transfer_Object.delta_t_iter=delta_t_iter;
+	return  data_Transfer_Object;
+}
+
