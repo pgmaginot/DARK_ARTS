@@ -15,16 +15,22 @@ bool Input_Reader::read_xml(std::string xmlFile)
   TiXmlDocument doc( xmlFile.c_str() );
   bool load_success = doc.LoadFile();
   
-  if( !load_success)
-  {
-    std::cout << "Error Loading XML Input File\n" ; 
+  if(load_success){
+    std::cout << "Found input file: " << xmlFile << std::endl << std::endl;
+  }
+  else{
+    std::cerr << "Could not open file: " << xmlFile << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   TiXmlElement* inp_block = doc.FirstChildElement( "INPUT_FILE" );
   
   if( !inp_block )
-    std::cout << "INPUT_FILE block not found.  Error. \n" ;
-
+  {
+    std::cerr << "INPUT_FILE block not found.  Error. \n" ;
+    exit(EXIT_FAILURE);
+  }
+  
   //! Every Input File Is Required To Have These Blocks
   TiXmlElement* reg_elem = inp_block->FirstChildElement( "REGIONS" );
   TiXmlElement* mat_elem = inp_block->FirstChildElement( "MATERIALS" );
@@ -34,32 +40,32 @@ bool Input_Reader::read_xml(std::string xmlFile)
   
   if(!reg_elem)
   {
-    std::cout << "REGIONS block not found.  Error \n";
-    good_exit = false;
+    std::cerr << "REGIONS block not found.\n";
+    exit(EXIT_FAILURE);
   }
   
   if(!mat_elem)
   {
-    std::cout << "MATERIALS block not found.  Error \n";
-    good_exit = false;
+    std::cerr << "MATERIALS block not found.  Error \n";
+    exit(EXIT_FAILURE);
   } 
   
   if(!time_elem)
   {
-    std::cout << "TIME block not found.  Error \n";
-    good_exit = false;
+    std::cerr << "TIME block not found.  Error \n";
+    exit(EXIT_FAILURE);
   }
   
   if(!discr_elem)
   {
-    std::cout << "SPATIAL_DISCRETIZATION block not found.  Error \n";
-    good_exit = false;
+    std::cerr << "SPATIAL_DISCRETIZATION block not found.  Error \n";
+    exit(EXIT_FAILURE);
   }
   
   if(!angle_elem)
   {
-    std::cout << "ANGULAR_DISCRETIZATION block not found.  Error \n";
-    good_exit = false;
+    std::cerr << "ANGULAR_DISCRETIZATION block not found.  Error \n";
+    exit(EXIT_FAILURE);
   }
   
   int region_return = -1;
@@ -69,14 +75,20 @@ bool Input_Reader::read_xml(std::string xmlFile)
   int angle_return = -1;
   
   //! Load Data Appropriately from each input block
-  if(good_exit)
-  {
-    region_return = load_region_data(reg_elem);
-    material_return = load_material_data(mat_elem);
-    time_return = load_time_stepping_data(time_elem);
-    spatial_return = load_spatial_discretization_data(discr_elem);
-    angle_return = load_angular_discretization_data(angle_elem);
-  }
+  region_return = load_region_data(reg_elem);
+  std::cout << "Region block read\n\n" ;
+  
+  material_return = load_material_data(mat_elem);
+  std::cout << "Material block read\n\n" ;
+  
+  time_return = load_time_stepping_data(time_elem);
+  std::cout << "Time block read\n\n" ;
+  
+  spatial_return = load_spatial_discretization_data(discr_elem);
+  std::cout << "Spatial discretization block read\n\n" ;
+  
+  angle_return = load_angular_discretization_data(angle_elem);
+  std::cout << "Angle block read\n\n" ;
   
   if( (region_return < 0) || (material_return < 0) || (time_return < 0) || 
       (spatial_return < 0) || (angle_return < 0) )
@@ -125,8 +137,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     m_number_regions = atoi(num_regions_elem->GetText());
   else
   {
-    std::cout << "Error.  Missing Number of regions element";
-    return -1;
+    std::cerr << "Error.  Missing Number of regions element";
+    exit(EXIT_FAILURE);
   }
   
   TiXmlElement* num_materials_elem = region_element->FirstChildElement( "Number_of_materials");
@@ -134,8 +146,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     m_number_materials = atoi(num_materials_elem->GetText());
   else
   {
-    std::cout << "Error.  Missing Number of materials element";
-    return -1;
+    std::cerr << "Error.  Missing Number of materials element";
+    exit(EXIT_FAILURE);
   }
   
   m_cells_per_region.resize(m_number_regions,0);
@@ -148,8 +160,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
   TiXmlElement* region_id = region_element->FirstChildElement( "Region");
   if(!region_id)
   {
-    std::cout << "Missing Individual Region Elements" << std::endl;
-    return -1;
+    std::cerr << "Missing Individual Region Elements" << std::endl;
+    exit(EXIT_FAILURE);
   } 
   /// loop over the specified number of regions
   for(int i=0; i<m_number_regions ; i++)
@@ -158,8 +170,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     int reg_num = atoi(region_id->GetText());
     if(reg_num != i)
     {
-      std::cout << "Error.  Expected Region: " << i << " Got Region: " << reg_num << std::endl;
-      break;
+      std::cerr << "Error.  Expected Region: " << i << " Got Region: " << reg_num << std::endl;
+      exit(EXIT_FAILURE);
     }
     TiXmlElement* n_cells = region_id->FirstChildElement( "N_cells" );
     TiXmlElement* x_left = region_id->FirstChildElement("Left_bound");
@@ -171,8 +183,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     
     if(!n_cells || !x_left || !x_right || !spacing || !mat_number)
     {
-      std::cout << "Error.  Region: " << reg_num << " is missing required elements" << std::endl;
-      return -1;
+      std::cerr << "Error.  Region: " << reg_num << " is missing required elements" << std::endl;
+      exit(EXIT_FAILURE);
     }
     
     /// store all region specific data    
@@ -180,16 +192,16 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     m_cells_per_region[i] = atoi(n_cells->GetText());
     if(m_cells_per_region[i] < 0)
     {
-      std::cout << "Error.  Region " << i << " Number of Cells must be a positive integer" << std::endl;
-      return -1;
+      std::cerr << "Error.  Region " << i << " Number of Cells must be a positive integer" << std::endl;
+      exit(EXIT_FAILURE);
     }
     
     /// check material number, must be in range: 0 ... n_mat - 1
     m_region_material_numbers[i] = atoi(mat_number->GetText());
     if( (m_region_material_numbers[i] < 0) ||(m_region_material_numbers[i] > (m_number_materials-1)))
     {
-      std::cout << "Error.  Region " << i << " Material number out of range" << std::endl;
-      return -1;
+      std::cerr << "Error.  Region " << i << " Material number out of range" << std::endl;
+      exit(EXIT_FAILURE);
     }
     
     /// get grid spacing type and check against the supported values
@@ -205,8 +217,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
 
     if(m_region_spacing_type[i] == INVALID_GRID_SPACING)
     {
-      std::cout << "Error.  Region " << i << " Invalid Grid Spacing" << std::endl;
-      return -1;
+      std::cerr << "Error.  Region " << i << " Invalid Grid Spacing" << std::endl;
+      exit(EXIT_FAILURE);
     }
     
     /// load in scaling factor for logarithmic grid spacing and check that it is greter than 1
@@ -214,14 +226,14 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     {
       if(!space_factor)
       {
-        std::cout << "Error.  Region " << i << " Missing size factor for logarithmic grid spacing" << std::endl;
-        return -1;        
+        std::cerr << "Error.  Region " << i << " Missing size factor for logarithmic grid spacing" << std::endl;
+        exit(EXIT_FAILURE);        
       }
       m_region_spacing_constant[i] = atof( space_factor->GetText() );
       if(m_region_spacing_constant[i] <= 1.)
       {
-        std::cout << "Error.  Region " << i << " Log spacing factors must be > 1" << std::endl;
-        return -1;
+        std::cerr << "Error.  Region " << i << " Log spacing factors must be > 1" << std::endl;
+        exit(EXIT_FAILURE);
       }
     }
     
@@ -230,16 +242,16 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     m_region_right_bounds[i] = atof(x_right->GetText() ) ;
     if(m_region_left_bounds[i] > m_region_right_bounds[i] )
     {
-      std::cout << "Error.  Region " << i << " x_L > x_R" << std::endl;
-      return -1;
+      std::cerr << "Error.  Region " << i << " x_L > x_R" << std::endl;
+      exit(EXIT_FAILURE);
     }
       
     /// go to the next region
     region_id = region_id->NextSiblingElement( "Region");
     if( (region_id == 0) && (i< m_number_regions - 1))
     {
-      std::cout << "Insufficient number of Region elements for the number of regions" << std::endl;
-      return -1;
+      std::cerr << "Insufficient number of Region elements for the number of regions" << std::endl;
+      exit(EXIT_FAILURE);
     }
   }
     
@@ -257,15 +269,15 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   {
     if(!mat_descr)
     {
-      std::cout << "Error.  Missing Material element in MATERIALS block.  Expected: " << m_number_materials 
+      std::cerr << "Error.  Missing Material element in MATERIALS block.  Expected: " << m_number_materials 
                 << "found: " << mat_cnt << std::endl;
-      return -1;
+      exit(EXIT_FAILURE);
     }    
     int mat_num = atoi( mat_descr->GetText() );
     if(mat_num != mat_cnt)
     {
-      std::cout << "Error.  Materials not entered in order" << std::endl;
-      return -1;
+      std::cerr << "Error.  Materials not entered in order" << std::endl;
+      exit(EXIT_FAILURE);
     }
     
     TiXmlElement* opacity_type = mat_descr->FirstChildElement( "Opacity_type");
@@ -289,8 +301,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
    
     if(m_material_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
     {
-      std::cout << "Error.  Invalid opacity type for material " << mat_num << std::endl;
-      return -1;    
+      std::cerr << "Error.  Invalid opacity type for material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);    
     }
     
     if(source_str == "NO_SOURCE")
@@ -298,8 +310,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
    
     if(m_material_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
-      std::cout << "Error.  Invalid source type for material " << mat_num << std::endl;
-      return -1;    
+      std::cerr << "Error.  Invalid source type for material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);    
     }
     
     if(cv_str == "CONSTANT_CV")
@@ -307,12 +319,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
    
     if(m_material_cv_type[mat_num] == INVALID_CV_TYPE)
     {
-      std::cout << "Error.  Invalid cv type for material " << mat_num << std::endl;
-      return -1;    
+      std::cerr << "Error.  Invalid cv type for material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);    
     }
-      
-      
-  
   }
   
   
@@ -332,33 +341,33 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   
   if(!dt_min_elem)
   {
-    std::cout << "Error.  Missing Dt_min element in TIME input block" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Dt_min element in TIME input block" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(!dt_max_elem)
   {
-    std::cout << "Error.  Missing Dt_max element in TIME input block" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Dt_max element in TIME input block" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(!t_start_elem)
   {
-    std::cout << "Error.  Missing T_start element in TIME input block" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing T_start element in TIME input block" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(!t_end_elem)
   {
-    std::cout << "Error.  Missing T_end element in TIME input block" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing T_end element in TIME input block" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(!solver_elem)
   {
-    std::cout << "Error.  Missing Time_solver element in TIME input block" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Time_solver element in TIME input block" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(!start_meth_elem)
   {
-    std::cout << "Error.  Missing Starting_method element in TIME input block" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Starting_method element in TIME input block" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   m_dt_min = atof(dt_min_elem->GetText() );
@@ -368,18 +377,18 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   
   if( (m_dt_min < 0.) || (m_dt_max < 0.) )
   {
-    std::cout << "Error.  Time step sizes must be positive floats" << std::endl;
-    return -1;
+    std::cerr << "Error.  Time step sizes must be positive floats" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if( m_dt_min > m_dt_max )
   {
-    std::cout << "Error.  Minimum time step must be greater than maximum time step" << std::endl;
-    return -1;
+    std::cerr << "Error.  Minimum time step must be greater than maximum time step" << std::endl;
+    exit(EXIT_FAILURE);
   }
   if(m_t_start > m_t_end)
   {
-    std::cout << "Error.  t_end must be greater than t_start " << std::endl;
-    return -1;
+    std::cerr << "Error.  t_end must be greater than t_start " << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   std::string stepper_str = solver_elem->GetText();
@@ -397,13 +406,13 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     
   if(m_time_step_scheme == INVALID_TIME_SOLVER)
   {
-    std::cout << "Error.  Invalid time stepping scheme" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Invalid time stepping scheme" << std::endl;
+    exit(EXIT_FAILURE);  
   }
   if(m_time_start_meth == INVALID_STARTING_METHOD)
   {
-    std::cout << "Error.  Invalid time iteration starting scheme" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Invalid time iteration starting scheme" << std::endl;
+    exit(EXIT_FAILURE);  
   }
   
   if(m_time_start_meth == EXPONENTIAL)
@@ -412,15 +421,15 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     TiXmlElement* exp_incr_fact = time_elem->FirstChildElement( "Increase_factor");
     if(!exp_incr_fact)
     {
-      std::cout << "Error.  Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" << std::endl;
-      return -1;
+      std::cerr << "Error.  Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" << std::endl;
+      exit(EXIT_FAILURE);
     }
     m_starting_constants.resize(1,0.);
     m_starting_constants[0] = atof( exp_incr_fact->GetText() );
     if(m_starting_constants[0] < 1.)
     {
-      std::cout << "Error.  Starting time step increase must be greater than 1.0" << std::endl;
-      return -1;
+      std::cerr << "Error.  Starting time step increase must be greater than 1.0" << std::endl;
+      exit(EXIT_FAILURE);
     }
   }
   else if(m_time_start_meth == VECTOR)
@@ -428,14 +437,14 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     TiXmlElement* n_stages = time_elem->FirstChildElement( "N_vector_stages" );
     if(!n_stages)
     {
-      std::cout << "Error.  VECTOR time starter requires N_stages element" << std::endl;
-      return -1;
+      std::cerr << "Error.  VECTOR time starter requires N_stages element" << std::endl;
+      exit(EXIT_FAILURE);
     }
     int num_vec_stages = atoi(n_stages->GetText() );
     if(num_vec_stages < 1)
     {
-      std::cout << "Error.  Must have at least 1 stage of small time steps with VECTOR time starter" << std::endl;
-      return -1;
+      std::cerr << "Error.  Must have at least 1 stage of small time steps with VECTOR time starter" << std::endl;
+      exit(EXIT_FAILURE);
     }
     
     m_starting_constants.resize(2*num_vec_stages , 0.);
@@ -447,16 +456,16 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     {
       if(!vector_stage)
       {
-        std::cout << "Error.  Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
-        std::cout << "Only found: " << i << " Vector_stage elements" << std::endl;
-        return -1;
+        std::cerr << "Error.  Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
+        std::cerr << "Only found: " << i << " Vector_stage elements" << std::endl;
+        exit(EXIT_FAILURE);
       }
       
       int curr_stage = atoi(vector_stage->GetText() );
       if(curr_stage < 0 || curr_stage == num_vec_stages)
       {
-        std::cout << "Error.  Vector_stage number must be between 0 and n_stages - 1" << std::endl;
-        return -1;
+        std::cerr << "Error.  Vector_stage number must be between 0 and n_stages - 1" << std::endl;
+        exit(EXIT_FAILURE);
       }
     
       TiXmlElement* stage_steps = vector_stage->FirstChildElement("Stage_steps");
@@ -464,8 +473,8 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
 
       if(!stage_steps || !stage_factor)
       {
-        std::cout << "Expect a Stage_steps and Stage_size element in each Vector_stage element" << std::endl;
-        return -1;
+        std::cerr << "Expect a Stage_steps and Stage_size element in each Vector_stage element" << std::endl;
+        exit(EXIT_FAILURE);
       }
       
       int stages = atoi( stage_steps->GetText() );
@@ -473,13 +482,13 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
       
       if(stages < 1)
       {
-        std::cout << "Error. Stage_steps must be an integer greater than 1" << std::endl;
-        return -1;       
+        std::cerr << "Error. Stage_steps must be an integer greater than 1" << std::endl;
+        exit(EXIT_FAILURE);       
       }
       if(size_factor <= 0.  || size_factor >= 1.)
       {
-        std::cout << "Error.  Stage_size must be a double between 0 and 1 " << std::endl;
-        return -1;      
+        std::cerr << "Error.  Stage_size must be a double between 0 and 1 " << std::endl;
+        exit(EXIT_FAILURE);      
       }
       m_starting_constants[2*curr_stage] = double (stages);
       m_starting_constants[2*curr_stage + 1] = size_factor;      
@@ -503,40 +512,40 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
 
   if(!trial_space_elem)
   {
-    std::cout << "Error.  Missing DFEM_degree element from SPATIAL_DISCRETIZATION block" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Missing DFEM_degree element from SPATIAL_DISCRETIZATION block" << std::endl;
+    exit(EXIT_FAILURE);  
   }
   if(!int_type_elem)
   {
-    std::cout << "Error.  Missing Integration_type element from SPATIAL_DISCRETIZATION block" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Missing Integration_type element from SPATIAL_DISCRETIZATION block" << std::endl;
+    exit(EXIT_FAILURE);  
   }  
   if(!dfem_interp_point_type_elem)
   {
-    std::cout << "Error.  Missing DFEM_interpolation_point_type element from SPATIAL_DISCRETIZATION block" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Missing DFEM_interpolation_point_type element from SPATIAL_DISCRETIZATION block" << std::endl;
+    exit(EXIT_FAILURE);  
   }  
   if(!opacity_treatment_elem)
   {
-    std::cout << "Error.  Missing Opacity_treatment element from SPATIAL_DISCRETIZATION block" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Missing Opacity_treatment element from SPATIAL_DISCRETIZATION block" << std::endl;
+    exit(EXIT_FAILURE);  
   }  
   if(!opacity_interp_point_type_elem)
   {
-    std::cout << "Error.  Missing Opacity_interp_point_type_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Missing Opacity_interp_point_type_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
+    exit(EXIT_FAILURE);  
   }
   if(!opacity_degree_elem)
   {
-    std::cout << "Error.  Missing Opacity_degree_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
-    return -1;  
+    std::cerr << "Error.  Missing Opacity_degree_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
+    exit(EXIT_FAILURE);  
   }
   
   m_dfem_trial_space_degree = atoi( trial_space_elem->GetText() );
   if(m_dfem_trial_space_degree < 1)
   {
-    std::cout << "Error.  Trial space degree must be a positive integrer greater than 0" << std::endl;
-    return -1;
+    std::cerr << "Error.  Trial space degree must be a positive integrer greater than 0" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   std::string int_type_str = int_type_elem->GetText();
@@ -550,8 +559,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if( m_integration_type == INVALID_MATRIX_INTEGRATION)
   {
-    std::cout << "Invalid matrix integration strategy" << std::endl;
-    return -1;
+    std::cerr << "Invalid matrix integration strategy" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   std::string dfem_intep_type_str = dfem_interp_point_type_elem->GetText();
@@ -565,8 +574,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if( m_dfem_interpolation_point_type == INVALID_QUADRATURE_TYPE)
   {
-    std::cout << "Invalid DFEM interpolation point type" << std::endl;
-    return -1;
+    std::cerr << "Invalid DFEM interpolation point type" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
@@ -580,8 +589,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if( m_dfem_interpolation_point_type == INVALID_QUADRATURE_TYPE)
   {
-    std::cout << "Invalid DFEM interpolation point type" << std::endl;
-    return -1;
+    std::cerr << "Invalid DFEM interpolation point type" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   std::string opacity_treat_str = opacity_treatment_elem->GetText();
@@ -593,15 +602,15 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if(m_opacity_treatment == INVALID_OPACITY_TREATMENT)
   {
-    std::cout << "Errror. Invalid opacity treatment" << std::endl;
-    return -1;    
+    std::cerr << "Errror. Invalid opacity treatment" << std::endl;
+    exit(EXIT_FAILURE);    
   }
   
   m_opacity_polynomial_degree = atoi( opacity_degree_elem->GetText() );
   if(m_opacity_polynomial_degree < 0)
   {
-    std::cout << "Error.  Invalid opacity treatment" << std::endl;
-    return -1;
+    std::cerr << "Error.  Invalid opacity polynomial" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   return 0;  
@@ -615,34 +624,34 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   
   if(!n_angle_elem)
   {
-    std::cout << "Error.  Missing Number_of_angles element" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Number_of_angles element" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   if(!n_group_elem)
   {
-    std::cout << "Error.  Missing Number_of_groups element" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Number_of_groups element" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   if(!quad_type_elem)
   {
-    std::cout << "Error.  Missing Quadrature_type element" << std::endl;
-    return -1;
+    std::cerr << "Error.  Missing Quadrature_type element" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   m_number_angles = atoi( n_angle_elem->GetText() );
   if( m_number_angles < 0 || ((m_number_angles % 2) != 0) )
   {
-    std::cout << "Error.  Number of Angles must be a positive, even integer" << std::endl;
-    return -1;
+    std::cerr << "Error.  Number of Angles must be a positive, even integer" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   m_number_groups = atoi(n_group_elem->GetText() ) ;
   if( m_number_groups < 1)
   {
-    std::cout << "Error.  Number of groups must be an integer > 0" << std::endl;
-    return -1;
+    std::cerr << "Error.  Number of groups must be an integer > 0" << std::endl;
+    exit(EXIT_FAILURE);
   }
   
   std::string ang_quad_str = quad_type_elem->GetText();
@@ -655,8 +664,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
 
   if(m_angular_quadrature_type == INVALID_ANGULAR_QUADRATURE_TYPE)
   {
-    std::cout << "Error. Invalid Quadrature_type in ANGULAR_DISCRETIZATION" << std::endl;
-    return -1;
+    std::cerr << "Error. Invalid Quadrature_type in ANGULAR_DISCRETIZATION" << std::endl;
+    exit(EXIT_FAILURE);
   }
     
   return 0;

@@ -22,6 +22,8 @@ public:
   Fem_Quadrature(Input_Reader&  input_reader);
   ~Fem_Quadrature(){}
   
+  
+  
 protected:
   const int m_xs_extra_points = 10;
   

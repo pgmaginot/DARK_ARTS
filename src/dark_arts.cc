@@ -9,18 +9,20 @@ int main(int argc, char** argv)
   
   Input_Reader input_reader;
   bool input_parsed = false;
-  
+    
   input_parsed = input_reader.read_xml(argv[1]);
-  
+    
   if(!input_parsed)
   {
-    std::cout << "Error reading input" << std::endl;
+    std::cerr << "Error reading input" << std::endl;
     exit(EXIT_FAILURE);
   }
   
   /// Initialize FEM data
   /// get all interpolation points, quadrature formuals, matrix formation routines, etc.
   Fem_Quadrature fem_quadrature( input_reader );
+  
+  std::cout << "fem_quadrature_object created\n";
   
   /// Get an array of Material objects
  // Materials_Vector mat_data( &input_reader);
