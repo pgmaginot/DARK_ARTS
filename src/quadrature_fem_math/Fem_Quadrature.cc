@@ -99,18 +99,17 @@ Fem_Quadrature::Fem_Quadrature(Input_Reader&  input_reader)
   }
   
   /// Get the quadrature points we are going to use to form the matrices
-  int n_integration_points = 0;
   MATRIX_INTEGRATION int_method = input_reader.get_integration_method();
   switch(int_method)
   {
     case SELF_LUMPING:
     {
-      n_integration_points = n_interp_point;
+      m_n_integration_points = n_interp_point;
       break;
     }
     case TRAD_LUMPING:
     {
-      n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
+      m_n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
       break;
     }
     case EXACT:
@@ -118,7 +117,7 @@ Fem_Quadrature::Fem_Quadrature(Input_Reader&  input_reader)
       /// going to use Gauss quadrature point (accurate for P <= 2*Np - 1)
       /// integrating P_dfem + P_dfem + P_xs functions
       /// P_dfem + 1 + P_xs will more than cover it
-      n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
+      m_n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
       break;
     }
     case INVALID_MATRIX_INTEGRATION:
@@ -128,8 +127,8 @@ Fem_Quadrature::Fem_Quadrature(Input_Reader&  input_reader)
     }
   }
   
-  m_integration_points.resize(n_integration_points,0.);
-  m_integration_weights.resize(n_integration_points,0.);
+  m_integration_points.resize(m_n_integration_points,0.);
+  m_integration_weights.resize(m_n_integration_points,0.);
   
   if(int_method == SELF_LUMPING)
   {
@@ -137,17 +136,17 @@ Fem_Quadrature::Fem_Quadrature(Input_Reader&  input_reader)
     {
       case GAUSS:
       {
-        quad_fun.legendre_dr_compute( n_integration_points , m_integration_points, m_integration_weights);
+        quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
         break;
       }
       case LOBATTO:
       {
-        quad_fun.lobatto_compute(n_integration_points , m_integration_points, m_integration_weights);
+        quad_fun.lobatto_compute(m_n_integration_points , m_integration_points, m_integration_weights);
         break;
       }
       case EQUAL_SPACED:
       {
-        quad_fun.ncc_compute(n_integration_points , m_integration_points, m_integration_weights);
+        quad_fun.ncc_compute(m_n_integration_points , m_integration_points, m_integration_weights);
         break;
       }
       case INVALID_QUADRATURE_TYPE:
@@ -159,6 +158,95 @@ Fem_Quadrature::Fem_Quadrature(Input_Reader&  input_reader)
   }
   else
   {  
-    quad_fun.legendre_dr_compute( n_integration_points , m_integration_points, m_integration_weights);
+    quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
   }
+  
+  /// Evaluate DFEM basis functions at matrix integration points
+  evaluate_lagrange_func(m_dfem_interpolation_points, m_integration_points,
+    m_basis_at_integration_points);
+  
+  /// Evaluate derivatives of basis functions on the reference element
+  evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, m_integration_points,
+    m_d_basis_d_s_at_integration_points);
+    
+  
 }
+
+int Fem_Quadrature::get_number_of_integration_points(void)
+{
+  return m_n_integration_points; 
+}
+
+void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
+  const std::vector<double>& eval_points, std::vector<double>& func_evals)
+{
+  const int n_eval_p = eval_points.size();
+  const int n_interp_p = interp_points.size();
+  
+  /// allocate space for func_evals vector
+  /// layout vector from
+  func_evals.resize(n_eval_p*n_interp_p,0.);
+  
+  int pos = 0;
+  /// loop over basis functions
+  for(int j=0; j< n_interp_p ; j++)
+  {
+    /// loop over points we want to evaluate at
+    for(int pnt = 0; pnt < n_eval_p ; pnt++)
+    {
+      double val = 1.;
+      for(int k = 0; k< n_interp_p ; k++)
+      {
+        if(j == k)
+          continue;
+          
+        val *= (eval_points[pnt] - interp_points[k]) / 
+          (interp_points[j] - interp_points[k]);
+      }
+      func_evals[pos] = val;
+      pos++;
+    }    
+  }
+  
+  return;
+}
+
+void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double>& interp_points, 
+  const std::vector<double>& eval_points, std::vector<double>& deriv_evals)
+{
+  /// taken from http://www.phys.ufl.edu/~coldwell/wsteve/FDERS/The%20Lagrange%20Polynomial.htm
+  const int n_eval_p = eval_points.size();
+  const int n_interp_p = interp_points.size();
+  
+  deriv_evals.resize(n_eval_p*n_interp_p,0.);
+  int cnt = 0;
+  for( int p=0;p<n_eval_p;p++)
+  {
+    for(int m=0;m<n_interp_p; m++)
+    {
+      double sum_val = 0;
+      for(int l=0; l<n_interp_p; l++)
+      {
+        if(m==l)
+          continue;
+          
+        double inner_mult = 1.;
+        for(int j = 0; j < n_interp_p; j++)
+        {
+          if( (j==l) || (j==m) )
+            continue;
+            
+          inner_mult *= (eval_points[p] - interp_points[j])/(interp_points[m] - interp_points[j]);
+        }
+        sum_val += inner_mult/(interp_points[m] - interp_points[l]);
+     
+      }  
+      deriv_evals[cnt] = sum_val;
+      cnt++;
+    }
+  }
+  
+  return;
+}
+    
+    

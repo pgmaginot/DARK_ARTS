@@ -79,6 +79,9 @@ PropagateSG(INPUT)
 add_subdirectory(quadrature_fem_math)
 PropagateSG(QUADRATURE_FEM_MATH)
 
+add_subdirectory(cells)
+PropagateSG(CELLS)
+
 #----------------------------------------
 # Propagate variables to parents scope
 #----------------------------------------

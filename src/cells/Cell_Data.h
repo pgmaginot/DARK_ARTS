@@ -3,26 +3,25 @@
 
 #include "Inputs_Allowed.h"
 #include "Input_Reader.h"
-#include "Fem_Quadrature.h"
 
 #include <vector>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
 
-class Fem_Quadrature
+class Cell_Data
 {
 public:
-  /// Only able to initialize if given an Input_Reader object
-  Fem_Quadrature(const Input_Reader&  input_reader);
-  ~Fem_Quadrature();
+  /// Only able to initialize if given input object and quadrature object
+  Cell_Data(Input_Reader&  input_reader);
+  ~Cell_Data(){}
   
 protected:
   std::vector<double> m_x_l;
   std::vector<double> m_x_r;
-  std::vector<double> m_dx;
-  std::vector<int> m_material_num;
-    
+  std::vector<int> m_material_num;    
+  
+  int m_total_cells=0;
 };
 
 #endif

@@ -129,6 +129,57 @@ MATRIX_INTEGRATION Input_Reader::get_integration_method(void)
   return m_integration_type;
 }
 
+int Input_Reader::get_n_regions(void)
+{
+  return m_number_regions;
+}
+
+void Input_Reader::get_cells_per_region_vector(std::vector<int>& cell_per_region)
+{
+  cell_per_region.resize(m_number_regions,0);
+  for(int i=0;i<m_number_regions;i++)
+    cell_per_region[i] = m_cells_per_region[i];
+    
+  return;
+}
+
+void Input_Reader::get_region_boundaries(std::vector<double>& left_bound, std::vector<double>& right_bound)
+{
+  left_bound.resize(m_number_regions,0.);
+  right_bound.resize(m_number_regions,0.);
+  for(int i=0;i<m_number_regions;i++)
+  {
+    left_bound[i] = m_region_left_bounds[i];
+    right_bound[i] = m_region_right_bounds[i];
+  }
+  
+  return;
+}
+
+void Input_Reader::get_region_spacing(std::vector<GRID_SPACING>& spacing_type)
+{
+  spacing_type.resize(m_number_regions,INVALID_GRID_SPACING);
+  for(int i=0;i<m_number_regions;i++)
+    spacing_type[i] = m_region_spacing_type[i];
+    
+  return;
+}
+
+void Input_Reader::get_region_materials(std::vector<int>& region_mats)
+{
+  region_mats.resize(m_number_regions,0);
+  for(int i=0;i<m_number_regions;i++)
+    region_mats[i] = m_region_material_numbers[i];
+    
+  return;
+}
+
+/* ***************************************************
+ *
+ *  Protected Functions
+ *
+ * ************************************************** */
+
 int Input_Reader::load_region_data(TiXmlElement* region_element)
 {  
   /// Get the number of regions in the problem

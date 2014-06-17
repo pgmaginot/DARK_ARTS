@@ -1,5 +1,6 @@
 #include "Input_Reader.h"
 #include "Fem_Quadrature.h"
+#include "Cell_Data.h"
 
 int main(int argc, char** argv)
 {
@@ -24,11 +25,13 @@ int main(int argc, char** argv)
   
   std::cout << "fem_quadrature_object created\n";
   
+  /// Initalize cell data (dx, xL, xR, x_ip, material_number)
+  Cell_Data cell_data( input_reader );
+  
   /// Get an array of Material objects
  // Materials_Vector mat_data( &input_reader);
   
-  /// Initalize cell data (dx, xL, xR, x_ip, material_number)
-  //Cell_Data cell_data( &input_reader , &fem_quadrature );
+  
 
   
   

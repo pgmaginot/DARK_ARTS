@@ -31,6 +31,11 @@ public:
   QUADRATURE_TYPE get_opacity_interpolation_point_type(void);
   MATRIX_INTEGRATION get_integration_method(void);
   
+  int get_n_regions(void);
+  void get_cells_per_region_vector(std::vector<int>& cell_per_region);
+  void get_region_boundaries(std::vector<double>& left_bound, std::vector<double>& right_bound);
+  void get_region_spacing(std::vector<GRID_SPACING>& spacing_type);
+  void get_region_materials(std::vector<int>& region_mats);
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
