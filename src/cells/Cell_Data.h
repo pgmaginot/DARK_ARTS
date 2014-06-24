@@ -18,10 +18,19 @@ public:
   
 protected:
   std::vector<double> m_x_l;
-  std::vector<double> m_x_r;
+  std::vector<double> m_dx;
   std::vector<int> m_material_num;    
   
   int m_total_cells=0;
+  
+/* ***************************************************
+  *
+  *   Protected Functions
+  *
+  *************************************************** */
+  
+  void determine_cell_properties(const int n_reg, const std::vector<int>& cell_reg,
+    const Input_Reader& input_reader);
 };
 
 #endif

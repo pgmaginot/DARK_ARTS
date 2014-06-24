@@ -6,7 +6,7 @@
 #include "Fem_Quadrature.h"
 #include "Quadrule_New.h"
 
-Fem_Quadrature::Fem_Quadrature(Input_Reader&  input_reader)
+Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader)
 {
   /// Initialize a Quadrule object to be able to get all of the quadrature we need
   Quadrule_New quad_fun;

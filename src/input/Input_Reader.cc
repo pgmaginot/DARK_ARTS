@@ -99,42 +99,46 @@ bool Input_Reader::read_xml(std::string xmlFile)
   return good_exit;
 }
 
-int Input_Reader::get_dfem_degree(void)
+// ##########################################################
+// Const (get) Public functions 
+// ##########################################################
+
+int Input_Reader::get_dfem_degree(void) const
 {
   return m_dfem_trial_space_degree;
 }
 
-QUADRATURE_TYPE Input_Reader::get_dfem_interpolation_point_type(void)
+QUADRATURE_TYPE Input_Reader::get_dfem_interpolation_point_type(void) const
 {
   return m_dfem_interpolation_point_type;
 }
 
-int Input_Reader::get_opacity_degree(void)
+int Input_Reader::get_opacity_degree(void) const 
 {
   return m_opacity_polynomial_degree;
 }
 
-OPACITY_TREATMENT Input_Reader::get_opacity_treatment(void)
+OPACITY_TREATMENT Input_Reader::get_opacity_treatment(void) const
 {
   return m_opacity_treatment;
 }
 
-QUADRATURE_TYPE Input_Reader::get_opacity_interpolation_point_type(void)
+QUADRATURE_TYPE Input_Reader::get_opacity_interpolation_point_type(void) const
 {
   return m_opacity_interpolation_point_type;
 }
 
-MATRIX_INTEGRATION Input_Reader::get_integration_method(void)
+MATRIX_INTEGRATION Input_Reader::get_integration_method(void) const
 {
   return m_integration_type;
 }
 
-int Input_Reader::get_n_regions(void)
+int Input_Reader::get_n_regions(void) const
 {
   return m_number_regions;
 }
 
-void Input_Reader::get_cells_per_region_vector(std::vector<int>& cell_per_region)
+void Input_Reader::get_cells_per_region_vector(std::vector<int>& cell_per_region) const
 {
   cell_per_region.resize(m_number_regions,0);
   for(int i=0;i<m_number_regions;i++)
@@ -143,36 +147,36 @@ void Input_Reader::get_cells_per_region_vector(std::vector<int>& cell_per_region
   return;
 }
 
-void Input_Reader::get_region_boundaries(std::vector<double>& left_bound, std::vector<double>& right_bound)
-{
-  left_bound.resize(m_number_regions,0.);
-  right_bound.resize(m_number_regions,0.);
-  for(int i=0;i<m_number_regions;i++)
-  {
-    left_bound[i] = m_region_left_bounds[i];
-    right_bound[i] = m_region_right_bounds[i];
-  }
-  
-  return;
+GRID_SPACING Input_Reader::get_region_spacing(int reg_num) const
+{   
+  return m_region_spacing_type[reg_num];
 }
 
-void Input_Reader::get_region_spacing(std::vector<GRID_SPACING>& spacing_type)
-{
-  spacing_type.resize(m_number_regions,INVALID_GRID_SPACING);
-  for(int i=0;i<m_number_regions;i++)
-    spacing_type[i] = m_region_spacing_type[i];
-    
-  return;
+int Input_Reader::get_region_material_number(int reg_num) const
+{    
+  return m_region_material_numbers[reg_num];
 }
 
-void Input_Reader::get_region_materials(std::vector<int>& region_mats)
+double Input_Reader::get_region_left_bound(int reg_num) const
 {
-  region_mats.resize(m_number_regions,0);
-  for(int i=0;i<m_number_regions;i++)
-    region_mats[i] = m_region_material_numbers[i];
-    
-  return;
+  return m_region_left_bounds[reg_num];
 }
+
+double Input_Reader::get_region_right_bound(int reg_num) const
+{
+  return m_region_right_bounds[reg_num];
+}
+
+double Input_Reader::get_min_cell_size(int reg_num) const
+{
+  return m_region_min_size[reg_num];
+}
+
+double Input_Reader::get_r_factor(int reg_num) const
+{
+  return m_region_spacing_constant[reg_num];
+}
+
 
 /* ***************************************************
  *
@@ -207,6 +211,7 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
   m_region_left_bounds.resize(m_number_regions,-1.0);
   m_region_right_bounds.resize(m_number_regions,-2.0);
   m_region_spacing_constant.resize(m_number_regions,0.0);
+  m_region_min_size.resize(m_number_regions,0.0);
   
   TiXmlElement* region_id = region_element->FirstChildElement( "Region");
   if(!region_id)
@@ -229,8 +234,6 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     TiXmlElement* x_right = region_id->FirstChildElement("Right_bound");
     TiXmlElement* spacing = region_id->FirstChildElement("Spacing");
     TiXmlElement* mat_number = region_id->FirstChildElement("Material_number");
-    /// only tested if a region has logarithmic spacing
-    TiXmlElement* space_factor = region_id->FirstChildElement("Log_space_factor");
     
     if(!n_cells || !x_left || !x_right || !spacing || !mat_number)
     {
@@ -261,10 +264,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     transform(spacing_str.begin() , spacing_str.end() , spacing_str.begin() , toupper);
     if(spacing_str == "EQUAL")
       m_region_spacing_type[i] = EQUAL;
-    else if(spacing_str == "LOG_THIN_LEFT")
-      m_region_spacing_type[i] = LOG_THIN_LEFT;
-    else if(spacing_str == "LOG_THIN_RIGHT")
-      m_region_spacing_type[i] = LOG_THIN_RIGHT;
+    else if(spacing_str == "LOG")
+      m_region_spacing_type[i] = LOG;
 
     if(m_region_spacing_type[i] == INVALID_GRID_SPACING)
     {
@@ -273,19 +274,34 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     }
     
     /// load in scaling factor for logarithmic grid spacing and check that it is greter than 1
-    if( (m_region_spacing_type[i] == LOG_THIN_LEFT ) || (m_region_spacing_type[i] == LOG_THIN_RIGHT))
+    if( (m_region_spacing_type[i] == LOG) )
     {
+      TiXmlElement* space_factor = region_id->FirstChildElement("Log_space_factor");
+      TiXmlElement* min_dx = region_id->FirstChildElement("Min_cell_size");
       if(!space_factor)
       {
         std::cerr << "Error.  Region " << i << " Missing size factor for logarithmic grid spacing" << std::endl;
         exit(EXIT_FAILURE);        
       }
-      m_region_spacing_constant[i] = atof( space_factor->GetText() );
-      if(m_region_spacing_constant[i] <= 1.)
+      if(!min_dx)
       {
-        std::cerr << "Error.  Region " << i << " Log spacing factors must be > 1" << std::endl;
+        std::cerr << "Error.  Region " << i << " Missing sminimum cell size for logarithmic spacing" << std::endl;
+        exit(EXIT_FAILURE);        
+      }
+      
+      m_region_spacing_constant[i] = atof( space_factor->GetText() );
+      if(m_region_spacing_constant[i] < 0.)
+      {
+        std::cerr << "Error.  Region " << i << " Log spacing factors must be > 0" << std::endl;
         exit(EXIT_FAILURE);
       }
+      m_region_min_size[i] = atof( min_dx->GetText() );
+      if(m_region_min_size[i] < 0.)
+      {
+        std::cerr << "Error.  Region " << i << " Minimum cell spacing must be > 0" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      
     }
     
     /// get left and right values of region, check that x_L < x_R

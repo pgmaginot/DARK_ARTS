@@ -19,7 +19,7 @@ class Fem_Quadrature
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  Fem_Quadrature(Input_Reader&  input_reader);
+  Fem_Quadrature(const Input_Reader& input_reader);
   ~Fem_Quadrature(){}
   
   int get_number_of_integration_points(void);
