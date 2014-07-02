@@ -1,6 +1,8 @@
 #include "Input_Reader.h"
 #include "Fem_Quadrature.h"
 #include "Cell_Data.h"
+#include "Time_Stepper.h"
+#include "Angular_Quadrature.h"
 
 int main(int argc, char** argv)
 {
@@ -19,16 +21,35 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
   
+  /// Initialize a Quadrule object to be able to get all of the quadrature we need
+  Quadrule_New quad_fun;
+  
   /// Initialize FEM data
   /// get all interpolation points, quadrature formuals, matrix formation routines, etc.
-  Fem_Quadrature fem_quadrature( input_reader );
-  
-  std::cout << "fem_quadrature_object created\n";
-  
+  Fem_Quadrature fem_quadrature( input_reader , quad_fun);
+    
   /// Initalize cell data (dx, xL, xR, x_ip, material_number)
   Cell_Data cell_data( input_reader );
   
+  /// Initialize time-stepping scheme (SDIRK method)
+  Time_Stepper time_stepper( input_reader );
+  
+  /// Initialize angular quadrature data.  Will include number of: directions, groups, and legendre moments.
+  /// will also include evaluations of Legendre polynomials
+  Angular_Quadrature angle_quadrature( input_reader , quad_fun );
+  
+  /// Initialize intensity, and angle integrated intensity storage
+ // Intensity_Data intensity_old( input_reader , cell_data.get_total_number_of_cells() , 
+   // fem_quadrature.get_number_of_interpolation_points() );
+  // Intensity_Data intensity_stage( input_reader );
+  // Temperature_Data temperature( input_reader );
+  
+  
+  
+  
   /// Get an array of Material objects
+  /// Materials_Vector takes an argument of a material number
+  /// then returns a material object
  // Materials_Vector mat_data( &input_reader);
   
   

@@ -41,6 +41,16 @@ public:
   double get_min_cell_size(int reg_num) const;
   double get_r_factor(int reg_num) const;
   
+  /// called by Time_Stepper class to get data
+  TIME_SOLVER get_time_solver(void) const;
+  
+  /// Additional functions needed by Angular_Quadrature
+  int get_number_of_groups(void) const;
+  int get_number_of_angles(void) const;
+  ANGULAR_QUADRATURE_TYPE get_angular_quadrature_type(void) const;
+  int get_number_of_legendre_moments(void) const;
+  
+  
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -73,6 +83,7 @@ protected:
   ANGULAR_QUADRATURE_TYPE m_angular_quadrature_type = INVALID_ANGULAR_QUADRATURE_TYPE;
   int m_number_angles = -1;
   int m_number_groups = -1;
+  int m_n_leg_moments = -1;
   
   //! time discretization data
   double m_dt_min = -1.;

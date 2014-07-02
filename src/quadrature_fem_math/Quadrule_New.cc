@@ -9,7 +9,7 @@
 // ##########################################################
 
 //****************************************************************************
-  void Quadrule_New::legendre_dr_compute ( const int order, std::vector<double>& xtab, std::vector<double> weight )
+  void Quadrule_New::legendre_dr_compute ( const int order, std::vector<double>& xtab, std::vector<double> weight )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -180,7 +180,7 @@
 
 //****************************************************************************  
   void Quadrule_New::legendre_ek_compute ( const int n, std::vector<double>& x,
-    std::vector<double>& w )
+    std::vector<double>& w ) const
  //****************************************************************************
 //
 //  Purpose:
@@ -257,7 +257,7 @@
  
 //**************************************************************************** 
   void Quadrule_New::legendre_set ( const int n, std::vector<double>& x, 
-    std::vector<double>& w )
+    std::vector<double>& w )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -4329,7 +4329,7 @@
 
 //****************************************************************************  
   void Quadrule_New::lobatto_compute ( const int n, std::vector<double>& x, 
-    std::vector<double>& w )
+    std::vector<double>& w )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -4474,7 +4474,7 @@
 
 //****************************************************************************  
   void Quadrule_New::lobatto_set ( const int order, std::vector<double>& xtab, 
-    std::vector<double>& weight )
+    std::vector<double>& weight )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -5051,7 +5051,7 @@
 
 //****************************************************************************
   void Quadrule_New::ncc_compute ( const int n, std::vector<double>& x, 
-    std::vector<double>& w )
+    std::vector<double>& w )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -5099,7 +5099,7 @@
   
 //****************************************************************************
   void Quadrule_New::ncc_set ( const int order, std::vector<double>& x, 
-    std::vector<double>& w )
+    std::vector<double>& w )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -6013,7 +6013,7 @@
 
 //****************************************************************************
 void Quadrule_New::imtqlx( const int n, std::vector<double>& d, std::vector<double>& e, 
-  std::vector<double>& z )
+  std::vector<double>& z ) const
 //****************************************************************************
 //
 //  Purpose:
@@ -6209,7 +6209,7 @@ void Quadrule_New::imtqlx( const int n, std::vector<double>& d, std::vector<doub
 
 //****************************************************************************
 void Quadrule_New::nc_compute ( const int n, const double x_min, const double x_max, 
-  const std::vector<double>& x, std::vector<double>& w )
+  const std::vector<double>& x, std::vector<double>& w )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -6310,7 +6310,7 @@ void Quadrule_New::nc_compute ( const int n, const double x_min, const double x_
 }
 
 //****************************************************************************80
-void Quadrule_New::ncc_compute_points ( const int n, std::vector<double>& x )
+void Quadrule_New::ncc_compute_points ( const int n, std::vector<double>& x )  const
 //****************************************************************************80
 //
 //  Purpose:
@@ -6354,7 +6354,7 @@ void Quadrule_New::ncc_compute_points ( const int n, std::vector<double>& x )
 }
 
 //****************************************************************************
-void Quadrule_New::ncc_compute_weights(const int n, std::vector<double>& w)
+void Quadrule_New::ncc_compute_weights(const int n, std::vector<double>& w)  const
 //****************************************************************************
 //
 //  Purpose:
@@ -6404,7 +6404,7 @@ void Quadrule_New::ncc_compute_weights(const int n, std::vector<double>& w)
 
 
 //****************************************************************************
-double Quadrule_New::r8_epsilon (void)
+double Quadrule_New::r8_epsilon (void)  const
 //****************************************************************************80
 //
 //  Purpose:
@@ -6444,7 +6444,7 @@ double Quadrule_New::r8_epsilon (void)
 }
 
 //****************************************************************************
-double Quadrule_New::r8_max ( const double x, const double y )
+double Quadrule_New::r8_max ( const double x, const double y )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -6481,7 +6481,7 @@ double Quadrule_New::r8_max ( const double x, const double y )
 }
 
 //****************************************************************************
-double Quadrule_New::r8_sign ( const double x )
+double Quadrule_New::r8_sign ( const double x )  const
 //****************************************************************************
 //
 //  Purpose:
@@ -6518,7 +6518,7 @@ double Quadrule_New::r8_sign ( const double x )
 }
 
 //****************************************************************************
-void Quadrule_New::r8vec_reverse ( const int n, std::vector<double>& a )
+void Quadrule_New::r8vec_reverse ( const int n, std::vector<double>& a )  const
 //****************************************************************************
 //
 //  Purpose:

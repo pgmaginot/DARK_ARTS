@@ -79,8 +79,26 @@ PropagateSG(INPUT)
 add_subdirectory(quadrature_fem_math)
 PropagateSG(QUADRATURE_FEM_MATH)
 
+#----------------------------------------
+# Cell / Geometry Data
+#----------------------------------------
+
 add_subdirectory(cells)
 PropagateSG(CELLS)
+
+#----------------------------------------
+# SDIRK methods
+#----------------------------------------
+
+add_subdirectory(time_stepper)
+PropagateSG(TIME_STEPPER)
+
+#----------------------------------------
+# Intensity and Temperature Storage Arrays
+#----------------------------------------
+
+add_subdirectory(variable_storage)
+PropagateSG(VARIABLE_STORAGE)
 
 #----------------------------------------
 # Propagate variables to parents scope

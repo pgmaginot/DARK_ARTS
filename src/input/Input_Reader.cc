@@ -177,6 +177,30 @@ double Input_Reader::get_r_factor(int reg_num) const
   return m_region_spacing_constant[reg_num];
 }
 
+TIME_SOLVER Input_Reader::get_time_solver(void) const
+{
+  return m_time_step_scheme;
+}
+
+int Input_Reader::get_number_of_groups(void) const
+{
+  return m_number_groups;
+}
+
+int Input_Reader::get_number_of_angles(void) const
+{
+  return m_number_angles;
+}
+
+ANGULAR_QUADRATURE_TYPE Input_Reader::get_angular_quadrature_type(void) const
+{
+  return m_angular_quadrature_type;
+}
+
+int Input_Reader::get_number_of_legendre_moments(void) const
+{
+  return m_n_leg_moments;
+}
 
 /* ***************************************************
  *
@@ -688,6 +712,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   TiXmlElement* n_angle_elem = angle_element->FirstChildElement( "Number_of_angles");
   TiXmlElement* n_group_elem = angle_element->FirstChildElement( "Number_of_groups");
   TiXmlElement* quad_type_elem = angle_element->FirstChildElement( "Quadrature_type");
+  TiXmlElement* n_legendre_mom_elem = angle_element->FirstChildElement( "Number_of_legendre_moments");
+  
   
   if(!n_angle_elem)
   {
@@ -704,6 +730,12 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   if(!quad_type_elem)
   {
     std::cerr << "Error.  Missing Quadrature_type element" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  
+   if(!n_legendre_mom_elem)
+  {
+    std::cerr << "Error.  Missing Number_of_legendre_moments element" << std::endl;
     exit(EXIT_FAILURE);
   }
   
@@ -732,6 +764,13 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   if(m_angular_quadrature_type == INVALID_ANGULAR_QUADRATURE_TYPE)
   {
     std::cerr << "Error. Invalid Quadrature_type in ANGULAR_DISCRETIZATION" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  
+  m_n_leg_moments = atoi( n_legendre_mom_elem->GetText() );
+  if(m_n_leg_moments < 1)
+  {
+    std::cerr << "Error.  Number of legendre moments must be >= 1\n";
     exit(EXIT_FAILURE);
   }
     

@@ -30,35 +30,35 @@ public:
   
   ~Quadrule_New(){}
   
-  void legendre_dr_compute ( const int order, std::vector<double>& xtab, std::vector<double> weight );
-  void legendre_ek_compute ( const int n, std::vector<double>& x, std::vector<double>& w );
-  void legendre_set ( const int order, std::vector<double>& xtab, std::vector<double>& weight );
+  void legendre_dr_compute ( const int order, std::vector<double>& xtab, std::vector<double> weight ) const;
+  void legendre_ek_compute ( const int n, std::vector<double>& x, std::vector<double>& w ) const;
+  void legendre_set ( const int order, std::vector<double>& xtab, std::vector<double>& weight ) const;
 
-  void lobatto_compute ( const int n, std::vector<double>& x, std::vector<double>& w );
-  void lobatto_set ( const int order, std::vector<double>& xtab, std::vector<double>& weight );
+  void lobatto_compute ( const int n, std::vector<double>& x, std::vector<double>& w ) const;
+  void lobatto_set ( const int order, std::vector<double>& xtab, std::vector<double>& weight ) const;
 
-  void ncc_compute ( const int order, std::vector<double>& xtab, std::vector<double>& weight );  
-  void ncc_set ( const int order, std::vector<double>& xtab, std::vector<double>& weight );
+  void ncc_compute ( const int order, std::vector<double>& xtab, std::vector<double>& weight ) const;  
+  void ncc_set ( const int order, std::vector<double>& xtab, std::vector<double>& weight ) const;
   
 private:
   
   void imtqlx (  const int n, std::vector<double>& d, std::vector<double>& e, 
-    std::vector<double>& z );
+    std::vector<double>& z )  const;
 
   void nc_compute ( const int order, const double a, const double b,
-    const std::vector<double>& xtab, std::vector<double>& weight );
+    const std::vector<double>& xtab, std::vector<double>& weight ) const;
 
-  void ncc_compute_points ( const int n, std::vector<double>& x );
+  void ncc_compute_points ( const int n, std::vector<double>& x )  const;
   
-  void ncc_compute_weights ( const int n, std::vector<double>& w );
+  void ncc_compute_weights ( const int n, std::vector<double>& w )  const;
 
-  double r8_epsilon (void);
+  double r8_epsilon (void)  const;
   
-  double r8_max ( const double x, const double y );
+  double r8_max ( const double x, const double y )  const;
 
-  double r8_sign ( const double x );
+  double r8_sign ( const double x )  const;
 
-  void r8vec_reverse ( const int n, std::vector<double>& x );
+  void r8vec_reverse ( const int n, std::vector<double>& x )  const;
 };
 
 #endif

@@ -4,34 +4,30 @@
  */
 
 #include "Fem_Quadrature.h"
-#include "Quadrule_New.h"
 
-Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader)
-{
-  /// Initialize a Quadrule object to be able to get all of the quadrature we need
-  Quadrule_New quad_fun;
-  
+Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun)
+{  
   /// Get the DFEM interpolation points
-  const int n_interp_point = input_reader.get_dfem_degree() + 1;
+  m_n_interpolation_points = input_reader.get_dfem_degree() + 1;
   
-  m_dfem_interpolation_points.resize(n_interp_point,0.);
-  m_dfem_interpolation_weights.resize(n_interp_point,0.);
+  m_dfem_interpolation_points.resize(m_n_interpolation_points,0.);
+  m_dfem_interpolation_weights.resize(m_n_interpolation_points,0.);
   const QUADRATURE_TYPE dfem_point_type = input_reader.get_dfem_interpolation_point_type();
   switch(dfem_point_type)
   {
     case GAUSS:
     {
-      quad_fun.legendre_dr_compute( n_interp_point , m_dfem_interpolation_points, m_dfem_interpolation_weights);
+      quad_fun.legendre_dr_compute( m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
       break;
     }
     case LOBATTO:
     {
-      quad_fun.lobatto_compute(n_interp_point , m_dfem_interpolation_points, m_dfem_interpolation_weights);
+      quad_fun.lobatto_compute(m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
       break;
     }
     case EQUAL_SPACED:
     {
-      quad_fun.ncc_compute(n_interp_point , m_dfem_interpolation_points, m_dfem_interpolation_weights);
+      quad_fun.ncc_compute(m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
       break;
     }
     case INVALID_QUADRATURE_TYPE:
@@ -104,7 +100,7 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader)
   {
     case SELF_LUMPING:
     {
-      m_n_integration_points = n_interp_point;
+      m_n_integration_points = m_n_interpolation_points;
       break;
     }
     case TRAD_LUMPING:
@@ -172,10 +168,16 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader)
   
 }
 
-int Fem_Quadrature::get_number_of_integration_points(void)
+int Fem_Quadrature::get_number_of_integration_points(void) const
 {
   return m_n_integration_points; 
 }
+
+int Fem_Quadrature::get_number_of_interpolation_points(void) const
+{
+  return m_n_interpolation_points; 
+}
+
 
 void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& func_evals)

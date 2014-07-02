@@ -2,6 +2,7 @@
 #define Fem_Quadrature_h
 
 #include "Inputs_Allowed.h"
+#include "Quadrule_New.h"
 #include "Input_Reader.h"
 
 #include <vector>
@@ -19,10 +20,12 @@ class Fem_Quadrature
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  Fem_Quadrature(const Input_Reader& input_reader);
+  Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun);
   ~Fem_Quadrature(){}
   
-  int get_number_of_integration_points(void);
+  int get_number_of_integration_points(void) const;
+  
+  int get_number_of_interpolation_points(void) const ;
   
 protected:
 

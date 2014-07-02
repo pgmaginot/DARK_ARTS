@@ -23,6 +23,27 @@ Cell_Data::Cell_Data(Input_Reader&  input_reader)
   
 }
 
+double Cell_Data::get_cell_width(int cell_num) const
+{
+  return m_dx[cell_num];
+}
+
+double Cell_Data::get_cell_left_edge(int cell_num) const
+{
+  return m_x_l[cell_num];
+}
+
+int Cell_Data::get_cell_material_number(int cell_num) const
+{
+  return m_material_num[cell_num];
+}
+
+int Cell_Data::get_total_number_of_cells(void) const
+{
+  return m_total_cells;
+}
+
+
 void Cell_Data::determine_cell_properties(const int n_reg, const std::vector<int>& cell_reg,
   const Input_Reader& input_reader)
 {
@@ -151,7 +172,7 @@ void Cell_Data::determine_cell_properties(const int n_reg, const std::vector<int
         for( ; cell <n_cell ; cell++)
         {
           m_x_l[cell_cnt] = x_l_cell;
-          m_dx[cell_cnt] = min_size;
+          m_dx[cell_cnt] = dx;
           m_material_num[cell_cnt] = mat_num;
           
           x_l_cell += dx;

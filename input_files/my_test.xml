@@ -66,6 +66,7 @@
     <Number_of_angles> 2 </Number_of_angles>
     <Number_of_groups> 3 </Number_of_groups>
     <Quadrature_type> Gauss_angle </Quadrature_type>    
+    <Number_of_legendre_moments> 1 </Number_of_legendre_moments>
   </ANGULAR_DISCRETIZATION>
 
 

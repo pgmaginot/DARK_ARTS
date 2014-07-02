@@ -16,6 +16,12 @@ public:
   Cell_Data(Input_Reader&  input_reader);
   ~Cell_Data(){}
   
+  /// Public accesor functions
+  double get_cell_width(int cell_num) const;
+  double get_cell_left_edge(int cell_num) const;
+  int get_cell_material_number(int cell_num) const;
+  
+  int get_total_number_of_cells(void) const;  
 protected:
   std::vector<double> m_x_l;
   std::vector<double> m_dx;
