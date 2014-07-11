@@ -23,11 +23,26 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
   
   if(quad_type == GAUSS_ANGLE)
   {
-  
+    quad_fun.legendre_dr_compute( m_n_dir, m_mu, m_w );
   }
   else if(quad_type == LOBATTO_ANGLE)
   {
+    quad_fun.lobatto_compute( m_n_dir, m_mu, m_w );
+  }
   
+  m_sum_w = 0.;
+  for(int d = 0;d<m_n_dir;d++)
+    m_sum_w += m_w[d];
+  
+  /// calculate legendre polynomials of discrete ordinates
+  Legendre_Poly_Evaluation leg_poly;
+  for(int d=0; d<m_n_dir ; d++)
+  {
+    // std::vector<double> temp(m_n_legendre_moments,0.);
+    // leg_poly.get_evaluated_legendre_polynomials( m_mu[d] , m_n_legendre_moments - 1 , 
+      // m_legendre_poly[d*m_n_legendre_moments] );
+    leg_poly.get_evaluated_legendre_polynomials( m_mu[d] , m_n_legendre_moments - 1 , 
+      d*m_n_legendre_moments, m_legendre_poly );
   }
 }
     
@@ -45,3 +60,22 @@ int Angular_Quadrature::get_number_of_leg_moments(void) const
   return m_n_legendre_moments;
 }
 
+double Angular_Quadrature::get_leg_poly(const int dir, const int mom) const
+{
+  return m_legendre_poly[m_n_legendre_moments*dir + mom];
+}
+
+double Angular_Quadrature::get_mu(const int dir) const
+{
+  return m_mu[dir];
+}
+
+double Angular_Quadrature::get_w(const int dir) const
+{
+  return m_w[dir];
+}
+
+double Angular_Quadrature::get_sum_w(void) const
+{
+  return m_sum_w;
+}

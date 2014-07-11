@@ -17,26 +17,18 @@ public:
   ~Intensity_Data(){}
   
   /// Public accessor functions
-  // double get_intensity(const int el, const int cell,
-    // const int group, const int dir) const;
-  // void get_cell_intensity(std::vector<double>& i_cell, const int cell,
-    // const int group, const int dir) const;
+  double get_intensity(const int el, const int cell,
+    const int group, const int dir) const;
     
-  // double get_angle_integrated_intensity(const int el, const int cell,
-    // const int group) const;
-  // void get_cell_angle_integrated_intensity(std::vector<double>& phi_cell, const int cell,
-    // const int group) const;
+  double get_angle_integrated_intensity(const int el, const int cell,
+    const int group, const int l_mom) const;
   
-  // /// Public functions to store values
-  // double set_intensity(const int el, const int cell,
-    // const int group, const int dir, const double val);
-  // void set_cell_intensity(const std::vector<double>& i_cell, const int cell,
-    // const int group, const int dir, const double val);
+  /// Public functions to save values
+  void set_intensity(const int el, const int cell,
+    const int group, const int dir, const double val);
     
-  // double set_angle_integrated_intensity(const int el, const int cell,
-    // const int group, const double val);
-  // void set_cell_angle_integrated_intensity(const std::vector<double>& phi_cell, const int cell,
-    // const int group, const double val);
+  void set_angle_integrated_intensity(const int el, const int cell,
+    const int group, const int l_mom, const double val);
   
 protected:
   std::vector<double> m_i;
@@ -61,11 +53,23 @@ protected:
   /// total length of the angle integrated intensity data
   int m_phi_length;
   
-/* ***************************************************
+  /* ***************************************************
   *
   *   Protected Functions
   *
   *************************************************** */
+  
+  bool intensity_range_check(const int el, const int cell, const int grp, const int dir) const;
+  
+  bool angle_integrated_range_check(const int el, const int cell, const int grp, const int l_mom) const;
+  
+  int intensity_data_locator(const int el, const int cell, const int group, const int dir) const;
+  
+  int angle_integrated_data_locator(const int el, const int cell, const int group, const int leg_mom) const;
+  
+  bool intensity_bounds_check(const int loc) const;
+  
+  bool angle_integrated_bounds_check(const int loc) const;
 
 };
 

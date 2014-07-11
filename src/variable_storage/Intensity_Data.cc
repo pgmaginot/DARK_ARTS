@@ -33,39 +33,174 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrat
   mu < 0
     
 */
-/*
 double Intensity_Data::get_intensity(const int el, const int cell,
     const int group, const int dir) const
 {
-  return m_i[0];
-}
-
-void Intensity_Data::get_cell_intensity(std::vector<double>& i_cell, const int cell,
-    const int group, const int dir) const
-{
-  return m_i[0];
+  bool bad_input = intensity_range_check(el,cell,group,dir);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Accessing out of logical range intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = intensity_data_locator(el,cell,group,dir);
+  bool bad_location = intensity_bounds_check(val_loc);
+  
+  if(bad_location)
+  {
+    std::cerr << "Error.  Intensity location out of possible range\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  return m_i[val_loc];
 }
 
 void Intensity_Data::set_intensity(const int el, const int cell,
     const int group, const int dir, const double val) 
 {
-  return m_i[0] = val;
+  
+  
+  int loc = intensity_data_locator(el,cell,group,dir);
+  bool bad_location = intensity_bounds_check(loc);
+  
+  if(bad_location)
+  {
+    std::cerr << "Error.  Trying to write to an intensity location out of range\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  m_i[loc] = val;
+  return;
 }
 
-
 double Intensity_Data::get_angle_integrated_intensity(const int el, const int cell,
-    const int group, const int dir) const
+    const int group, const int l_mom) const
 {
-  return m_phi[0];
+  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
+  
+  return m_phi[val_loc];
 }
 
 void Intensity_Data::set_angle_integrated_intensity(const int el, const int cell,
-    const int group, const double val) 
+    const int group, const int l_mom, const double val) 
 {
-  return m_phi[0] = val;
+  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
+  m_phi[val_loc] = val;
+  return;
+}
+
+  /* ***************************************************
+  *
+  *   Protected Functions
+  *
+  *************************************************** */
+
+bool Intensity_Data::intensity_range_check(const int el, const int cell, 
+  const int grp, const int dir) const
+{
+  bool is_bad = false;
+  
+  if( (el >= m_el_per_cell ) || (el < 0) )
+    is_bad = true;
+    
+  if( (grp < 0) || (grp >= m_groups) )
+    is_bad = true;
+    
+  if( (cell < 0) || (cell >= m_cells) )
+    is_bad = true;
+    
+  if( (dir < 0) || (dir >= m_dir) )
+    is_bad = true;
+  
+  return is_bad;
+}
+
+bool Intensity_Data::angle_integrated_range_check(const int el, const int cell, 
+  const int grp, const int l_mom) const
+{
+  bool is_bad = false;
+  
+  if( (el >= m_el_per_cell ) || (el < 0) )
+    is_bad = true;
+    
+  if( (grp < 0) || (grp >= m_groups) )
+    is_bad = true;
+    
+  if( (cell < 0) || (cell >= m_cells) )
+    is_bad = true;
+    
+  if( (l_mom < 0) || (l_mom >= m_leg) )
+    is_bad = true;
+  
+  return is_bad;
+}
+
+/// This function controls the layout of intensity in memory!!
+int Intensity_Data::intensity_data_locator(const int el, const int cell, const int group, const int dir) const
+{
+  int loc = -1;
+  
+  
+  bool bad_location = intensity_bounds_check(loc);
+  
+  if(bad_location)
+  {
+    std::cerr << "Error.  Intensity location out of possible range\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  return loc;
+}
+
+/// This function controls the layout of angle_integrated intensities in memory!!
+int Intensity_Data::angle_integrated_data_locator(const int el, const int cell, const int group, const int l_mom) const
+{
+  int loc = -1;
+  
+  bool bad_location = angle_integrated_bounds_check(loc);
+  if(bad_location)
+  {
+    std::cerr << "Error.  Angle integrated intensity location out of possible range\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  return loc;
+}
+
+bool Intensity_Data::intensity_bounds_check(const int loc) const
+{
+  bool is_bad_loc = false;
+  if( (loc < 0) || (loc >= m_i_length) )
+    is_bad_loc = true;  
+  
+  return is_bad_loc;
+}
+
+bool Intensity_Data::angle_integrated_bounds_check(const int loc) const
+{
+  bool is_bad_loc = false;
+  if( (loc < 0) || (loc >= m_phi_length) )
+    is_bad_loc = true;  
+  
+  return is_bad_loc;
 }
 
 
-*/
+
+
 
 

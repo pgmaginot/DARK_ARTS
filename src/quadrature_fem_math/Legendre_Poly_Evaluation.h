@@ -25,9 +25,9 @@ public:
   
   ~Legendre_Poly_Evaluation(){} 
    
-   void get_evaluated_legendre_polynomials(const double x, const int n, std::vector<double>& evals);
+   void get_evaluated_legendre_polynomials(const double x, const int n, const int start, std::vector<double>& evals);
    
-   void get_legendre_polynomials_explicitly(const double x, const int n, std::vector<double>& evals);
+   void get_legendre_polynomials_explicitly(const double x, const int n, const int start, std::vector<double>& evals);
 private:
   double evaluate_binomial_coefficient(const int n, const int k);
   

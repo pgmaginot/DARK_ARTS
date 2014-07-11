@@ -9,7 +9,7 @@
 // ##########################################################
 
 void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
-  const double x, const int n, std::vector<double>& evals)
+  const double x, const int n, const int start, std::vector<double>& evals)
 {
   if(n < 0)
   {
@@ -18,20 +18,22 @@ void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
   }  
   else if(n==0)
   {
-    evals[0] = 1.;
+    evals[start] = 1.;
   }
   else if(n==1)
   {
-    evals[0] = 1.;
-    evals[1] = x;
+    evals[start] = 1.;
+    evals[start+1] = x;
   }
   else
   {
+    evals[start] = 1.;
+    evals[start+1] = x;
     double dbl_n = 2.;
     for(int k=2; k < (n+1); k++)
     {
-      evals[k] = (2.*dbl_n + 1.)*x*evals[k-1] - dbl_n*evals[k-2];
-      evals[k] /= dbl_n + 1.;
+      evals[start+k] = (2.*dbl_n + 1.)*x*evals[k-1] - dbl_n*evals[k-2];
+      evals[start+k] /= dbl_n + 1.;
       dbl_n += 1.;
     }
   }
@@ -40,7 +42,7 @@ void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
 }
 
 void Legendre_Poly_Evaluation::get_legendre_polynomials_explicitly(
-  const double x, const int n, std::vector<double>& evals)
+  const double x, const int n, const int start, std::vector<double>& evals)
 {
   return;
 }

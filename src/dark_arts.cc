@@ -3,6 +3,7 @@
 #include "Cell_Data.h"
 #include "Time_Stepper.h"
 #include "Angular_Quadrature.h"
+#include "Intensity_Data.h"
 
 int main(int argc, char** argv)
 {
@@ -36,13 +37,11 @@ int main(int argc, char** argv)
   
   /// Initialize angular quadrature data.  Will include number of: directions, groups, and legendre moments.
   /// will also include evaluations of Legendre polynomials
-  Angular_Quadrature angle_quadrature( input_reader , quad_fun );
+  Angular_Quadrature angular_quadrature( input_reader , quad_fun );
   
-  /// Initialize intensity, and angle integrated intensity storage
- // Intensity_Data intensity_old( input_reader , cell_data.get_total_number_of_cells() , 
-   // fem_quadrature.get_number_of_interpolation_points() );
-  // Intensity_Data intensity_stage( input_reader );
-  // Temperature_Data temperature( input_reader );
+  /// Initialize intensity and angle integrated intensity of previous time step
+  Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature);
+  
   
   
   
