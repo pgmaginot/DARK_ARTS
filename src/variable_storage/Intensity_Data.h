@@ -20,15 +20,27 @@ public:
   double get_intensity(const int el, const int cell,
     const int group, const int dir) const;
     
+  void get_cell_intensity(const int cell, const int group, const int dir, 
+    std::vector<double>& loc_i_vec) const;
+    
   double get_angle_integrated_intensity(const int el, const int cell,
     const int group, const int l_mom) const;
+    
+  void get_cell_angle_integrated_intensity(const int cell, const int group, const int l_mom, 
+    std::vector<double>& loc_phi_vec) const;
   
   /// Public functions to save values
   void set_intensity(const int el, const int cell,
     const int group, const int dir, const double val);
     
+  void set_cell_intensity(const int cell,
+    const int group, const int dir, const std::vector<double>& val);
+    
   void set_angle_integrated_intensity(const int el, const int cell,
     const int group, const int l_mom, const double val);
+    
+  void set_cell_angle_integrated_intensity(const int cell,
+    const int group, const int l_mom, const std::vector<double>& val);
   
 protected:
   std::vector<double> m_i;
@@ -41,7 +53,18 @@ protected:
   /// total number of directions in the problem
   int m_dir;
   
-  /// total length of the intensity data
+  /// quantities necessary for faster indexing of intensity
+  int m_dir_div_2 = -1;
+  /// offset from negative mu to positive mu data ordering
+  int m_offset= -1;
+  int m_el_times_dir_div_2= -1;
+  int m_el_times_dir_div_2_times_grp= -1;
+  
+  /// quantities necessary for faster indexing of angle integrate intensity
+  int m_el_times_l_mom= -1;
+  int m_el_times_l_mom_times_group = -1;
+  
+  /// number of legendre moments to store of the full intensity
   int m_leg;
   
   /// number of DFEM unknowns in each cell

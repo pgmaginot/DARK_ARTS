@@ -4,6 +4,7 @@
 #include "Time_Stepper.h"
 #include "Angular_Quadrature.h"
 #include "Intensity_Data.h"
+#include "Materials.h"
 
 int main(int argc, char** argv)
 {
@@ -42,18 +43,13 @@ int main(int argc, char** argv)
   /// Initialize intensity and angle integrated intensity of previous time step
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature);
   
-  
-  
-  
-  
-  /// Get an array of Material objects
-  /// Materials_Vector takes an argument of a material number
-  /// then returns a material object
- // Materials_Vector mat_data( &input_reader);
-  
+  /// Create a Materials object that contains all opacity, heat capacity, and source objects
+  Materials materials( input_reader );
+    
   
 
   
   
   return 0;
 }
+

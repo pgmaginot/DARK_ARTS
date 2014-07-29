@@ -14,27 +14,23 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrat
     m_leg{ ang_quad.get_number_of_leg_moments() }, 
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() }  
   {
+    m_dir_div_2 = m_dir/2;
+    
+    m_el_times_dir_div_2 = m_dir_div_2*m_el_per_cell;
+    m_el_times_dir_div_2_times_grp = m_el_times_dir_div_2 * m_groups;
+    
+    m_el_times_l_mom = m_leg*m_el_per_cell;
+    m_el_times_l_mom_times_group = m_el_times_l_mom*m_groups;
+    
     m_i_length = m_cells*m_groups*m_dir*m_el_per_cell;
     m_phi_length = m_cells*m_groups*m_leg*m_el_per_cell;
     
     m_i.resize(m_i_length,0.);
     m_phi.resize(m_phi_length,0.);
   }
-/**
-  we want to lay out the angular flux so that we minimize memory movement access
-  
-  for cell=0:1:<end_of_mesh
-    for g=0:1:<n_groups
-      for d=n_dir_div_2:1:<n_dir // that we are sweeping in this direction
-  
-  mu > 0  
-  cell*n_groups*n_dir*n_dfem_interp + g*n_dir*n_dfem_interp + d*n_dfem_interp + el
-  
-  mu < 0
-    
-*/
+
 double Intensity_Data::get_intensity(const int el, const int cell,
-    const int group, const int dir) const
+  const int group, const int dir) const
 {
   bool bad_input = intensity_range_check(el,cell,group,dir);
   if(bad_input)
@@ -55,8 +51,66 @@ double Intensity_Data::get_intensity(const int el, const int cell,
   return m_i[val_loc];
 }
 
+void Intensity_Data::get_cell_intensity(const int cell, const int group, 
+  const int dir, std::vector<double>& loc_i_vec) const
+{
+  bool bad_input = intensity_range_check(0,cell,group,dir);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Accessing out of logical range intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = intensity_data_locator(0,cell,group,dir);
+  bool bad_location = intensity_bounds_check(val_loc);
+  
+  if(bad_location)
+  {
+    std::cerr << "Error.  Intensity location out of possible range\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  for(int i=0; i<m_el_per_cell; i++)
+    loc_i_vec[i] = m_i[val_loc+i];
+    
+  return;
+}
+
+double Intensity_Data::get_angle_integrated_intensity(const int el, const int cell,
+  const int group, const int l_mom) const
+{
+  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
+  
+  return m_phi[val_loc];
+}
+
+void Intensity_Data::get_cell_angle_integrated_intensity(const int cell,
+  const int group, const int l_mom, std::vector<double>& loc_phi_vec) const
+{
+  bool bad_input = angle_integrated_range_check(0,cell,group,l_mom);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = angle_integrated_data_locator(0,cell,group,l_mom);
+  
+  for(int i=0; i< m_el_per_cell; i++)
+    loc_phi_vec[i] = m_phi[val_loc+i];
+
+  return;
+}
+
 void Intensity_Data::set_intensity(const int el, const int cell,
-    const int group, const int dir, const double val) 
+  const int group, const int dir, const double val) 
 {
   
   
@@ -73,20 +127,24 @@ void Intensity_Data::set_intensity(const int el, const int cell,
   return;
 }
 
-double Intensity_Data::get_angle_integrated_intensity(const int el, const int cell,
-    const int group, const int l_mom) const
-{
-  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
-  if(bad_input)
+void Intensity_Data::set_cell_intensity(const int cell,
+  const int group, const int dir, const std::vector<double>& val) 
+{  
+  int loc = intensity_data_locator(0,cell,group,dir);
+  bool bad_location = intensity_bounds_check(loc);
+  
+  if(bad_location)
   {
-    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
+    std::cerr << "Error.  Trying to write to an intensity location out of range\n";
     exit(EXIT_FAILURE);
   }
   
-  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
-  
-  return m_phi[val_loc];
+  for(int i=0; i<m_el_per_cell ; i++)
+    m_i[loc+i] = val[i];
+    
+  return;
 }
+
 
 void Intensity_Data::set_angle_integrated_intensity(const int el, const int cell,
     const int group, const int l_mom, const double val) 
@@ -100,6 +158,24 @@ void Intensity_Data::set_angle_integrated_intensity(const int el, const int cell
   
   int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
   m_phi[val_loc] = val;
+  return;
+}
+
+void Intensity_Data::set_cell_angle_integrated_intensity(const int cell,
+    const int group, const int l_mom, const std::vector<double>& val) 
+{
+  bool bad_input = angle_integrated_range_check(0,cell,group,l_mom);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = angle_integrated_data_locator(0,cell,group,l_mom);
+  
+  for(int i=0; i< m_el_per_cell ; i++)
+    m_phi[val_loc+i] = val[i];
+    
   return;
 }
 
@@ -154,6 +230,31 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
 {
   int loc = -1;
   
+  /**
+    Arrange intensity data as follows:
+    From closest together to farthest apart:
+    element
+    direction (by positive/negative)
+    group
+    cell
+    
+    Sweeps will do all the directions in a given cell for a group, all groups, then move to the next cell
+    
+    Upwinding values will be saved in a vector = N_dir/2 to avoid scanning through the intensity data
+  
+    This will hopefully minizmize data movement
+    
+  */
+  if(dir < m_dir_div_2)
+  {
+    /// mu < 0
+    loc = el + dir*m_el_per_cell + group*m_el_times_dir_div_2 + cell*m_el_times_dir_div_2_times_grp;
+  }
+  else
+  {
+    /// mu > 0
+    loc = m_offset + el + (dir-m_dir_div_2)*m_el_per_cell + group*m_el_times_dir_div_2 + cell*m_el_times_dir_div_2_times_grp;
+  }
   
   bool bad_location = intensity_bounds_check(loc);
   
@@ -170,6 +271,15 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
 int Intensity_Data::angle_integrated_data_locator(const int el, const int cell, const int group, const int l_mom) const
 {
   int loc = -1;
+  
+  /**
+    Arrange data as:
+    element
+    moment
+    group
+    cell
+  */
+  loc = el + l_mom*m_el_per_cell + group*m_el_times_l_mom + cell*m_el_times_l_mom_times_group;
   
   bool bad_location = angle_integrated_bounds_check(loc);
   if(bad_location)

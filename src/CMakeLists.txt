@@ -101,6 +101,13 @@ add_subdirectory(variable_storage)
 PropagateSG(VARIABLE_STORAGE)
 
 #----------------------------------------
+# Opacities and Heat Capacities
+#----------------------------------------
+
+add_subdirectory(materials)
+PropagateSG(MATERIALS)
+
+#----------------------------------------
 # Propagate variables to parents scope
 #----------------------------------------
 Propagate(${PROJECT_NAME}_HEADER_FILES)
