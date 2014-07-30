@@ -3,7 +3,7 @@
 <INPUT_FILE>
   <REGIONS>
     <Number_of_regions> 2 </Number_of_regions>
-    <Number_of_materials> 1 </Number_of_materials>
+    <Number_of_materials> 2 </Number_of_materials>
       <Region> 0 
         <N_cells> 10 </N_cells>
         <Left_bound> 0.0 </Left_bound>
@@ -18,15 +18,40 @@
         <Right_bound> 5.0 </Right_bound>
         <Spacing> Log_thin_left </Spacing>
         <Log_space_factor> 2.5 </Log_space_factor>
-        <Material_number> 0 </Material_number>
+        <Material_number> 1 </Material_number>
       </Region>   
   </REGIONS>
   
   <MATERIALS>
     <Material> 0
-      <Opacity_type> Constant_xs </Opacity_type>
-      <Fixed_source_type> No_source </Fixed_source_type>
-      <Cv_type> Constant_cv </Cv_type>
+      <Scattering_Opacity_type> Constant_xs 
+        <Constant_value> 1.0 </Constant_value>
+      </Scattering_Opacity_type>      
+      <Absorption_Opacity_type> Rational 
+        <Multiplier> 2.0 </Multiplier>
+        <Denominator_power> 3 </Denominator_power>
+        <Denominator_offset> 0.001 </Denominator_offset>
+      </Absorption_Opacity_type>
+      <Radiation_Fixed_Source_type> No_source </Radiation_Fixed_Source_type>
+      <Temperature_Fixed_Source_type> No_source </Temperature_Fixed_Source_type>      
+      <Cv_type> Constant_cv 
+        <Cv_type> Constant_cv 
+          <Cv_constant> 1.0 </Cv_constant>
+        </Cv_type>
+      </Cv_type>
+    </Material>
+    <Material> 1
+      <Scattering_Opacity_type> Constant_xs 
+        <Constant_value> 1.0 </Constant_value>
+      </Scattering_Opacity_type>      
+      <Absorption_Opacity_type> Constant_xs 
+        <Constant_value> 1.0 </Constant_value>
+      </Absorption_Opacity_type>
+      <Radiation_Fixed_Source_type> No_source </Radiation_Fixed_Source_type>
+      <Temperature_Fixed_Source_type> No_source </Temperature_Fixed_Source_type>      
+      <Cv_type> Constant_cv 
+        <Cv_constant> 12.0 </Cv_constant>
+      </Cv_type>
     </Material>
   </MATERIALS>
   

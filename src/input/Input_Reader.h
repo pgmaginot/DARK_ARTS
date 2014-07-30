@@ -50,6 +50,22 @@ public:
   ANGULAR_QUADRATURE_TYPE get_angular_quadrature_type(void) const;
   int get_number_of_legendre_moments(void) const;
   
+  /// Functions for the Materials class and related objects
+  int get_number_of_materials(void) const;
+  OPACITY_TYPE get_abs_opacity_type(const int mat_num) const;
+  OPACITY_TYPE get_scat_opacity_type(const int mat_num) const;
+  CV_TYPE get_cv_type(const int mat_num) const;
+  FIXED_SOURCE_TYPE get_temperature_source_type(const int mat_num) const;
+  FIXED_SOURCE_TYPE get_radiation_source_type(const int mat_num) const;  
+  double get_abs_double_constant_1(const int mat_num) const;
+  double get_abs_double_constant_2(const int mat_num) const;
+  double get_scat_double_constant_1(const int mat_num) const;
+  double get_scat_double_constant_2(const int mat_num) const;
+  int get_abs_int_constant(const int mat_num) const;
+  int get_scat_int_constant(const int mat_num) const;
+  void get_abs_file_str(const int mat_num, std::string& filename) const;
+  void get_scat_file_str(const int mat_num, std::string& filename) const;  
+  double get_cv_constant(const int mat_num) const;
   
 protected:
   /** variables that will be used to store data from input file
@@ -67,9 +83,20 @@ protected:
   std::vector<double> m_region_right_bounds;
   
   /// materials input block
-  std::vector<OPACITY_TYPE> m_material_opacity_type;
+  std::vector<OPACITY_TYPE> m_material_scattering_opacity_type;
+  std::vector<OPACITY_TYPE> m_material_absorption_opacity_type;
   std::vector<CV_TYPE> m_material_cv_type;
-  std::vector<FIXED_SOURCE_TYPE> m_material_source_type;
+  std::vector<FIXED_SOURCE_TYPE> m_material_radiation_source_type;
+  std::vector<FIXED_SOURCE_TYPE> m_material_temperature_source_type;
+  std::vector<std::string> m_scat_opacity_str;
+  std::vector<std::string> m_abs_opacity_str;
+  std::vector<int> m_abs_opacity_integer_constants;
+  std::vector<double> m_abs_opacity_double_constants_1;
+  std::vector<double> m_abs_opacity_double_constants_2;
+  std::vector<int> m_scat_opacity_integer_constants;
+  std::vector<double> m_scat_opacity_double_constants_1;
+  std::vector<double> m_scat_opacity_double_constants_2;
+  std::vector<double> m_cv_constants;
   
   /// spatial discretization input block
   int m_dfem_trial_space_degree = -1;

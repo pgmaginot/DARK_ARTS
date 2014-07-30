@@ -202,6 +202,84 @@ int Input_Reader::get_number_of_legendre_moments(void) const
   return m_n_leg_moments;
 }
 
+int Input_Reader::get_number_of_materials(void) const
+{
+  return m_number_regions;
+}
+
+OPACITY_TYPE Input_Reader::get_abs_opacity_type(const int mat_num) const
+{
+  return m_material_absorption_opacity_type[mat_num];
+}
+
+OPACITY_TYPE Input_Reader::get_scat_opacity_type(const int mat_num) const
+{
+  return m_material_scattering_opacity_type[mat_num];
+}
+
+CV_TYPE Input_Reader::get_cv_type(const int mat_num) const
+{
+  return m_material_cv_type[mat_num];
+}
+
+FIXED_SOURCE_TYPE Input_Reader::get_temperature_source_type(const int mat_num) const
+{
+  return m_material_temperature_source_type[mat_num];
+}
+
+FIXED_SOURCE_TYPE Input_Reader::get_radiation_source_type(const int mat_num) const
+{
+  return m_material_radiation_source_type[mat_num]; 
+}  
+
+double Input_Reader::get_abs_double_constant_1(const int mat_num) const
+{
+  return m_abs_opacity_double_constants_1[mat_num];
+}
+
+double Input_Reader::get_abs_double_constant_2(const int mat_num) const
+{
+  return m_abs_opacity_double_constants_2[mat_num];
+}
+
+double Input_Reader::get_scat_double_constant_1(const int mat_num) const
+{
+  return m_scat_opacity_double_constants_1[mat_num];
+}
+
+double Input_Reader::get_scat_double_constant_2(const int mat_num) const
+{
+  return m_scat_opacity_double_constants_2[mat_num];;
+}
+
+int Input_Reader::get_abs_int_constant(const int mat_num) const
+{
+  return m_abs_opacity_integer_constants[mat_num];
+}
+
+int Input_Reader::get_scat_int_constant(const int mat_num) const
+{
+  return m_scat_opacity_integer_constants[mat_num];
+}
+
+void Input_Reader::get_abs_file_str(const int mat_num, std::string& filename) const
+{
+  filename = m_abs_opacity_str[mat_num];
+  return;
+}
+
+void Input_Reader::get_scat_file_str(const int mat_num, std::string& filename) const
+{
+  filename = m_scat_opacity_str[mat_num];
+  return;
+}
+
+double Input_Reader::get_cv_constant(const int mat_num) const
+{
+  return m_cv_constants[mat_num];
+}
+
+
 /* ***************************************************
  *
  *  Protected Functions
@@ -351,9 +429,21 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
 
 int Input_Reader::load_material_data(TiXmlElement* mat_elem)
 {
-  m_material_opacity_type.resize(m_number_materials,INVALID_OPACITY_TYPE);  
+  m_material_absorption_opacity_type.resize(m_number_materials,INVALID_OPACITY_TYPE);  
+  m_material_scattering_opacity_type.resize(m_number_materials,INVALID_OPACITY_TYPE);  
   m_material_cv_type.resize(m_number_materials,INVALID_CV_TYPE);
-  m_material_source_type.resize(m_number_materials,INVALID_FIXED_SOURCE_TYPE);
+  m_material_radiation_source_type.resize(m_number_materials,INVALID_FIXED_SOURCE_TYPE);
+  m_material_temperature_source_type.resize(m_number_materials,INVALID_FIXED_SOURCE_TYPE);
+  
+  m_scat_opacity_str.resize(m_number_materials);
+  m_abs_opacity_str.resize(m_number_materials);
+  m_abs_opacity_integer_constants.resize(m_number_materials);
+  m_abs_opacity_double_constants_1.resize(m_number_materials);
+  m_abs_opacity_double_constants_2.resize(m_number_materials);
+  m_scat_opacity_integer_constants.resize(m_number_materials);
+  m_scat_opacity_double_constants_1.resize(m_number_materials);
+  m_scat_opacity_double_constants_2.resize(m_number_materials);
+  m_cv_constants.resize(m_number_materials);
   
   TiXmlElement* mat_descr = mat_elem->FirstChildElement("Material");
   for(int mat_cnt = 0; mat_cnt < m_number_materials ; mat_cnt++)
@@ -371,43 +461,194 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       exit(EXIT_FAILURE);
     }
     
-    TiXmlElement* opacity_type = mat_descr->FirstChildElement( "Opacity_type");
+    TiXmlElement* scat_opacity_type = mat_descr->FirstChildElement( "Scattering_Opacity_type");
+    TiXmlElement* abs_opacity_type = mat_descr->FirstChildElement( "Absorption_Opacity_type");
     TiXmlElement* cv_type = mat_descr->FirstChildElement( "Cv_type");
-    TiXmlElement* source_type = mat_descr->FirstChildElement( "Fixed_source_type");
-    
-    std::string opacity_str = opacity_type->GetText();
-    std::string cv_str = cv_type->GetText();
-    std::string source_str = source_type->GetText();
-    
-    transform(opacity_str.begin() , opacity_str.end() , opacity_str.begin() , toupper);
-    transform(cv_str.begin() , cv_str.end() , cv_str.begin() , toupper);
-    transform(source_str.begin() , source_str.end() , source_str.begin() , toupper);
-
-    if(opacity_str == "CONSTANT_XS")
-      m_material_opacity_type[mat_num] = CONSTANT_XS;
-    else if(opacity_str == "RATIONAL")
-      m_material_opacity_type[mat_num] = RATIONAL;
-    else if(opacity_str == "TABLE_LOOKUP")
-      m_material_opacity_type[mat_num] = TABLE_LOOKUP;
-   
-    if(m_material_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
+    TiXmlElement* rad_source_type = mat_descr->FirstChildElement( "Radiation_Fixed_Source_type");
+    TiXmlElement* temp_source_type = mat_descr->FirstChildElement( "Temperature_Fixed_Source_type");
+    if(!scat_opacity_type)
     {
-      std::cerr << "Error.  Invalid opacity type for material " << mat_num << std::endl;
+      std::cerr << "Missing scattering opacity type in material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    if(!abs_opacity_type)
+    {
+      std::cerr << "Missing absorption opacity type in material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    if(!cv_type)
+    {
+      std::cerr << "Missing cv type in material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    if(!rad_source_type)
+    {
+      std::cerr << "Missing radiation source type in material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    if(!temp_source_type)
+    {
+      std::cerr << "Missing temperautre source type in material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);
+    }
+        
+    std::string scat_opacity_str = scat_opacity_type->GetText();
+    std::string abs_opacity_str = abs_opacity_type->GetText();
+    std::string cv_str = cv_type->GetText();
+    std::string rad_source_str = rad_source_type->GetText();
+    std::string temp_source_str = temp_source_type->GetText();
+    
+    transform(scat_opacity_str.begin() , scat_opacity_str.end() , scat_opacity_str.begin() , toupper);
+    transform(abs_opacity_str.begin() , abs_opacity_str.end() , abs_opacity_str.begin() , toupper);
+    transform(cv_str.begin() , cv_str.end() , cv_str.begin() , toupper);
+    transform(rad_source_str.begin() , rad_source_str.end() , rad_source_str.begin() , toupper);
+    transform(temp_source_str.begin() , temp_source_str.end() , temp_source_str.begin() , toupper);
+    
+    /// set-up / scan for absorption opacity data
+    if(abs_opacity_str == "CONSTANT_XS")
+    {
+      m_material_absorption_opacity_type[mat_num] = CONSTANT_XS;
+      TiXmlElement* const_val = abs_opacity_type->FirstChildElement( "Constant_value" );
+      if(!const_val)
+      {
+        std::cerr << "Missing constant_value tag for material: " << mat_num << " absorption opacity\n" ;
+        exit(EXIT_FAILURE);
+      }
+      m_abs_opacity_double_constants_1[mat_num] = atof( const_val->GetText() ); 
+    }
+    else if(abs_opacity_str == "RATIONAL")
+    {
+      m_material_absorption_opacity_type[mat_num] = RATIONAL;
+      TiXmlElement* mult_val = abs_opacity_type->FirstChildElement( "Multiplier" );
+      TiXmlElement* denom_power_val = abs_opacity_type->FirstChildElement( "Denominator_power" );
+      TiXmlElement* denom_offset_val = abs_opacity_type->FirstChildElement( "Denominator_offset" );
+      if(!mult_val)
+      {
+        std::cerr << "Missing Multiplier tag for material " << mat_num << " RATIONAL absorption opacity\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!denom_power_val)
+      {
+        std::cerr << "Missing Denominator_power tag for material " << mat_num << " RATIONAL absorption opacity\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!denom_offset_val)
+      {
+        std::cerr << "Missing Denominator_offset tag for material " << mat_num << " RATIONAL absorption opacity\n";
+        exit(EXIT_FAILURE);
+      }
+      m_abs_opacity_double_constants_1[mat_num] = atof(mult_val->GetText() );
+      m_abs_opacity_double_constants_2[mat_num] = atof(denom_offset_val->GetText() );
+      m_abs_opacity_integer_constants[mat_num] = atoi(denom_power_val->GetText() );
+    }
+    else if(abs_opacity_str == "TABLE_LOOKUP")
+    {
+      m_material_absorption_opacity_type[mat_num] = TABLE_LOOKUP;
+      TiXmlElement* abs_op_file = abs_opacity_type->FirstChildElement( "File_name" );
+      if(!abs_op_file)
+      {
+        std::cerr << "Missing File_name tag for material " << mat_num << " TABLE_LOOKUP absorption opacity " << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      m_abs_opacity_str[mat_num] = abs_op_file->GetText();
+    }
+    
+    if(m_material_absorption_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
+    {
+      std::cerr << "Error.  Invalid absorption opacity type for material " << mat_num << std::endl;
       exit(EXIT_FAILURE);    
     }
     
-    if(source_str == "NO_SOURCE")
-      m_material_source_type[mat_num] = NO_SOURCE;
-   
-    if(m_material_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
+    /// set-up / scan for scattering opacity data
+    if(scat_opacity_str == "CONSTANT_XS")
     {
-      std::cerr << "Error.  Invalid source type for material " << mat_num << std::endl;
+      m_material_scattering_opacity_type[mat_num] = CONSTANT_XS;
+      TiXmlElement* const_val = scat_opacity_type->FirstChildElement( "Constant_value" );
+      if(!const_val)
+      {
+        std::cerr << "Missing constant_value tag for material: " << mat_num << " scattering opacity\n" ;
+        exit(EXIT_FAILURE);
+      }
+      m_scat_opacity_double_constants_1[mat_num] = atof( const_val->GetText() ); 
+    }
+    else if(scat_opacity_str == "RATIONAL")
+    {
+      m_material_scattering_opacity_type[mat_num] = RATIONAL;
+      TiXmlElement* mult_val = scat_opacity_type->FirstChildElement( "Multiplier" );
+      TiXmlElement* denom_power_val = scat_opacity_type->FirstChildElement( "Denominator_power" );
+      TiXmlElement* denom_offset_val = scat_opacity_type->FirstChildElement( "Denominator_offset" );
+      if(!mult_val)
+      {
+        std::cerr << "Missing Multiplier tag for material " << mat_num << " RATIONAL scattering opacity\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!denom_power_val)
+      {
+        std::cerr << "Missing Denominator_power tag for material " << mat_num << " RATIONAL scattering opacity\n";
+        exit(EXIT_FAILURE);
+      }
+      if(!denom_offset_val)
+      {
+        std::cerr << "Missing Denominator_offset tag for material " << mat_num << " RATIONAL scattering opacity\n";
+        exit(EXIT_FAILURE);
+      }
+      m_scat_opacity_double_constants_1[mat_num] = atof(mult_val->GetText() );
+      m_scat_opacity_double_constants_2[mat_num] = atof(denom_offset_val->GetText() );
+      m_scat_opacity_integer_constants[mat_num] = atoi(denom_power_val->GetText() );
+    }
+    else if(scat_opacity_str == "TABLE_LOOKUP")
+    {
+      m_material_scattering_opacity_type[mat_num] = TABLE_LOOKUP;
+      TiXmlElement* scat_op_file = scat_opacity_type->FirstChildElement( "File_name" );
+      if(!scat_op_file)
+      {
+        std::cerr << "Missing File_name tag for material " << mat_num << " TABLE_LOOKUP scattering opacity " << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      m_scat_opacity_str[mat_num] = scat_op_file->GetText();
+    }
+    
+    if(m_material_scattering_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
+    {
+      std::cerr << "Error.  Invalid absorption opacity type for material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);    
+    }
+    
+    if(rad_source_str == "NO_SOURCE")
+      m_material_radiation_source_type[mat_num] = NO_SOURCE;
+   
+    if(m_material_radiation_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
+    {
+      std::cerr << "Error.  Invalid radiation source type for material " << mat_num << std::endl;
+      exit(EXIT_FAILURE);    
+    }
+    
+    if(temp_source_str == "NO_SOURCE")
+      m_material_temperature_source_type[mat_num] = NO_SOURCE;
+   
+    if(m_material_temperature_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
+    {
+      std::cerr << "Error.  Invalid temperature source type for material " << mat_num << std::endl;
       exit(EXIT_FAILURE);    
     }
     
     if(cv_str == "CONSTANT_CV")
+    {
       m_material_cv_type[mat_num] = CONSTANT_CV;
-   
+      TiXmlElement* cv_const = cv_type->FirstChildElement( "Cv_constant" );
+      if(!cv_const)
+      {
+        std::cerr << "Error.  Missing Cv_constant tag in material " << mat_num << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      m_cv_constants[mat_num] = atof(cv_const->GetText() );
+      if(m_cv_constants[mat_num] < 0. )
+      {
+        std::cerr << "Invalid Cv in material "<< mat_num << " values must be positive floats\n";
+        exit(EXIT_FAILURE);
+      }
+    }
+    
     if(m_material_cv_type[mat_num] == INVALID_CV_TYPE)
     {
       std::cerr << "Error.  Invalid cv type for material " << mat_num << std::endl;
@@ -415,8 +656,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     }
   }
   
-  
-
   return 0;
 }
 

@@ -11,6 +11,8 @@
 #include "VCv.h"
 #include "VSource_T.h"
 #include "VSource_I.h"
+#include "Absorption_Opacity_Rational.h"
+#include "Scattering_Opacity_Rational.h"
 
 class Materials
 {
@@ -27,11 +29,13 @@ private:
   /** Vectors of pointers to the various opacity, cv, and source objects we will create in
    * the Materials class constructor (based off what we read in the input file)
   */
-  std::vector<std::shared_ptr<VAbsorption_Opacity>> abs_opacities;
-  std::vector<std::shared_ptr<VScattering_Opacity>> scat_opacities;
-  std::vector<std::shared_ptr<VCv>> cv;
-  std::vector<std::shared_ptr<VSource_T>> source_t;
-  std::vector<std::shared_ptr<VSource_I>> source_i;
+  std::vector<std::shared_ptr<VAbsorption_Opacity>> m_abs_opacities;
+  std::vector<std::shared_ptr<VScattering_Opacity>> m_scat_opacities;
+  std::vector<std::shared_ptr<VCv>> m_cv;
+  std::vector<std::shared_ptr<VSource_T>> m_source_t;
+  std::vector<std::shared_ptr<VSource_I>> m_source_i;
+  
+  int m_num_materials = -1;
 };
 
 #endif
