@@ -378,8 +378,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     /// load in scaling factor for logarithmic grid spacing and check that it is greter than 1
     if( (m_region_spacing_type[i] == LOG) )
     {
-      TiXmlElement* space_factor = region_id->FirstChildElement("Log_space_factor");
-      TiXmlElement* min_dx = region_id->FirstChildElement("Min_cell_size");
+      TiXmlElement* space_factor = spacing->FirstChildElement("Log_space_factor");
+      TiXmlElement* min_dx = spacing->FirstChildElement("Min_cell_size");
       if(!space_factor)
       {
         std::cerr << "Error.  Region " << i << " Missing size factor for logarithmic grid spacing" << std::endl;
@@ -447,7 +447,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   
   TiXmlElement* mat_descr = mat_elem->FirstChildElement("Material");
   for(int mat_cnt = 0; mat_cnt < m_number_materials ; mat_cnt++)
-  {
+  {    
     if(!mat_descr)
     {
       std::cerr << "Error.  Missing Material element in MATERIALS block.  Expected: " << m_number_materials 
@@ -654,6 +654,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       std::cerr << "Error.  Invalid cv type for material " << mat_num << std::endl;
       exit(EXIT_FAILURE);    
     }
+    
+    mat_descr = mat_descr->NextSiblingElement("Material");
   }
   
   return 0;

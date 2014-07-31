@@ -11,7 +11,8 @@ public:
   VAbsorption_Opacity();
   virtual ~VAbsorption_Opacity();
 
-  virtual double get_absorption_opacity(const int group, const double temperature, const double position) = 0;
+  virtual double get_absorption_opacity(const int group, 
+    const double temperature, const double position) = 0;
 };
 
 #endif

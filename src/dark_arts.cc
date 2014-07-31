@@ -45,6 +45,7 @@ int main(int argc, char** argv)
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader );
+  materials.load_materials(input_reader);
     
   
 

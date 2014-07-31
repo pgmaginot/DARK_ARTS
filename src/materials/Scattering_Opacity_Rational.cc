@@ -5,12 +5,33 @@
 */
 #include "Scattering_Opacity_Rational.h"
 
-Scattering_Opacity_Rational::Scattering_Opacity_Rational(){}
+Scattering_Opacity_Rational::Scattering_Opacity_Rational(
+  const Input_Reader& input_reader, const int mat_num) :
+    m_const{ input_reader.get_scat_double_constant_1(mat_num) },
+    m_offset{ input_reader.get_scat_double_constant_2(mat_num) },
+    m_p{ input_reader.get_scat_int_constant(mat_num) }
+{
+  if(m_const < 0. )
+  {
+    std::cerr << "Invalid scattering opacity constant in material " << mat_num << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if(m_offset < 0. )
+  {
+    std::cerr << "Invalid scattering opacity denominator offset in material " << mat_num << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if(m_p < 1 )
+  {
+    std::cerr << "Invalid scattering opacity temperature power in material " << mat_num << std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
 
 Scattering_Opacity_Rational::~Scattering_Opacity_Rational(){}
 
 double  Scattering_Opacity_Rational::get_scattering_opacity(const int l_mom, const int group, 
   const double temperature, const double position)
 {
-  return 0.;
+  return m_const/(m_offset + pow(temperature,m_p));
 }
