@@ -89,6 +89,32 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
       }
     }
   }
+  else if(xs_treatment == SLXS)
+  {
+    switch(input_reader.get_dfem_interpolation_point_type())
+    {
+      case GAUSS:
+      {
+        quad_fun.legendre_dr_compute( n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        break;
+      }
+      case LOBATTO:
+      {
+        quad_fun.lobatto_compute(n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        break;
+      }
+      case EQUAL_SPACED:
+      {
+        quad_fun.ncc_compute(n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        break;
+      }
+      case INVALID_QUADRATURE_TYPE:
+      {
+        std::cout << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
   else{
     /// moment preserving, use Gauss quad to maximize accuracy
     quad_fun.legendre_dr_compute( n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
@@ -164,6 +190,10 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
   /// Evaluate derivatives of basis functions on the reference element
   evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, m_integration_points,
     m_d_basis_d_s_at_integration_points);
+    
+  /// Evaluate DFEM basis functions at xs evaluation points
+  evaluate_lagrange_func(m_dfem_interpolation_points, m_xs_eval_points,
+    m_basis_at_xs_points);
     
   
 }

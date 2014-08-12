@@ -6,6 +6,8 @@
 #include "Intensity_Data.h"
 #include "Materials.h"
 
+#include "Eigen/Dense"
+
 int main(int argc, char** argv)
 {
   std::cout << "argc = " << argc << '\n'; 
@@ -47,6 +49,8 @@ int main(int argc, char** argv)
   Materials materials( input_reader );
   materials.load_materials(input_reader);
     
+  Eigen::MatrixXd m(2,2);
+  
   
 
   

@@ -1,6 +1,19 @@
 #include "Materials.h"
 
-Materials::Materials( const Input_Reader& input_reader)
+/** @file   Materials.cc
+  *   @author pmaginot
+  *   @brief Create material property objects for each region, and evaluate material properties
+  *   material properties are considered to be \f$ \sigma_a,~\sigma_s,~C_v \f$ and the Planckian emission term
+  *   Materials class will also handle the case when the number of integration points is not equal to the number
+  *   of cross section evaluation points (e.g. cell-wise constant xs vs. self-lumping vs. moment preserving vs. 
+  *   cross section interpolation not equal to temperature interpolation
+*/
+
+/* *****************************************************************
+*   Public Member functions
+*  ****************************************************************/
+
+Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature)
 {
   /// Loop over the number of materials, load each object type as a appropriate
   m_num_materials = input_reader.get_number_of_materials();
@@ -8,10 +21,152 @@ Materials::Materials( const Input_Reader& input_reader)
   m_abs_opacities.resize(m_num_materials);
   m_scat_opacities.resize(m_num_materials);
 
-  m_cv.resize(m_num_materials);
+  m_cv_obj.resize(m_num_materials);
   m_source_t.resize(m_num_materials);
   m_source_i.resize(m_num_materials);  
+  
+  load_materials(input_reader);
+  
+  /// create a smart pointers that looks at input once, then select cross section generating functions
+  switch(input_reader.get_opacity_treatment() )
+  {
+    case SLXS:
+    {
+      m_xs_treatment = new XS_Treatment_SLXS();
+      break;
+    }
+    case INTERPOLATING:
+    {
+      m_xs_treatment = new XS_Treatment_Interpolating();
+      break;
+    }
+    case MOMENT_PRESERVING:
+    {
+      m_xs_treatment = new XS_Treatment_Moment_Preserving();
+      break;
+    }
+    case INVALID_OPACITY_TREATMENT:
+    {
+      std::cerr << "Invalid OPacity treament still exists in Materials initializations\n" ;
+      exit(EXIT_FAILURE);
+      break;
+    }    
+  }
+  
+  
 }
+
+void Materials::calculate_local_temp_and_position(const int cell_num, const Temperature_Data& temperature)
+{
+  /// determine what material we are in
+  m_current material = cell_data_ptr->get_material_num(cell_num);
+  
+  /// calculate the local position at the xs evalaution points
+  double xL = cell_data_ptr->get_cell_width(cell_num);
+  double dx = cell_data_ptr->get_cell_left_edge(cell_num);
+  
+  for(int i=0; i< m_n_xs_quad; i++)
+  {
+    m_xs_position[i] = xL + dx/2.*(1. + m_xs_eval_quad[i]);
+  }
+  
+  /// calculate the local temperature at the xs evaluation points
+  /// basis function evaluation is laid out in a vector: B_{1,1} ... B_{1,N_eval} B_{2,1} ...
+  for(int i=0; i < m_n_xs_quad; i++)
+    m_t_at_xs_eval_points[i] = 0.;
+  
+  int p=0;
+  for(int dfem_t = 0; dfem_t < m_n_el_cell ; dfem_t++)
+  {
+    double t_el = temperature.get_temperature(dfem_t, cell_num);
+    for(int i=0; i< m_n_xs_quad; i++)
+    {
+      m_t_at_xs_eval_points[i] += t_el*m_dfem_at_xs[p];
+      p++;
+    }
+  }
+  
+  return;
+}
+   
+void Materials::update_sigma_a(void)
+{
+  for(int g=0; g<m_n_groups ; g++)
+  {
+    for(int i=0; i < m_n_xs_quad i++)
+    {
+      m_mat_property_evals[cnt] = m_abs_opacities[m_current_material]->get_absorption_opacity(
+        g, m_t_at_xs_eval_points[i], m_xs_position[i]);
+    }
+    
+    m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
+    /** group g opacities have now been calculated at dfem integration points, load into vector that
+      is laid out at g=0 to g=m_n_groups { j=0 ... N_P DFEM integration points }
+    */
+    for(int j=0; j<m_n_integration_points;j++)
+      m_sig_a[g*m_n_integration_points + j] = m_mat_mapped[j];
+      
+  }
+
+  return;
+}
+  /// calculate \f$ \sigma_s \f$ for all DFEM integration points, groups, and scattering moments for cell cell_num
+void Materials::update_sigma_s()
+{
+  for(int l=0; l< m_n_leg_mom; l++)
+  {
+    for(int g=0; g<m_n_groups ; g++)
+    {
+      for(int i=0; i < m_n_xs_quad i++)
+      {  
+        m_mat_property_evals[cnt] = m_scat_opacities[m_current_material]->get_scat_opacity(
+          l, g, m_t_at_xs_eval_points[i], m_xs_position[i]);
+      }
+      
+      m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
+      /** moment l, group g opacities have now been calculated at dfem integration points, load into vector that
+        is laid out at l=0 to l = m_n_leg_mom {g=0 to g=m_n_groups { j=0 ... N_P DFEM integration points }}
+      */
+      for(int j=0; j<m_n_integration_points;j++)
+        m_sig_s[l* m_n_groups*m_n_integration_points + g*m_n_integration_points + j] = m_mat_mapped[j];
+    }
+  }
+
+  return;
+}
+
+/// calculate \f$ C_v \f$ for all DFEM integration points and groups for cell cell_num
+void Materials::update_cv()
+{
+  for(int i=0; i < m_n_xs_quad i++)
+  {
+    m_mat_property_evals[cnt] = m_cv_obj[m_current_material]->get_cv(m_xs_position[i], m_t_at_xs_eval_points[i]);
+  }  
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_cv);
+
+  return;
+}
+
+void Materials::get_rx_sigma_a(const double dx, const double xL, const int mat_num, const int grp, 
+  const std::vector<double>& temperature, std::vector<double>& sig_a)
+{
+  m_sig_a_wiz->query_sig_a(dx, xL, mat_num, grp, temperature, sig_a);
+  return;
+}  
+void Materials::get_rx_sigma_s(const double dx, const double xL, const int mat_num, const int grp, 
+  const int l_mom, const std::vector<double>& temperature, std::vector<double>& sig_s)
+{
+  return;
+}
+void Materials::get_rx_cv(const double dx, const double xL, const int mat_num, 
+  const std::vector<double>& temperature, std::vector<double>& cv)
+{
+  return;
+}
+
+/* *****************************************************************
+*   Private Member functions
+*  ****************************************************************/
 
 void Materials::load_materials(const Input_Reader& input_reader)
 {
@@ -57,7 +212,7 @@ void Materials::load_materials(const Input_Reader& input_reader)
     CV_TYPE cv_type = input_reader.get_cv_type(mat_num);
     if(cv_type == CONSTANT_CV)
     {
-      m_cv[mat_num] = std::shared_ptr<VCv> (new Cv_Constant( input_reader, mat_num)  ) ;
+      m_cv_obj[mat_num] = std::shared_ptr<VCv> (new Cv_Constant( input_reader, mat_num)  ) ;
     }
     
     /// radiation source
@@ -76,3 +231,4 @@ void Materials::load_materials(const Input_Reader& input_reader)
     }
   }
 }
+

@@ -840,7 +840,6 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   TiXmlElement* dfem_interp_point_type_elem = spatial_element->FirstChildElement( "DFEM_interpolation_point_type");
   TiXmlElement* opacity_treatment_elem = spatial_element->FirstChildElement( "Opacity_treatment");
   TiXmlElement* opacity_interp_point_type_elem = spatial_element->FirstChildElement( "Opacity_interpolation_point_type");
-  TiXmlElement* opacity_degree_elem = spatial_element->FirstChildElement( "Opacity_polynomial_degree");
 
   if(!trial_space_elem)
   {
@@ -865,11 +864,6 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   if(!opacity_interp_point_type_elem)
   {
     std::cerr << "Error.  Missing Opacity_interp_point_type_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
-    exit(EXIT_FAILURE);  
-  }
-  if(!opacity_degree_elem)
-  {
-    std::cerr << "Error.  Missing Opacity_degree_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
     exit(EXIT_FAILURE);  
   }
   
@@ -929,6 +923,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   transform(opacity_treat_str.begin() , opacity_treat_str.end() , opacity_treat_str.begin() , toupper);
   if(opacity_treat_str == "MOMENT_PRESERVING")
     m_opacity_treatment = MOMENT_PRESERVING;
+  else if(opacity_str == "SLXS" )
+    m_opacity_treatment = SLXS;
   else if(opacity_treat_str == "INTERPOLATING")
     m_opacity_treatment = INTERPOLATING;
     
@@ -938,12 +934,25 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     exit(EXIT_FAILURE);    
   }
   
-  m_opacity_polynomial_degree = atoi( opacity_degree_elem->GetText() );
-  if(m_opacity_polynomial_degree < 0)
+  /// if not using self lumping treatment, need to get degree of opacity spatial treatment
+  if(m_opacity_str != SLXS)
   {
-    std::cerr << "Error.  Invalid opacity polynomial" << std::endl;
-    exit(EXIT_FAILURE);
+    TiXmlElement* opacity_degree_elem = spatial_element->FirstChildElement( "Opacity_polynomial_degree");
+    if(!opacity_degree_elem)
+    {
+      std::cerr << "Error.  Missing Opacity_degree_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
+      exit(EXIT_FAILURE);  
+    }
+    
+    m_opacity_polynomial_degree = atoi( opacity_degree_elem->GetText() );
+    if(m_opacity_polynomial_degree < 0)
+    {
+      std::cerr << "Error.  Invalid opacity polynomial" << std::endl;
+      exit(EXIT_FAILURE);
+    }
   }
+  
+
   
   return 0;  
 }

@@ -92,7 +92,14 @@ set(${PROJECT_NAME}_LIB_NAME ${PROJECT_NAME}-${${PROJECT_NAME}_VERSION})
 # is set in source/CMakeLists.txt and propagated to this scope
 
 
-
+###########################################
+# Including the EIGEN library header files
+###########################################
+SET( EIGEN_PATH "$ENV{EIGEN_PATH}" )
+IF( NOT EIGEN_PATH )
+    MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN_PATH to the include directory of your Eigen3 installation.")
+ENDIF()
+INCLUDE_DIRECTORIES ( "${EIGEN_PATH}" )
 
 
 ############################################

@@ -27,6 +27,8 @@ public:
   
   int get_number_of_interpolation_points(void) const ;
   
+  int get_number_of_xs_point(void) const;
+  
 protected:
 
 /* ****************************************************
@@ -47,8 +49,15 @@ protected:
   **************************************************** */
   const int m_xs_extra_points = 10;
   
+  /// number of quadrature points that will be used to evaluate DFEM matrices/integrals (L,M,R matrices)
   int m_n_integration_points = -1;
+  /// number of DFEM interpolation points.  Better equal trial space degree + 1
   int m_n_interpolation_points = -1;
+  /// number of points to evaluate opacity at within each spatial cell
+  int m_n_xs_evaluation_points = -1;
+  /** number of opacity interpolation points: 
+    relevant only when OPACITY_SPATIAL_TREATMENT = INTERPOLATING
+  */
   int m_n_xs_interpolation_points = -1;
   
   /// Lagrange basis function interpolation points and associated weights
@@ -59,15 +68,23 @@ protected:
   std::vector<double> m_integration_points;
   std::vector<double> m_integration_weights;
   
-  /// quadrature points that will be used in forming xs at integration points
+  /** local quadrature points where opacity will be evaluated in each cell
+    if SLXS- equal to DFEM integration points
+    if MOMENT_PRESERVING- quadrature points that willl be used to form moments
+    if INTERPOLATING- these points become the cross section interpolation points */
   std::vector<double> m_xs_eval_points;
   std::vector<double> m_xs_eval_weights;
+  
+  /// used only if OPACITY_TREATMENT = INTERPOLATING
+  std::vector<double> m_xs_poly_at_integration_points;
   
   /// m_n_integration_points times m_n_interpolation_points length vector
   std::vector<double> m_basis_at_integration_points;
   
   /// m_n_integration_points times m_n_interpolation_points length vector
   std::vector<double> m_d_basis_d_s_at_integration_points;
+  
+  std::vector<double> m_basis_at_xs_points;
   
 };
 
