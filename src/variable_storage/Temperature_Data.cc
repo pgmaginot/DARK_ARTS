@@ -15,6 +15,19 @@ Temperature_Data::Temperature_Data(const Cell_Data& cell_data, const Fem_Quadrat
     m_t.resize(m_t_length,0.);
   }
   
+/// Public accessor functions
+double Temperature_Data::get_temperature(const int el, const int cell) const
+{  
+  return m_t[temperature_data_locator(el,cell)];
+}
+
+/// Public functions to save values
+void Temperature_Data::set_temperature(const int el, const int cell, const double val)
+{
+  int loc = temperature_data_locator(el,cell);
+  m_t[loc] = val;
+  return ;
+}
 bool Temperature_Data::temperature_range_check(const int el, const int cell) const
 {
   bool is_bad = false;
@@ -32,8 +45,20 @@ int Temperature_Data::temperature_data_locator(const int el, const int cell) con
 {
   int loc_val = -1;
   
+  if( temperature_range_check(el,cell) )
+  {
+    std::cerr << "Attempting to access illogical temperature location\n";
+    exit(EXIT_FAILURE);
+  }
+  
   /// layout temperature unknowns from left to right
   loc_val = cell*m_el_per_cell + el;
+  
+  if( temperature_bounds_check(loc_val) )
+  {
+    std::cerr << "Location out of bounds in temperature data\n";
+    exit(EXIT_FAILURE);
+  }
   
   return loc_val;
 }

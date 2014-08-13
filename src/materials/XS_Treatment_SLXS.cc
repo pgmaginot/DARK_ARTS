@@ -5,7 +5,7 @@
 */
 #include "XS_Treatment_SLXS.h"
 
-XS_Treatment_SLXS::XS_Treatment_SLXS(const Fem_Quadratre& fem_quad) 
+XS_Treatment_SLXS::XS_Treatment_SLXS(const Fem_Quadrature& fem_quad) 
 {
   m_n_xs_evals = fem_quad.get_number_of_xs_point();
 }

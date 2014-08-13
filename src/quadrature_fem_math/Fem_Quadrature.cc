@@ -54,6 +54,11 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
       n_opacity_eval_points = 1 + input_reader.get_opacity_degree();
       break;
     }
+    case SLXS:
+    {
+      n_opacity_eval_points = m_n_interpolation_points;
+      break;
+    }
     case INVALID_OPACITY_TREATMENT:
     {
       std::cout << "Invalid Opacity treatement in quadrature" << std::endl;
@@ -195,6 +200,14 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
   evaluate_lagrange_func(m_dfem_interpolation_points, m_xs_eval_points,
     m_basis_at_xs_points);
     
+  /// make a dummy vector to use in filling out the edge values
+  std::vector<double> edge_vec(1,-1.);
+  evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_left_edge);  
+  evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_left_edge);
+  
+  edge_vec[0] = 1.;
+  evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_right_edge);  
+  evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_right_edge);
   
 }
 
@@ -208,6 +221,36 @@ int Fem_Quadrature::get_number_of_interpolation_points(void) const
   return m_n_interpolation_points; 
 }
 
+void Fem_Quadrature::get_xs_eval_points(std::vector<double>& xs_eval_pts) const
+{
+  xs_eval_pts = m_xs_eval_points;
+  return;
+}
+
+void Fem_Quadrature::get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const
+{
+  dfem_at_xs_pts = m_basis_at_xs_points;
+  return;
+}
+
+void Fem_Quadrature::get_dfem_integration_points(std::vector<double>& dfem_integration_pts) const
+{
+  dfem_integration_pts = m_integration_points;
+  return;
+}
+
+void Fem_Quadrature::get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,
+  std::vector<double>& dfem_at_right_edge) const
+{
+  dfem_at_left_edge = m_dfem_at_left_edge;
+  dfem_at_right_edge = m_dfem_at_right_edge;
+  return;
+}
+
+int Fem_Quadrature::get_number_of_xs_point(void) const
+{
+  return m_n_xs_evaluation_points;
+}
 
 void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& func_evals)

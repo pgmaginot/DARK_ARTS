@@ -29,7 +29,12 @@ public:
   
   int get_number_of_xs_point(void) const;
   
-protected:
+  void get_xs_eval_points(std::vector<double>& xs_eval_pts) const;
+  void get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const;
+  void get_dfem_integration_points(std::vector<double>& dfem_integration_pts) const;
+  void get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,std::vector<double>& dfem_at_right_edge) const;
+  
+private:
 
 /* ****************************************************
 *
@@ -84,8 +89,17 @@ protected:
   /// m_n_integration_points times m_n_interpolation_points length vector
   std::vector<double> m_d_basis_d_s_at_integration_points;
   
+  /** Vector of DFEM basis functions at cross section evaluation points,
+    * m_n_xs_evaluation_points times m_n_interpolation points length,
+    * used to get temperature at the cross section evaluation points
+  */
   std::vector<double> m_basis_at_xs_points;
   
+  std::vector<double> m_dfem_at_left_edge;
+  std::vector<double> m_dfem_at_right_edge;
+  
+  std::vector<double> m_d_dfem_d_s_at_left_edge;
+  std::vector<double> m_d_dfem_d_s_at_right_edge;
 };
 
 #endif

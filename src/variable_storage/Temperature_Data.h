@@ -18,7 +18,7 @@ public:
   double get_temperature(const int el, const int cell) const;
 
   /// Public functions to save values
-  void set_temperature(const int el, const int cell);
+  void set_temperature(const int el, const int cell, const double val);
   
 protected:
   std::vector<double> m_t;

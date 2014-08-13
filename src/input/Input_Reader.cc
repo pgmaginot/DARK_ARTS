@@ -923,7 +923,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   transform(opacity_treat_str.begin() , opacity_treat_str.end() , opacity_treat_str.begin() , toupper);
   if(opacity_treat_str == "MOMENT_PRESERVING")
     m_opacity_treatment = MOMENT_PRESERVING;
-  else if(opacity_str == "SLXS" )
+  else if(opacity_treat_str == "SLXS" )
     m_opacity_treatment = SLXS;
   else if(opacity_treat_str == "INTERPOLATING")
     m_opacity_treatment = INTERPOLATING;
@@ -935,7 +935,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   }
   
   /// if not using self lumping treatment, need to get degree of opacity spatial treatment
-  if(m_opacity_str != SLXS)
+  if(m_opacity_treatment != SLXS)
   {
     TiXmlElement* opacity_degree_elem = spatial_element->FirstChildElement( "Opacity_polynomial_degree");
     if(!opacity_degree_elem)

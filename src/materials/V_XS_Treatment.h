@@ -1,12 +1,11 @@
-#ifndef V_XS_Treatment
-#define V_XS_Treatment
+#ifndef V_XS_Treatment_h
+#define V_XS_Treatment_h
 
 #include <vector>
 #include <stdlib.h>
 
 class V_XS_Treatment
 {
-
 public:
   V_XS_Treatment();
   virtual ~V_XS_Treatment();

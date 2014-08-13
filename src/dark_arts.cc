@@ -46,8 +46,7 @@ int main(int argc, char** argv)
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature);
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-  Materials materials( input_reader );
-  materials.load_materials(input_reader);
+  Materials materials( input_reader, fem_quadrature , &cell_data);
     
   Eigen::MatrixXd m(2,2);
   
