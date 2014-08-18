@@ -48,11 +48,7 @@ int main(int argc, char** argv)
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);
     
-  Eigen::MatrixXd m(2,2);
-  
-  
-
-  
+  Eigen::MatrixXd m(2,2);  
   
   return 0;
 }

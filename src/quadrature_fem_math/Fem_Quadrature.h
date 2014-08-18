@@ -29,10 +29,21 @@ public:
   
   int get_number_of_xs_point(void) const;
   
+  /// accept/return vector of local quadrature points where xs will be evaluated
   void get_xs_eval_points(std::vector<double>& xs_eval_pts) const;
+  void get_xs_eval_weights(std::vector<double>& xs_eval_wts) const;
+  
+  /// accept/return dfem basis functions at the xs_evaluation points (used to find temperature at xs evalaution points)
   void get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const;
+  
+  /// accept/return vector of dfem basis functions at dfem integration points
   void get_dfem_integration_points(std::vector<double>& dfem_integration_pts) const;
+  
+  /// accept/return vectors of dfem basis functions at the left and right edges
   void get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,std::vector<double>& dfem_at_right_edge) const;
+  
+  /// accept/return a vector of the interpolatory cross section polynomials evaluated at the dfem integration points
+  void get_xs_at_dfem_integration_points(std::vector<double>& xs_at_dfem_integration_pts) const;
   
 private:
 
@@ -99,7 +110,7 @@ private:
   std::vector<double> m_dfem_at_right_edge;
   
   std::vector<double> m_d_dfem_d_s_at_left_edge;
-  std::vector<double> m_d_dfem_d_s_at_right_edge;
+  std::vector<double> m_d_dfem_d_s_at_right_edge;  
 };
 
 #endif

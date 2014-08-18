@@ -28,7 +28,7 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   load_materials(input_reader);
   
   /// create a smart pointers that looks at input once, then select cross section generating functions
-  switch(input_reader.get_opacity_treatment() )
+  switch( input_reader.get_opacity_treatment() )
   {
     case SLXS:
     {
@@ -37,12 +37,12 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
     }
     case INTERPOLATING:
     {
-      // m_xs_treatment = new XS_Treatment_Interpolating();
+      m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Interpolating(fem_quadrature) );
       break;
     }
     case MOMENT_PRESERVING:
     {
-      // m_xs_treatment = new XS_Treatment_Moment_Preserving();
+      m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Moment_Preserving(fem_quadrature , input_reader) );
       break;
     }
     case INVALID_OPACITY_TREATMENT:

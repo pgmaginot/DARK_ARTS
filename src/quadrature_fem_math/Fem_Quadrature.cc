@@ -93,6 +93,9 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
         exit(EXIT_FAILURE);
       }
     }
+    /// evaluate xs interpolatory polynomials at dfem integration points
+    evaluate_lagrange_func(m_xs_eval_points, m_integration_points, m_xs_poly_at_integration_points);
+    
   }
   else if(xs_treatment == SLXS)
   {
@@ -227,6 +230,12 @@ void Fem_Quadrature::get_xs_eval_points(std::vector<double>& xs_eval_pts) const
   return;
 }
 
+ void Fem_Quadrature::get_xs_eval_weights(std::vector<double>& xs_eval_wts) const
+{
+  xs_eval_wts = m_xs_eval_weights;
+  return;
+}
+
 void Fem_Quadrature::get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const
 {
   dfem_at_xs_pts = m_basis_at_xs_points;
@@ -252,6 +261,13 @@ int Fem_Quadrature::get_number_of_xs_point(void) const
   return m_n_xs_evaluation_points;
 }
 
+void Fem_Quadrature::get_xs_at_dfem_integration_points(
+  std::vector<double>& xs_at_dfem_integration_pts) const
+{
+  xs_at_dfem_integration_pts = m_xs_poly_at_integration_points;
+  return;
+}
+
 void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& func_evals)
 {
@@ -259,7 +275,7 @@ void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_po
   const int n_interp_p = interp_points.size();
   
   /// allocate space for func_evals vector
-  /// layout vector from
+  /// vector laid out as [B_1(p_1) B_1(p_2) ... B_2(p_1) ... B_N(p_N) ]
   func_evals.resize(n_eval_p*n_interp_p,0.);
   
   int pos = 0;

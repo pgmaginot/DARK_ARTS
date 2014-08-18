@@ -26,7 +26,8 @@
 #include "Cv_Constant.h"
 #include "V_XS_Treatment.h"
 #include "XS_Treatment_SLXS.h"
-
+#include "XS_Treatment_Moment_Preserving.h"
+#include "XS_Treatment_Interpolating.h"
 class Materials
 {
 
