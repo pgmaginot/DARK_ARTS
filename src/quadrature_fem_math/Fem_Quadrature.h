@@ -45,6 +45,14 @@ public:
   /// accept/return a vector of the interpolatory cross section polynomials evaluated at the dfem integration points
   void get_xs_at_dfem_integration_points(std::vector<double>& xs_at_dfem_integration_pts) const;
   
+  void get_dfem_at_integration_points(std::vector<double>& dfem_at_int_pts) const;
+  
+  void get_dfem_derivatives_at_integration_points(std::vector<double>& dfem_deriv_at_int_pts) const;
+
+  MATRIX_INTEGRATION get_integration_type(void) const;
+  
+  void get_integration_weights(std::vector<double>& m_integration_weights) const;
+  
 private:
 
 /* ****************************************************
@@ -64,6 +72,8 @@ private:
 *
   **************************************************** */
   const int m_xs_extra_points = 10;
+  
+  MATRIX_INTEGRATION m_int_method = INVALID_MATRIX_INTEGRATION;
   
   /// number of quadrature points that will be used to evaluate DFEM matrices/integrals (L,M,R matrices)
   int m_n_integration_points = -1;

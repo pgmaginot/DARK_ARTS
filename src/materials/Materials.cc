@@ -124,14 +124,12 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Temp
    
 void Materials::update_sigma_a(void)
 {
-  int cnt = 0;
   for(int g=0; g<m_n_groups ; g++)
   {
     for(int i=0; i < m_n_xs_quad ; i++)
     {
-      m_mat_property_evals[cnt] = m_abs_opacities[m_current_material]->get_absorption_opacity(
-        g, m_t_at_xs_eval_points[i], m_xs_position[i]);
-      cnt++;
+      m_mat_property_evals[i] = m_abs_opacities[m_current_material]->get_absorption_opacity(
+        g, m_t_at_xs_eval_points[i], m_xs_position[i]);      
     }
     
     m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
@@ -153,56 +151,51 @@ void Materials::update_sigma_a(void)
   /// calculate \f$ \sigma_s \f$ for all DFEM integration points, groups, and scattering moments for cell cell_num
 void Materials::update_sigma_s(void)
 {
-  // for(int l=0; l< m_n_leg_mom; l++)
-  // {
-    // for(int g=0; g<m_n_groups ; g++)
-    // {
-      // for(int i=0; i < m_n_xs_quad i++)
-      // {  
-        // m_mat_property_evals[cnt] = m_scat_opacities[m_current_material]->get_scat_opacity(
-          // l, g, m_t_at_xs_eval_points[i], m_xs_position[i]);
-      // }
+  for(int l=0; l< m_n_l_mom; l++)
+  {
+    for(int g=0; g<m_n_groups ; g++)
+    {
+      for(int i=0; i < m_n_xs_quad; i++)
+      {  
+        m_mat_property_evals[i] = m_scat_opacities[m_current_material]->get_scattering_opacity(
+          l, g, m_t_at_xs_eval_points[i], m_xs_position[i]);
+      }
       
-      // m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
-      // /** moment l, group g opacities have now been calculated at dfem integration points, load into vector that
-        // is laid out at l=0 to l = m_n_leg_mom {g=0 to g=m_n_groups { j=0 ... N_P DFEM integration points }}
-      // */
-      // for(int j=0; j<m_n_integration_points;j++)
-        // m_sig_s[l* m_n_groups*m_n_integration_points + g*m_n_integration_points + j] = m_mat_mapped[j];
-    // }
-  // }
-
+      m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
+      /** moment l, group g opacities have now been calculated at dfem integration points, load into vector that
+        is laid out at l=0 to l = m_n_l_mom {g=0 to g=m_n_groups { j=0 ... N_P DFEM integration points }}
+      */
+      for(int j=0; j<m_n_dfem_integration_points;j++)
+        m_sig_s[l* m_n_groups*m_n_dfem_integration_points + g*m_n_dfem_integration_points + j] = m_mat_mapped[j];
+        
+      /// calculate edge values
+      m_sig_s_boundary[l*m_n_groups*2 + g*2] = m_scat_opacities[m_current_material]->get_scattering_opacity(
+          l, g, m_t_left_bound, m_x_left);
+          
+      m_sig_s_boundary[l*m_n_groups*2 + g*2+1] = m_scat_opacities[m_current_material]->get_scattering_opacity(
+          l, g, m_t_right_bound, m_x_right);
+    }
+  }
+  
   return;
 }
 
 /// calculate \f$ C_v \f$ for all DFEM integration points and groups for cell cell_num
 void Materials::update_cv(void)
 {
-  // for(int i=0; i < m_n_xs_quad i++)
-  // {
-    // m_mat_property_evals[cnt] = m_cv_obj[m_current_material]->get_cv(m_xs_position[i], m_t_at_xs_eval_points[i]);
-  // }  
-  // m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_cv);
+  for(int i=0; i < m_n_xs_quad; i++)
+  {
+    m_mat_property_evals[i] = m_cv_obj[m_current_material]->get_cv(m_xs_position[i], m_t_at_xs_eval_points[i]);
+  }  
+  /// no special mapping necessary, just calculate material m_cv (at dfem integration points) directly (no group or legendre moment dependence)
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_cv);
 
+  /// calculate edge values
+  m_cv_boundary[0] = m_cv_obj[m_current_material]->get_cv(m_x_left, m_t_left_bound);
+  m_cv_boundary[1] = m_cv_obj[m_current_material]->get_cv(m_x_right, m_t_right_bound);
+  
   return;
 }
-
-// void Materials::get_rx_sigma_a(const double dx, const double xL, const int mat_num, const int grp, 
-  // const std::vector<double>& temperature, std::vector<double>& sig_a)
-// {
-  // m_sig_a_wiz->query_sig_a(dx, xL, mat_num, grp, temperature, sig_a);
-  // return;
-// }  
-// void Materials::get_rx_sigma_s(const double dx, const double xL, const int mat_num, const int grp, 
-  // const int l_mom, const std::vector<double>& temperature, std::vector<double>& sig_s)
-// {
-  // return;
-// }
-// void Materials::get_rx_cv(const double dx, const double xL, const int mat_num, 
-  // const std::vector<double>& temperature, std::vector<double>& cv)
-// {
-  // return;
-// }
 
 /* *****************************************************************
 *   Private Member functions

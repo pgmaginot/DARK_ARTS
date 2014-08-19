@@ -129,8 +129,8 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
   }
   
   /// Get the quadrature points we are going to use to form the matrices
-  MATRIX_INTEGRATION int_method = input_reader.get_integration_method();
-  switch(int_method)
+  m_int_method = input_reader.get_integration_method();
+  switch(m_int_method)
   {
     case SELF_LUMPING:
     {
@@ -160,7 +160,7 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
   m_integration_points.resize(m_n_integration_points,0.);
   m_integration_weights.resize(m_n_integration_points,0.);
   
-  if(int_method == SELF_LUMPING)
+  if(m_int_method == SELF_LUMPING)
   {
     switch(dfem_point_type)
     {
@@ -267,6 +267,29 @@ void Fem_Quadrature::get_xs_at_dfem_integration_points(
   xs_at_dfem_integration_pts = m_xs_poly_at_integration_points;
   return;
 }
+
+MATRIX_INTEGRATION Fem_Quadrature::get_integration_type(void) const
+{
+  return m_int_method;
+}
+
+void Fem_Quadrature::get_dfem_at_integration_points(std::vector<double>& dfem_at_int_pts) const
+{
+  dfem_at_int_pts = m_basis_at_integration_points;
+  return;
+}  
+void Fem_Quadrature::get_dfem_derivatives_at_integration_points(std::vector<double>& dfem_deriv_at_int_pts) const
+{
+  dfem_deriv_at_int_pts = m_d_basis_d_s_at_integration_points;
+  return;
+}
+
+void Fem_Quadrature::get_integration_weights(std::vector<double>& weights) const
+{
+  weights = m_integration_weights;
+  return;
+}
+
 
 void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& func_evals)
