@@ -1,0 +1,339 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+
+\usepackage{graphicx} 
+
+\usepackage{multirow}
+
+\usepackage{rotating}
+
+\newcommand{\fig}[1]{Fig.~\ref{#1}}                      % figure
+\newcommand{\tbl}[1]{Table~\ref{#1}}                     % table
+
+\newcommand{\benum}{\begin{equation}}
+\newcommand{\eenum}{\end{equation}}
+
+\newcommand{\be}{\begin{equation*}}
+\newcommand{\ee}{\end{equation*}}
+
+\newcommand{\bea}{\begin{eqnarray*}}
+\newcommand{\eea}{\end{eqnarray*}}
+
+\newcommand{\beanum}{\begin{eqnarray}}
+\newcommand{\eeanum}{\end{eqnarray}}
+
+\newcommand{\eqt}[1]{Eq. (\ref{#1})}
+\newcommand{\eqts}[1]{Eqs. (\ref{#1})}
+\newcommand{\omg}{\ensuremath{ \vec{\Omega}}}
+\newcommand{\del}{\ensuremath{ \vec{\nabla} }}
+
+
+\newcommand{\B}[1]{\ensuremath{{B_{#1} }}}
+
+\newcommand{\p}{\ensuremath{ d}}
+\newcommand{\M}{\ensuremath{ \mathbf M}}
+\newcommand{\Mw}{\ensuremath{\widehat{\mathbf M}}}
+
+\newcommand{\abs}[1]{\ensuremath{\left\lvert #1 \right\rvert}}
+\newcommand{\norm}[1]{\ensuremath{\left\lVert #1 \right\rVert}}
+
+\newcommand{\JT}{\ensuremath{\widetilde{J}(s) }}
+\newcommand{\PT}{\ensuremath{\widetilde{\phi}(s) }}
+% Equation Punctuation
+\newcommand{\pec}{\, ,}
+\newcommand{\pep}{\, .}
+
+
+%newcommand{\eqts}[1]{Eq. \reference{1}\emph{}
+
+\begin{document}
+
+%------------------------------------------------
+\author{Peter Maginot}
+\date{\today}
+\title{Diffusion Derivation for Arbitrary Order DFEM with Spatially Varying Cross Section}
+\maketitle
+%------------------------------------------------
+\section{Diffusion Equations}
+We begin with the analytic transport equation (with isotropic scattering):
+\be
+\mu\frac{\p \psi}{\p x} + \sigma_t \psi = \frac{\sigma_s}{2} \phi + q(x,\mu) \pep
+\ee
+Integrating over angle we have:
+\benum
+\frac{\p J}{\p x} + \sigma_t \phi = \sigma_s \phi + Q(x) \pec
+\label{eq:diff}
+\eenum
+and we use the diffusion approximation for the current:
+\begin{subequations}
+\label{eq:J_def}
+\beanum
+J(x) &=& -D(x)\frac{\p \phi}{\p x} \\
+D &=& \frac{1}{3 \sigma_t} \pep
+\eeanum
+\end{subequations}
+We fill follow a path similar to the first derivation of Adams and Martin \cite{M4S}.  
+Spatially discretizing the analytic diffusion equation, rather than generating a diffusion equation from the spatially discretized transport equation.
+
+\section{Spatial Discretization}
+
+We spatially discretize our equations, expanding in a $P$ degree polynomial, discontinuous finite element trial space.  
+First, transforming to a generic reference element:
+\bea
+x &=& x_i + \frac{\Delta x_i}{2} s \\
+s &\in& [-1,1] \\
+\Delta x_i &=& x_{i+1/2} - x_{i-1/2} \\
+x_i &=& \frac{x_{i+1/2} + x_{i-1/2}}{2}
+\eea
+For generality, let $\widetilde{y}$ be approximate the analytic variables $y$:
+\be
+y \approx   \widetilde{y}(s) = \sum_{j=1}^{N_P}{y_j\B{j}(s) } \pec
+\ee
+where
+\be
+\B{j} = \prod_{\substack{k=1 \\ k\neq j}}^{N_P}{ \frac{s_k - s}{s_k - s_j}} \pec
+\ee
+$N_P = P+1$, and $s_j$ is the interpolation point corresponding to basis function \B{j}.
+Multiplying \eqt{eq:diff} by basis function \B{i} and integrating within a reference cell, we have:
+\benum
+\label{eq:mom1}
+\int_{-1}^{1}{\B{i}(s) \left[\frac{\p \widetilde{J}(s)}{\p s}  + \sigma_a(s) \frac{\Delta x_k}{2}\widetilde{\phi}(s) \right]ds } = 
+\frac{\Delta x_k}{2}\int_{-1}^1{\B{i}(s) Q(s)~ds} 
+\eenum
+We handle the derivative terms of \eqts{eq:mom1} by integrating by parts, to yield:
+\begin{multline}
+\B{i}(1)\widehat{J}_{k+1/2} - \B{i}(-1)\widehat{J}_{k-1/2} - 
+\int_{-1}^{1}{ \frac{\p \B{i}(s)}{\p s} \widetilde{J}(s)~ds} \\
+ + \frac{\Delta x_k}{2}\int_{-1}^1{\B{i}(s)\sigma_a(s) \PT ds } = 
+\frac{\Delta x_k}{2}\int_{-1}^1{\B{i}(s) Q(s)~ds} 
+\label{eq:mom2}
+\end{multline}
+where $\widehat{J}_{k\pm1/2}$ is the net current in the $+x$ direction at $x_{k\pm1/2}$.  With DFEM, we need to uniquely define the vertex current, and do so using the $P_1$ approximation.  By definition of the upwinding scheme used in the transport scheme, the $P_1$ approximation to the angular flux at $x_{k-1/2}$ is:
+\benum
+\widetilde{\psi}(x_{k-1/2},\mu) = \left \{ \begin{array}{ll}
+\frac{\widetilde{\phi}_{k-1,R}}{2} + \frac{3\mu}{2}\widetilde{J}_{k-1,R} & ~\mu>0 \\
+\frac{\widetilde{\phi}_{k,L}}{2} + \frac{3\mu}{2}\widetilde{J}_{k,L}& ~\mu<0
+\end{array}
+\right. 
+\pep
+\label{eq:upwind_psi}
+\eenum
+In \eqt{eq:upwind_psi}, $\widetilde{\phi}_{k-1,R}$ and $\widetilde{J}_{k-1,R}$ are:
+\begin{subequations}
+\label{eq:int_1}
+\beanum
+\widetilde{\phi}_{k-1,R} &=& \sum_{j=1}^{N_P}{ \B{j}(1) \phi_{k-1,j} } \\
+\widetilde{J}_{k-1,R} &=& -D_{k-1}(x_{k-1/2}) \frac{\p \phi}{\p x} = -\frac{2D_{k-1}(1)}{\Delta x_{k-1}}\frac{\p \phi}{\p s} = -\frac{2D_{k-1}(1)}{\Delta x_{k-1}} \sum_{j=1}^{N_P}{ \frac{\p \B{j}}{\p s} \bigg \lvert_{s=1} \phi_{k-1,j} } \pec 
+\eeanum
+\end{subequations}
+with $\widetilde{\phi}_{k,L}$ and $\widetilde{J}_{k,L}$ being defined as:
+\begin{subequations}
+\label{eq:int_2}
+\beanum
+\widetilde{\phi}_{k,L} &=& \sum_{j=1}^{N_P}{ \B{j}(-1) \phi_{k,j} } \\
+\widetilde{J}_{k,L} &=& -\frac{2D(-1)}{\Delta x_k}\sum_{j=1}^{N_P}{ \frac{\p \B{j}}{\p s}  \bigg \lvert_{s=-1} \phi_{k,j} } \pep
+\eeanum
+\end{subequations}
+The $\frac{2}{\Delta x}$ terms appear in the $\widetilde{J}$ definitions of \eqt{eq:int_1} and \eqt{eq:int_2} as a result of the change of variables from physical to reference coordinates.
+Using the definitions of \eqt{eq:upwind_psi}, we can now define $\widehat{J}_{k-1/2}$.  We will integrate with the same angular quadrature used in our $S_N$ scheme.  
+\begin{multline}
+\label{eq:jquad}
+\widehat{J}_{k-1/2} = \int_{-1}^1{\mu \psi(x_{k-1/2},\mu)~d\mu} \approx \\
+\sum_{\substack{d=1 \\ \mu_d > 0}}^{N_{dir}}{w_d\mu_d\left[\frac{\widetilde{\phi}_{k-1,R}}{2} + \frac{3\mu_d}{2}\widetilde{J}_{k-1,R}  \right] } 
++ \sum_{\substack{d=1 \\ \mu_d < 0}}^{N_{dir}}{w_d\mu_d \left[ \frac{\widetilde{\phi}_{k,L}}{2} + \frac{3\mu_d}{2}\widetilde{J}_{k,L} \right] }
+\end{multline}
+Since we are integrating half range quantities, symmetric quadrature sets defined for $\mu\in[-1,1]$ will not exactly integrate functions over the intervals $\mu \in[-1,0]$ and $\mu\in[0,1]$.
+Thus, we introduce $\alpha$:
+\benum
+\alpha = \sum_{\substack{d=1\\ \mu_d > 0}}^{N_{dir}}{w_d \mu_d} \approx \frac{1}{2} \pep
+\eenum
+In general, symmetric quadrature sets will integrate even functions of $\mu$ exactly over the half range, so we do not need to introduce a quadrature approximation for this.  We further assume that $\sum_{d=1}^{N_{dir}}{w_d} = 2$.  Performing the quadrature integration of \eqt{eq:jquad} we have
+%
+%
+\benum
+\widehat{J}_{k-1/2} = \alpha \frac{\widetilde{\phi}_{k-1,R}}{2} + \frac{\widetilde{J}_{k-1,R}}{2} - \alpha \frac{\widetilde{\phi}_{k,L}}{2} + \frac{\widetilde{J}_{k,L}}{2}
+\eenum
+and using \eqt{eq:int_1} and \eqt{eq:int_2}, we have:
+\begin{multline}
+\widehat{J}_{k-1/2} = 
+\frac{\alpha}{2}\left[\sum_{j=1}^{N_P}{ \B{j}(1) \phi_{k-1,j} }\right] + 
+\frac{1}{2}\left[ -\frac{2D_{k-1}(1)}{\Delta x_{k-1}} \sum_{j=1}^{N_P}{ \frac{\p \B{j}}{\p s} \bigg \lvert_{s=1} \phi_{k-1,j} } \right] \\
+- \frac{\alpha}{2}\left[ \sum_{j=1}^{N_P}{ \B{j}(-1) \phi_{k,j} } \right] 
++ \frac{1}{2}\left[-\frac{2D_k(-1)}{\Delta x_k}\sum_{j=1}^{N_P}{ \frac{\p \B{j}}{\p s}  \bigg \lvert_{s=-1} \phi_{k,j} }\right] 
+\pep
+\end{multline}
+%
+%
+% Stopped here for the night
+%
+%
+When simplified (slightly), this becomes:
+\benum
+\widehat{J}_{k-1/2} = \frac{1}{2}\sum_{j=1}^{N_P}{\left[\alpha \B{j}(1) -\frac{2}{\Delta x_{k-1}} D_{k-1} \frac{\p \B{j}}{\p s} \bigg \lvert_{s=1}  \right]\phi_{k-1,j} } 
+-\frac{1}{2}\sum_{j=1}^{N_P}{\left[ \alpha \B{j}(-1) +\frac{2}{\Delta x_k}D_k(-1)\frac{\p \B{j}}{\p s} \bigg \lvert_{s=-1}  \right]\phi_{k,j}}
+\pep
+\eenum
+Analogously, the equation for $\widehat{J}_{k+1/2}$ is:
+\benum
+\widehat{J}_{k+1/2} = \frac{1}{2}\sum_{j=1}^{N_P}{\left[\alpha \B{j}(1) - \frac{2}{\Delta x_k}D_{k} \frac{\p \B{j}}{\p s} \bigg \lvert_{s=1}  \right]\phi_{k,j} } 
+-\frac{1}{2}\sum_{j=1}^{N_P}{\left[ \alpha \B{j}(-1) + \frac{2}{\Delta x_{k+1}}D_{k+1}(-1)\frac{\p \B{j}}{\p s} \bigg \lvert_{s=-1}  \right]\phi_{k+1,j}}
+ \pep
+\eenum
+%
+%
+If we consider the $N_P$ moments of \eqt{eq:mom2} at once, we have the following $N_P \times N_P$ system of equations:
+\benum
+\left[ \mathbf{S}_+\left(\mathbf{J}_{L,k+1} \vec{\phi}_{k+1} + \mathbf{J}_{R,k} \vec{\phi}_{k} \right) -
+\mathbf{S}_- \left(\mathbf{J}_{L,k} \vec{\phi}_k + \mathbf{J}_{R,k-1} \vec{\phi}_{k-1} \right) \right]
++ \mathbf{L}\vec{\phi}_k + \Mw_{\sigma_a} \vec{\phi}_k = \M \vec{Q} \pec
+\eenum
+where we make the following definitions:
+\benum
+\mathbf{J}_{L,k,1 \dots N_P,j} = -\frac{1}{2}\left[ \frac{2}{\Delta x_k}D_{k}(-1) \frac{\p \B{j}}{\p s}\bigg \lvert_{s=-1} + \alpha \B{j}(-1)  \right]
+\eenum
+\benum
+\mathbf{J}_{R,k,1 \dots N_P,j} = \frac{1}{2}\left[ \alpha \B{j}(1) -\frac{2}{\Delta x_k} D_{k}(1) \frac{\p \B{j}}{\p s}\bigg \lvert_{s=1}  \right]
+\eenum
+%
+\benum
+\mathbf{S}_{\pm,ij} = \left \{ \begin{array}{ll} \B{i}(\pm 1) & i=j \\ 0 & \text{otherwise} \end{array} \right. 
+\eenum
+%
+\benum
+\mathbf{L}_{ij} = \frac{2}{\Delta x_k}\int_{-1}^{1}{D_k(s) \frac{\p \B{i} }{\p s} \frac{\p B{j}}{\p s} ~ds}
+\eenum
+\benum
+\vec{\phi}_k = \left[ \begin{array}{c} \phi_{1,k} \\ \vdots \\ \phi_{N_P,k} \end{array} \right]\pec
+\eenum
+\benum
+\Mw_{\sigma_a,ij} = \frac{\Delta x}{2} \int_{-1}^1{\sigma_a(s) \B{i}(s) \B{j}(s)~ds} \pec
+\eenum
+\benum
+\M_{ij} = \frac{\Delta x}{2} \int_{-1}^1{\B{i}(s) \B{j}(s)~ds} \pec
+\eenum
+\benum
+\vec{Q} = \left[ \begin{array}{c} Q_{1,k} \\ \vdots \\ Q_{N_P,k} \end{array} \right]\pep
+\eenum
+In practice, we will approximate the $\mathbf{L}$, \Mw, and \M~matrices using numerical quadrature:
+\bea
+\M_{ij} &\approx & \frac{\Delta x_k}{2} \sum_{q=1}^{N_q}{w_q \B{i}(s_q) \B{j}(s_q)} \\
+\Mw_{\sigma_a,ij} &\approx & \frac{\Delta x_k}{2} \sum_{q=1}^{N_q}{w_q \sigma_a(s_q) \B{i}(s_q) \B{j}(s_q)} \\
+\mathbf{L}_{ij} &\approx & \frac{1}{\Delta x_k} \sum_{q=1}^{N_q}{w_q D_k(s_q) \frac{\p \B{i}}{\p s} \bigg \lvert_{s_q}  \frac{\p \B{j}}{\p s} \bigg \lvert_{s_q} }
+\eea
+If we use numerical quadrature restricted to the DFEM interpolation points, \M ~and $\Mw_{\sigma_a}$ ~become diagonal matrices since,
+\benum
+\B{i}(s_q) = \left \{ \begin{array}{ll} 1 & s_i  = s_q \\ 0 & \text{otherwise} \end{array} \right. \pep
+\eenum
+Using self-lumping quadrature, \M~and $\Mw_{\sigma_a}$ are:
+\beanum
+\M_{ij} &=& \left \{ \begin{array}{ll} w_i & i  = j \\ 0 & \text{otherwise} \end{array} \right. \\
+\Mw_{ij,\sigma_a} &=& \left \{ \begin{array}{ll} w_i \sigma_{a}(s_i) & i  = j \\ 0 & \text{otherwise} \end{array} \right.  \pep
+\eeanum
+
+\section{Boundary Conditions}
+
+We'll now consider the boundary conditions for our DSA equations.
+
+\subsection{Vacuum (Incident Flux Transport BC)}
+For a fixed incident flux transport boundary condition, we do not wish to have any correction to the inward directed flux.  Thus, on the left boundary, $\widehat{J}_{1/2}$ is:
+\beanum
+\widehat{J}_{1/2} &=& \int_{-1}^1{\mu \psi(x_{1/2},\mu)~d\mu} \approx 0 + \sum_{\substack{d=1 \\\mu_d < 0}}^{N_{dir}}{w_d \mu_d\left[\frac{\widetilde{\phi}_1}{2} + \frac{3\mu_d \widetilde{J}_1}{2}  \right] }\\
+\widehat{J}_{1/2} &=& -\frac{1}{2}\left[
+\sum_{j=1}^{N_P}{\alpha \B{j}(-1) \phi_{1,j}  +
+\frac{2D_1(-1)}{\Delta x}  \sum_{j=1}^{N_P}
+\frac{\p \B{j}}{\p s} \bigg \lvert_{s=-1} \phi_{1,j}} \pep
+\right]
+\eeanum
+This make the $N_P$ moment equation in the leftmost cell:
+\benum
+\left[ \mathbf{S}_+\left(\mathbf{J}_{L,2} \vec{\phi}_{2} + \mathbf{J}_{R,1} \vec{\phi}_{1} \right) -
+\mathbf{S}_- \mathbf{J}_{L,1} \vec{\phi}_1  \right]
++ \mathbf{L}\vec{\phi}_k + \Mw_{\sigma_a} \vec{\phi}_k = \M \vec{Q} \pep
+\eenum
+Similarly on the rightmost cell, the moment equations become:
+\benum
+\left[ \mathbf{S}_+ \mathbf{J}_{R,N_{cell}} \vec{\phi}_{N_{cell}} -
+\mathbf{S}_- \left(\mathbf{J}_{L,N_{cell}} \vec{\phi}_{N_{cell}} + \mathbf{J}_{R,N_{cell}-1} \vec{\phi}_{N_{cell}-1} \right) \right]
++ \mathbf{L}\vec{\phi}_{N_{cell}} + \Mw_{\sigma_a} \vec{\phi}_{N_{cell}} = \M \vec{Q} \pep
+\eenum
+
+\subsection{Reflecting (Reflecting Transport BC)}
+
+For reflective transport boundary conditions, we need a reflective DSA boundary condition.  This is implemented most clearly by setting $\widehat{J}_{1/2}=0$, since everything that goes out of the slab is reflected back in, result in a net current of $0$.  The moment equation at the left most and right most cell are then:
+\benum
+\mathbf{S}_+\left(\mathbf{J}_{L,2} \vec{\phi}_{2} + \mathbf{J}_{R,1} \vec{\phi}_{1} \right) 
++ \mathbf{L}\vec{\phi}_1 + \Mw_{\sigma_a} \vec{\phi}_1 = \M \vec{Q} \pec
+\eenum
+\benum
+\mathbf{S}_- \left(\mathbf{J}_{L,N_{cell}} \vec{\phi}_{N_{cell}} + \mathbf{J}_{R,N_{cell}-1} \vec{\phi}_{N_{cell}-1} \right) 
++ \mathbf{L}\vec{\phi}_{N_{cell}} + \Mw_{\sigma_a} \vec{\phi}_{N_{cell}} = \M \vec{Q} \pec
+\eenum
+
+\section{Alternative Use of Integration By Parts}
+
+\benum
+\B{i} \left[ \widehat{J}_{out} - \widehat{J}_{in} \right]
+\eenum
+
+\benum
+\left( \B{i}(1)J_{+,k,k+1/2} + \B{i}(-1) J_{-,k,k-1/2} \right) - \left(\B{i}(-1)J_{+,k-1,k-1/2} + \B{i}(1) J_{-,k+1,k-1/2} \right) 
+\eenum
+%
+%
+%
+\begin{multline}
+\left(\B{i}(1)
+ \sum_{\substack{d=1 \\ \mu_d > 0}}^{N_{dir}}{
+w_d \mu_d \sum_{j=1}^{N_P}{\phi_{k,j}\left[ \frac{\B{j}(1)}{2} - \frac{3\mu_d}{2} D_k(1)\frac{2}{\Delta x_k} \frac{\p \B{j}}{\p s} \bigg \lvert_{s=1}     \right] }
+} \right. \\
+\left.
++ \B{i}(-1)
+ \sum_{\substack{d=1 \\ \mu_d < 0}}^{N_{dir}}{
+w_d \mu_d \sum_{j=1}^{N_P}{\phi_{k,j}\left[ \frac{\B{j}(-1)}{2} - \frac{3\mu_d}{2} D_k(-1)\frac{2}{\Delta x_k} \frac{\p \B{i}}{\p s} \bigg \lvert_{s=-1}      \right] }
+}
+ \right) \\ 
+-
+\left(   
+\B{i}(-1)\sum_{\substack{d=1 \\ \mu_d > 0}}^{N_{dir}}{
+w_d\mu_d \sum_{j=1}^{N_P}{
+ \phi_{k-1,j}\left[  \frac{\B{j}(1)}{2} - \frac{3\mu_d}{2} \frac{\Delta x_{k-1}}{2}D_{k-1} \frac{\p B_j}{\p s} \bigg \lvert_{s=1} \right]
+}
+}
+\right.
+\\
+\left.
++ \B{i}(1) \sum_{\substack{d=1 \\ \mu_d < 0}}^{N_{dir}}{w_d \mu_d \sum_{j=1}^{N_P}{
+\phi_{k+1,j}\left[
+\frac{\B{j}(-1)}{2} - \frac{2}{\Delta x_{k+1}}D_{k+1}(-1) \frac{\p \B{j}}{\p s}\bigg \lvert_{s=-1}
+\right]
+}
+}
+\right)
+\end{multline}
+
+\benum
+\left( \mathbf{S}_+ \mathbf{J}_{R,k} \vec{\phi}_k + \mathbf{S}_- \mathbf{J}_{L,k} \vec{\phi}_k \right)
+-
+\left( \mathbf{S}_+ \mathbf{J}_{L,k+1} \vec{\phi}_{k+1} + \mathbf{S}_- \mathbf{J}_{R,k-1} \right) \vec{\phi}_{k-1}
+\eenum
+
+
+
+\section{Stencil Size}
+The stencil of this DSA scheme will be dependent on the DFEM interpolation points selected.  
+If there is not a DFEM interpolation point located at each cell vertex, the stencil increases significantly.  
+This is caused by $\mathbf{S}_{\pm}$.  
+If there is a DFEM interpolation point on each cell edge, then $\mathbf{S}_+ \mathbf{J}_{L,k+1} \vec{\phi}_{k+1}$ will result in a non-zero coefficient of only one $\phi_{k+1,j}$, $\phi_{k+1,1}$ in the $N_P$ moment equation of $\vec{\phi}_k$.  
+Assuming there is a DFEM interpolation point at each vertex, in matrix form, the $N_P$ moment equations for $\vec{\phi}_k$ have $N_P \times N_P + 2$ non-zero entries.
+However, if there is no DFEM interpolation point at the cell edges, rather than coupling to 1 unknown of each neighboring cell, the moment equations of $\vec{\phi}$ are fully coupled to the neighboring cells, creating a $3(N_P \times N_P)$ diffusion equation stencil.
+
+\begin{thebibliography}{20}
+
+\bibitem{M4S} M. L. Adams and W. R. Martin , ``Diffusion Synthetic Acceleration of Discontinuous Finite Element Transport Iterations,'' {\it Nuclear Science and Engineering}, {\bf 111}, pp. 145-167 (1992).
+
+\end{thebibliography}
+
+\end{document}

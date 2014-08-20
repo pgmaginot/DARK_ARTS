@@ -7,8 +7,6 @@
 
 #include <vector>
 #include <stdlib.h>
-#include <iostream>
-#include <sstream>
 
 /** @file   V_Matrix_Construction.h
   *   @author pmaginot
@@ -36,7 +34,7 @@ public:
   
   void construction_right_upwind_vector(Eigen::VectorXd& f_mu_neg);
   
-private:
+protected:
 
   
 
@@ -64,12 +62,13 @@ private:
   std::vector<double> m_integration_weights;
   
   std::vector<double> m_basis_at_quad;
+  
+private:
+  /// only used in the gradient matrix and upwind contributions, don't need to copy to derived matrix construction types
   std::vector<double> m_basis_deriv_at_quad;
   
   std::vector<double> m_basis_at_left_edge;
   std::vector<double> m_basis_at_right_edge;
-  
-  MATRIX_INTEGRATION m_matrix_type = INVALID_MATRIX_INTEGRATION;
 };
 
 #endif
