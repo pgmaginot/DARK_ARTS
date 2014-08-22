@@ -47,7 +47,9 @@ int main(int argc, char** argv)
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);
-    
+  
+  
+  std::shared_ptr<V_Matrix_Construction>
   Eigen::MatrixXd result(3,3);  
   Eigen::DiagonalMatrix<double,Eigen::Dynamic> diag1(3);
   Eigen::Matrix3d base;
