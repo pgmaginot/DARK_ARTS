@@ -5,6 +5,7 @@
 #include "Angular_Quadrature.h"
 #include "Intensity_Data.h"
 #include "Materials.h"
+#include "V_Temperature_Update.h"
 
 #include "Eigen/Dense"
 
@@ -48,8 +49,8 @@ int main(int argc, char** argv)
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);
   
+  V_Temperature_Update temp(fem_quadrature, &cell_data, &materials);
   
-  std::shared_ptr<V_Matrix_Construction>
   Eigen::MatrixXd result(3,3);  
   Eigen::DiagonalMatrix<double,Eigen::Dynamic> diag1(3);
   Eigen::Matrix3d base;
@@ -104,10 +105,6 @@ int main(int argc, char** argv)
   // eig_type_vec(2) = 0.02;
   
   
-  
-  // std::cout << "Return of function" << std::endl << mat
-  
- 
   
 
   

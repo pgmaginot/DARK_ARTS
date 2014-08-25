@@ -108,6 +108,14 @@ add_subdirectory(materials)
 PropagateSG(MATERIALS)
 
 #----------------------------------------
+# Temperature and Radiation Solvers
+#----------------------------------------
+
+add_subdirectory(solvers)
+PropagateSG(SOLVERS)
+
+
+#----------------------------------------
 # Propagate variables to parents scope
 #----------------------------------------
 Propagate(${PROJECT_NAME}_HEADER_FILES)
