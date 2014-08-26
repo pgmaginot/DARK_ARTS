@@ -28,6 +28,24 @@ void Temperature_Data::set_temperature(const int el, const int cell, const doubl
   m_t[loc] = val;
   return ;
 }
+
+void Temperature_Data::get_cell_temperature(const int cell, Eigen::VectorXd& vec) const
+{  
+  int base = temperature_data_locator(0,cell);
+  for(int i=0; i< m_el_per_cell; i++ )
+    vec(i) = m_t[base + i];
+  return; 
+}
+
+void Temperature_Data::set_cell_temperature(const int cell, const Eigen::VectorXd& vec)
+{
+  int loc = temperature_data_locator(0,cell);
+  for(int i=0; i< m_el_per_cell ; i++)
+    m_t[loc+i] = vec(i);
+    
+  return ;
+}
+
 bool Temperature_Data::temperature_range_check(const int el, const int cell) const
 {
   bool is_bad = false;

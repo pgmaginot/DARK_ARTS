@@ -80,7 +80,7 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   cell_data_ptr = cell_ptr;
 }
 
-void Materials::calculate_local_temp_and_position(const int cell_num, const Temperature_Data& temperature)
+void Materials::calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)
 {
   /// determine what material we are in
   m_current_material = cell_data_ptr->get_cell_material_number(cell_num);
@@ -109,7 +109,8 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Temp
   int p=0;
   for(int dfem_t = 0; dfem_t < m_n_el_cell ; dfem_t++)
   {
-    double t_el = temperature.get_temperature(dfem_t, cell_num);
+    /// temperature is an Eigen::VectorXd
+    double t_el = temperature(dfem_t);
     m_t_left_bound += t_el*m_dfem_at_left_edge[dfem_t];
     m_t_right_bound += t_el*m_dfem_at_right_edge[dfem_t];
     for(int i=0; i< m_n_xs_quad; i++)
@@ -122,6 +123,22 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Temp
   return;
 }
    
+   
+void Materials::get_sigma_a(const int cell, const int grp, std::vector<double>& sig_a)
+{
+  return;
+}
+
+void Materials::get_sigma_s(const int cell, const int grp, const int l_mom, std::vector<double>& sig_s)
+{
+  return;
+}
+
+void Materials::get_cv(const int cell, std::vector<double>& cv)
+{
+  return;
+}  
+  
 void Materials::update_sigma_a(void)
 {
   for(int g=0; g<m_n_groups ; g++)

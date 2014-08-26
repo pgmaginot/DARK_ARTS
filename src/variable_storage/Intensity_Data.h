@@ -4,6 +4,7 @@
 #include "Fem_Quadrature.h"
 #include "Angular_Quadrature.h"
 #include "Cell_Data.h"
+#include "Eigen/Dense"
 
 #include <vector>
 #include <stdlib.h>
@@ -23,11 +24,19 @@ public:
   void get_cell_intensity(const int cell, const int group, const int dir, 
     std::vector<double>& loc_i_vec) const;
     
+  /// return an Eigen compatible vector
+  void get_cell_intensity(const int cell, const int group, const int dir, 
+    Eigen::VectorXd& loc_i_vec) const;
+    
   double get_angle_integrated_intensity(const int el, const int cell,
     const int group, const int l_mom) const;
     
   void get_cell_angle_integrated_intensity(const int cell, const int group, const int l_mom, 
     std::vector<double>& loc_phi_vec) const;
+  
+  /// return an Eigen compatible vector
+  void get_cell_angle_integrated_intensity(const int cell, const int group, const int l_mom, 
+    Eigen::VectorXd&  loc_phi_vec) const;
   
   /// Public functions to save values
   void set_intensity(const int el, const int cell,
@@ -36,11 +45,17 @@ public:
   void set_cell_intensity(const int cell,
     const int group, const int dir, const std::vector<double>& val);
     
+  void set_cell_intensity(const int cell,
+    const int group, const int dir, const Eigen::VectorXd& val);
+    
   void set_angle_integrated_intensity(const int el, const int cell,
     const int group, const int l_mom, const double val);
     
   void set_cell_angle_integrated_intensity(const int cell,
     const int group, const int l_mom, const std::vector<double>& val);
+    
+  void set_cell_angle_integrated_intensity(const int cell,
+    const int group, const int l_mom, const Eigen::VectorXd& val);
   
 protected:
   std::vector<double> m_i;

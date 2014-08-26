@@ -6,8 +6,11 @@
 #include "Intensity_Data.h"
 #include "Materials.h"
 #include "V_Temperature_Update.h"
+#include "Temperature_Update_Grey.h"
+#include "Temperature_Update_MF.h"
 
-#include "Eigen/Dense"
+#include <Eigen/Dense>
+#include <Eigen/LU>
 
 int main(int argc, char** argv)
 {
@@ -49,7 +52,7 @@ int main(int argc, char** argv)
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);
   
-  V_Temperature_Update temp(fem_quadrature, &cell_data, &materials);
+  // V_Temperature_Update temp(fem_quadrature, &cell_data, &materials);
   
   Eigen::MatrixXd result(3,3);  
   Eigen::DiagonalMatrix<double,Eigen::Dynamic> diag1(3);
@@ -65,11 +68,28 @@ int main(int argc, char** argv)
   base(2,1) = 32.;
   base(2,2) = 33.;
   
+  
+  
   diag1.diagonal()[0] = 0.1;
   diag1.diagonal()[1] = 0.2;
   diag1.diagonal()[2] = 0.3;
   
+  
+  
+  base = Eigen::Matrix3d::Random();
   std::cout << "base matrix= "<< std::endl << base << std::endl;  
+  
+  std::cout << "inverse of base matrix" << std::endl << base.inverse() << std::endl;
+  
+  result =  base.inverse();
+
+  std::cout << "Storing the result in a separate matrix\n" << result << std::endl;
+   
+  base = base.inverse();
+  
+  std::cout << "Did the inverse overwrite the matrix?\n" << base <<std::endl;
+  
+  
   
   std::cout << "diagonal matrix="<< std::endl << diag1.diagonal() << std::endl;
   

@@ -4,6 +4,8 @@
 #include "Fem_Quadrature.h"
 #include "Cell_Data.h"
 
+#include "Eigen/Dense"
+
 #include <vector>
 #include <stdlib.h>
 
@@ -19,6 +21,10 @@ public:
 
   /// Public functions to save values
   void set_temperature(const int el, const int cell, const double val);
+  
+  void get_cell_temperature(const int cell, Eigen::VectorXd& vec) const;
+  
+  void set_cell_temperature(const int cell, const Eigen::VectorXd& vec);
   
 protected:
   std::vector<double> m_t;

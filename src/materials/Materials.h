@@ -7,8 +7,10 @@
 
 #include "Input_Reader.h"
 #include "Fem_Quadrature.h"
-#include "Temperature_Data.h"
+
 #include "Cell_Data.h"
+
+#include <Eigen/Dense>
 
 #include "VAbsorption_Opacity.h"
 #include "VScattering_Opacity.h"
@@ -52,12 +54,12 @@ public:
   /// calculate \f$ C_v \f$ for all DFEM integration points and groups for cell cell_num
   void update_cv(void);
   
-  void calculate_local_temp_and_position(const int cell_num, const Temperature_Data& temperature);
+  void calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature);
   
   /// just return the appropriate data, which the Materials object has stored for the given cell
-  // void get_sigma_a(const int cell, const int grp, std::vector<double>& sig_a);
-  // void get_sigma_s(const int cell, const int grp, const int l_mom, std::vector<double>& sig_s);
-  // void get_cv(const int cell, std::vector<double>& cv);
+  void get_sigma_a(const int cell, const int grp, std::vector<double>& sig_a);
+  void get_sigma_s(const int cell, const int grp, const int l_mom, std::vector<double>& sig_s);
+  void get_cv(const int cell, std::vector<double>& cv);
   
 private:
   void load_materials(const Input_Reader& input_reader);
