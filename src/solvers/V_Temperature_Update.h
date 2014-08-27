@@ -69,7 +69,11 @@ public:
   /// \f$ \vec{T}_i
   Eigen::VectorXd m_t_new = Eigen::VectorXd::Zero(m_np);
   
+  /// the size of this vector is equal to the number of DFEM integration (quadrature points)
   std::vector<double> m_temp_mat_vec;
+  
+    /// Sum of \f$ S_n \f$ weights
+  const double m_sn_w;
 private:  
   /// need to access cell data, save a ptr to skip passing it all the time
   Cell_Data* m_cell_data;
@@ -83,11 +87,8 @@ private:
   /// number of cells
   const int m_n_cells;
   
-  /// Sum of \f$ S_n \f$ weights
-  const double m_sn_w;
-  
 
-  
+    
 
 /* ****************************************************
 *

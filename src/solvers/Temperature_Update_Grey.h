@@ -28,7 +28,8 @@ private:
 *     Protected Functions
 *
   **************************************************** */
-  void calculate_local_matrices(const int cell_num, Eigen::VectorXd& t_eval);
+  void calculate_local_matrices(const int cell_num, Eigen::VectorXd& t_eval,
+    const double dt, const double a_ii);
   
 };
 

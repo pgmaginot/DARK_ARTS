@@ -4,11 +4,11 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   const Angular_Quadrature& angular_quadrature)
   :
   m_material(material),
+  m_sn_w(angular_quadrature.get_sum_w() ),
   m_cell_data(cell_data),
   m_np(fem_quadrature.get_number_of_interpolation_points() ) , 
   m_matrix_type(fem_quadrature.get_integration_type() ),
-  m_n_cells(cell_data->get_total_number_of_cells() ),
-  m_sn_w(angular_quadrature.get_sum_w() )
+  m_n_cells(cell_data->get_total_number_of_cells() )
 {
  if(m_matrix_type ==  EXACT)
  {
@@ -26,5 +26,5 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
       Matrix_Construction_Self_Lumping(fem_quadrature) );
  }
  
- m_temp_mat_vec.resize(m_np,0.);
+ m_temp_mat_vec.resize(fem_quadrature.get_number_of_integration_points(),0.);
 }

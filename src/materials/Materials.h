@@ -47,19 +47,20 @@ public:
       Solution: create a virtual class with concrete instantiations e.g. 
         V_XS_Treatment, XS_Treatment_SLXS, XS_Treatment_Moment_Preserving, XS_Treatment_Interpolating
   */
-  /// calculate \f$ \sigma_a \f$ for all DFEM integration points and groups for cell cell_num
-  void update_sigma_a(void);
-  /// calculate \f$ \sigma_s \f$ for all DFEM integration points, groups, and scattering moments for cell cell_num
-  void update_sigma_s(void);
-  /// calculate \f$ C_v \f$ for all DFEM integration points and groups for cell cell_num
-  void update_cv(void);
   
   void calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature);
   
   /// just return the appropriate data, which the Materials object has stored for the given cell
-  void get_sigma_a(const int cell, const int grp, std::vector<double>& sig_a);
-  void get_sigma_s(const int cell, const int grp, const int l_mom, std::vector<double>& sig_s);
-  void get_cv(const int cell, std::vector<double>& cv);
+  void get_sigma_a(const int grp, std::vector<double>& sig_a);
+  void get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s);
+  void get_cv(std::vector<double>& cv);
+  
+  void get_sigma_a_boundary(const int grp, std::vector<double>& sig_a);
+  void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
+  void get_cv_boundary(std::vector<double>& cv);
+ 
+  void get_planck(Eigen::VectorXd& planck_vec);
+  void get_planck_derivative(Eigen::MatrixXd& d_matrix);
   
 private:
   void load_materials(const Input_Reader& input_reader);
@@ -73,31 +74,14 @@ private:
   std::vector<std::shared_ptr<VCv>> m_cv_obj;
   std::vector<std::shared_ptr<VSource_T>> m_source_t;
   std::vector<std::shared_ptr<VSource_I>> m_source_i;
-  
-  /// holders of evaluated material property data at DFEM integration points
-  std::vector<double> m_sig_a;
-  std::vector<double> m_sig_s;
-  std::vector<double> m_cv;
-  
-  /** holders of evaluated material property data at cell edges
-    All data will be stored as follows:
-   \f$ \sigma_{a,L,g=0} \sigma_{a,R,g=0} , \sigma_{a,L,g=1} \dots \f$
-   \f$ \sigma_{s,L,g=0,l_mom=0} \sigma_{s,R,g=0,l_mom=0} , 
-      \sigma_{s,L,g=0,l_mom=1}  {s,R,g=0,l_mom=1} \dots 
-     \f$
-   \f$ [ C_{v,L} , C_{v,R} ] \f$
-  */
-  std::vector<double> m_sig_a_boundary;
-  std::vector<double> m_sig_s_boundary;
-  std::vector<double> m_cv_boundary;
-  
+    
   /// "scratch" vectors to hold a matieral property evaluations at the m_n_xs_evaluation quadrature points
   std::vector<double> m_mat_property_evals;
   
   /// total number of materials
   int m_num_materials = -1;
   
-  /// translator from material evaluations at xs quadrature points to xs at DFEM itnegration points
+  /// translator from material evaluations at xs quadrature points to xs at DFEM integration points
   std::shared_ptr<V_XS_Treatment> m_xs_treatment;
   
   /// XS evaluation points
@@ -142,7 +126,6 @@ private:
   int m_n_groups = -1;
   int m_n_l_mom = -1;
   
-  std::vector<double> m_mat_mapped;
 };
 
 #endif

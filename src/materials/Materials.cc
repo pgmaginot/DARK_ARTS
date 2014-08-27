@@ -67,13 +67,7 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   m_n_groups = input_reader.get_number_of_groups();
   m_n_l_mom = input_reader.get_number_of_legendre_moments();
   m_n_dfem_integration_points = fem_quadrature.get_number_of_integration_points();
-  
-  m_sig_a.resize(m_n_groups*m_n_dfem_integration_points,0.);
-  m_sig_s.resize(m_n_groups*m_n_dfem_integration_points*m_n_l_mom,0.);;
-  m_cv.resize(m_n_dfem_integration_points,0.);
-  m_sig_a_boundary.resize(2*m_n_groups,0.);
-  m_sig_s_boundary.resize(2*m_n_groups*m_n_l_mom,0.);
-  m_cv_boundary.resize(2,0.);
+ 
   m_mat_property_evals.resize(m_n_xs_quad,0.);
   m_t_at_xs_eval_points.resize(m_n_xs_quad,0.);
   
@@ -122,95 +116,83 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
   
   return;
 }
-   
-   
-void Materials::get_sigma_a(const int cell, const int grp, std::vector<double>& sig_a)
+     
+void Materials::get_sigma_a(const int grp, std::vector<double>& sig_a)
 {
-  return;
-}
-
-void Materials::get_sigma_s(const int cell, const int grp, const int l_mom, std::vector<double>& sig_s)
-{
-  return;
-}
-
-void Materials::get_cv(const int cell, std::vector<double>& cv)
-{
-  return;
-}  
-  
-void Materials::update_sigma_a(void)
-{
-  for(int g=0; g<m_n_groups ; g++)
+  for(int i=0; i < m_n_xs_quad ; i++)
   {
-    for(int i=0; i < m_n_xs_quad ; i++)
-    {
-      m_mat_property_evals[i] = m_abs_opacities[m_current_material]->get_absorption_opacity(
-        g, m_t_at_xs_eval_points[i], m_xs_position[i]);      
-    }
+    m_mat_property_evals[i] = m_abs_opacities[m_current_material]->get_absorption_opacity(
+      grp, m_t_at_xs_eval_points[i], m_xs_position[i]);      
+  }
     
-    m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
-    /** group g opacities have now been calculated at dfem integration points, load into vector that
-      is laid out at g=0 to g=m_n_groups { j=0 ... N_P DFEM integration points }
-    */
-    for(int j=0; j<m_n_dfem_integration_points;j++)
-      m_sig_a[g*m_n_dfem_integration_points + j] = m_mat_mapped[j];
-    
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, sig_a);
+  
+  return;
+}
+
+void Materials::get_sigma_a_boundary(const int grp, std::vector<double>& sig_a)
+{
     /// calculate edge values
-    m_sig_a_boundary[2*g] = m_abs_opacities[m_current_material]->get_absorption_opacity(
-        g, m_t_left_bound, m_x_left);
-    m_sig_a_boundary[2*g+1] = m_abs_opacities[m_current_material]->get_absorption_opacity(
-        g, m_t_right_bound, m_x_right);
-  }
+  sig_a[0] = m_abs_opacities[m_current_material]->get_absorption_opacity(grp, m_t_left_bound, m_x_left);
+  
+  sig_a[1]=  m_abs_opacities[m_current_material]->get_absorption_opacity(grp, m_t_right_bound, m_x_right);
 
   return;
 }
+
   /// calculate \f$ \sigma_s \f$ for all DFEM integration points, groups, and scattering moments for cell cell_num
-void Materials::update_sigma_s(void)
+void Materials::get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s)
 {
-  for(int l=0; l< m_n_l_mom; l++)
-  {
-    for(int g=0; g<m_n_groups ; g++)
-    {
-      for(int i=0; i < m_n_xs_quad; i++)
-      {  
-        m_mat_property_evals[i] = m_scat_opacities[m_current_material]->get_scattering_opacity(
-          l, g, m_t_at_xs_eval_points[i], m_xs_position[i]);
-      }
-      
-      m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_mat_mapped);
-      /** moment l, group g opacities have now been calculated at dfem integration points, load into vector that
-        is laid out at l=0 to l = m_n_l_mom {g=0 to g=m_n_groups { j=0 ... N_P DFEM integration points }}
-      */
-      for(int j=0; j<m_n_dfem_integration_points;j++)
-        m_sig_s[l* m_n_groups*m_n_dfem_integration_points + g*m_n_dfem_integration_points + j] = m_mat_mapped[j];
-        
-      /// calculate edge values
-      m_sig_s_boundary[l*m_n_groups*2 + g*2] = m_scat_opacities[m_current_material]->get_scattering_opacity(
-          l, g, m_t_left_bound, m_x_left);
-          
-      m_sig_s_boundary[l*m_n_groups*2 + g*2+1] = m_scat_opacities[m_current_material]->get_scattering_opacity(
-          l, g, m_t_right_bound, m_x_right);
-    }
+  for(int i=0; i < m_n_xs_quad; i++)
+  {  
+    m_mat_property_evals[i] = m_scat_opacities[m_current_material]->get_scattering_opacity(
+      l_mom, grp, m_t_at_xs_eval_points[i], m_xs_position[i]);
   }
-  
+      
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, sig_s);
+
+  return;
+}
+
+void Materials::get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s)
+{
+  /// calculate edge values
+  sig_s[0] = m_scat_opacities[m_current_material]-> get_scattering_opacity( l_mom, grp, m_t_left_bound, m_x_left);
+          
+  sig_s[1] = m_scat_opacities[m_current_material]->get_scattering_opacity( l_mom, grp, m_t_right_bound, m_x_right);
+
   return;
 }
 
 /// calculate \f$ C_v \f$ for all DFEM integration points and groups for cell cell_num
-void Materials::update_cv(void)
+void Materials::get_cv(std::vector<double>& cv)
 {
   for(int i=0; i < m_n_xs_quad; i++)
   {
     m_mat_property_evals[i] = m_cv_obj[m_current_material]->get_cv(m_xs_position[i], m_t_at_xs_eval_points[i]);
   }  
-  /// no special mapping necessary, just calculate material m_cv (at dfem integration points) directly (no group or legendre moment dependence)
-  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, m_cv);
+  /// no special mapping necessary, just calculate material cv (at dfem integration points) directly (no group or legendre moment dependence)
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, cv);
 
+  return;
+}
+
+void Materials::get_cv_boundary(std::vector<double>& cv)
+{
   /// calculate edge values
-  m_cv_boundary[0] = m_cv_obj[m_current_material]->get_cv(m_x_left, m_t_left_bound);
-  m_cv_boundary[1] = m_cv_obj[m_current_material]->get_cv(m_x_right, m_t_right_bound);
+  cv[0] = m_cv_obj[m_current_material]->get_cv(m_x_left, m_t_left_bound);
+  cv[1] = m_cv_obj[m_current_material]->get_cv(m_x_right, m_t_right_bound);
   
+  return;
+}
+
+void Materials::get_planck(Eigen::VectorXd& planck_vec)
+{
+  return;
+}
+
+void Materials::get_planck_derivative(Eigen::MatrixXd& d_matrix)
+{
   return;
 }
 
