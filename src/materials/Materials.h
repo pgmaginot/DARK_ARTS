@@ -30,6 +30,9 @@
 #include "XS_Treatment_SLXS.h"
 #include "XS_Treatment_Moment_Preserving.h"
 #include "XS_Treatment_Interpolating.h"
+
+#include "Planck.h"
+
 class Materials
 {
 
@@ -59,9 +62,7 @@ public:
   void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv_boundary(std::vector<double>& cv);
  
-  void get_planck(Eigen::VectorXd& planck_vec);
-  void get_planck_derivative(Eigen::MatrixXd& d_matrix);
-  
+  Planck planck;
 private:
   void load_materials(const Input_Reader& input_reader);
 

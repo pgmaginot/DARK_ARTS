@@ -186,16 +186,6 @@ void Materials::get_cv_boundary(std::vector<double>& cv)
   return;
 }
 
-void Materials::get_planck(Eigen::VectorXd& planck_vec)
-{
-  return;
-}
-
-void Materials::get_planck_derivative(Eigen::MatrixXd& d_matrix)
-{
-  return;
-}
-
 /* *****************************************************************
 *   Private Member functions
 *  ****************************************************************/

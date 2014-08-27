@@ -1,9 +1,9 @@
 #include "Temperature_Update_MF.h"
 
 Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
-    const Angular_Quadrature& angular_quadrature)
+    const Angular_Quadrature& angular_quadrature, Time_Stepper* time_stepper)
   :
-  V_Temperature_Update(fem_quadrature, cell_data,material, angular_quadrature)
+  V_Temperature_Update(fem_quadrature, cell_data,material, angular_quadrature, time_stepper)
 {
 
 }

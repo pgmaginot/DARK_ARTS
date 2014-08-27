@@ -24,6 +24,8 @@ public:
   
   int get_number_of_stages(void) const;
   
+  double get_a(const int stage, const int index);
+  
 protected:
 
   /**

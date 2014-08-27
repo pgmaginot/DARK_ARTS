@@ -43,3 +43,27 @@ void Time_Stepper::fill_sdirk_vectors(void)
   
   return;
 }
+
+double Time_Stepper::get_a(const int stage, const int index)
+{
+  if( (stage >= m_number_stages) || (stage < 0) )
+  {
+    std::cerr << "Invalid stage request for DIRK a constant\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  if( (index < 0) || (index > stage) )
+  {
+    std::cerr << "Index > stage  or index < 0 in request for DIRK a constant\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  if(stage == 0)
+  {
+    return m_a[0];
+  }
+  else
+  {
+    return m_a[stage*(stage+1)/2 + index];
+  }
+}

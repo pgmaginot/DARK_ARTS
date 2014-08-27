@@ -17,8 +17,11 @@
 #include "Materials.h"
 
 #include "Angular_Quadrature.h"
+#include "Time_Stepper.h"
 
 #include "Eigen/Dense"
+
+
 
 #include <memory>
 
@@ -31,7 +34,7 @@ class V_Temperature_Update
 {
 public:
   V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
-    const Angular_Quadrature& angular_quadrature);
+    const Angular_Quadrature& angular_quadrature, Time_Stepper* time_stepper);
     
     
   ~V_Temperature_Update(){}
@@ -52,7 +55,7 @@ public:
   /// \f$ \mathbf{R}_{C_v} \f$
   Eigen::MatrixXd m_r_cv = Eigen::MatrixXd::Zero(m_np,m_np);
   /// \f$ \mathbf{I} \f$
-  Eigen::MatrixXd m_i_matrix = Eigen::MatrixXd::Zero(m_np,m_np);
+  Eigen::MatrixXd m_i_matrix = Eigen::MatrixXd::Identity(m_np,m_np);
   /// \f$ \mathbf{D} \f$
   Eigen::MatrixXd m_d_matrix = Eigen::MatrixXd::Zero(m_np,m_np);
   /// \f$ \mathbf{I} + 4\pi \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}  \f$
@@ -72,31 +75,23 @@ public:
   /// the size of this vector is equal to the number of DFEM integration (quadrature points)
   std::vector<double> m_temp_mat_vec;
   
-    /// Sum of \f$ S_n \f$ weights
-  const double m_sn_w;
-private:  
-  /// need to access cell data, save a ptr to skip passing it all the time
-  Cell_Data* m_cell_data;
+  const int m_sn_w;
   
   /// number of DFEM points per cell
   const int m_np;
   
-  /// lumping type
-  MATRIX_INTEGRATION m_matrix_type;
+    /// need to access cell data, save a ptr to skip passing it all the time
+  Cell_Data* m_cell_data;
   
-  /// number of cells
+    /// number of cells
   const int m_n_cells;
   
+  Time_Stepper* m_time_stepper;
 
-    
+private:  
 
-/* ****************************************************
-*
-*     Protected Functions
-*
-  **************************************************** */
-  
-  
+  /// lumping type
+  MATRIX_INTEGRATION m_matrix_type;
 };
 
 #endif
