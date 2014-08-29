@@ -186,6 +186,34 @@ void Materials::get_cv_boundary(std::vector<double>& cv)
   return;
 }
 
+void Materials::get_temperature_source(const double time, std::vector<double>& t_source)
+{
+  for(int i=0; i < m_n_xs_quad; i++)
+  {
+    /// t_source is a vector that is \f$ N_P \f$ points long
+    m_mat_property_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_xs_position[i], time);
+  }  
+  /// convert from vector of m_n_xs_quad to m_n_integration_points
+  /// xs_treatment types are moment, interpolating, self-lumping
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, t_source);
+  
+  return;
+}
+
+void Materials::get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source)
+{
+  for(int i=0; i < m_n_xs_quad; i++)
+  {
+    /// t_source is a vector that is \f$ N_P \f$ points long
+    m_mat_property_evals[i] = m_source_i[m_current_material]->get_intensity_source(m_xs_position[i], grp, dir, time);
+  }  
+  /// convert from vector of m_n_xs_quad to m_n_integration_points
+  /// xs_treatment types are moment, interpolating, self-lumping
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, i_source);
+  
+  return;
+}
+
 /* *****************************************************************
 *   Private Member functions
 *  ****************************************************************/

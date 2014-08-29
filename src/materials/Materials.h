@@ -58,6 +58,11 @@ public:
   void get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv(std::vector<double>& cv);
   
+  /// get a vector of unknowns equal to the number of source moment quadrature points
+  /// pass this vector to matrix constructors, for consistency!
+  void get_temperature_source(const double time, std::vector<double>& t_source);
+  void get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source);
+  
   void get_sigma_a_boundary(const int grp, std::vector<double>& sig_a);
   void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv_boundary(std::vector<double>& cv);

@@ -34,14 +34,16 @@ class V_Temperature_Update
 {
 public:
   V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
-    const Angular_Quadrature& angular_quadrature, Time_Stepper* time_stepper);
+    const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper);
     
     
   ~V_Temperature_Update(){}
 
   virtual void update_temperature(const Intensity_Data& intensity, 
     Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
-    const K_Temperature& k_t, const int stage, const double time, const double dt) = 0;
+    const K_Temperature& k_t, const int stage, const std::vector<double>& rk_a, const double time, const double dt) = 0;
+    
+  void load_rk_a(const int stage, const std::vector<double>& outside_rk_a );
 
   /// need to access material objects, save a ptr to avoid passing it all the time
   Materials* m_material;
@@ -61,6 +63,8 @@ public:
   /// \f$ \mathbf{I} + 4\pi \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}  \f$
   Eigen::MatrixXd m_coeff_matrix = Eigen::MatrixXd::Zero(m_np,m_np);
   
+  /// \f$ \vec{\phi}_i \f$
+  Eigen::VectorXd m_phi = Eigen::VectorXd::Zero(m_np);
   /// \f$ \vec{\widehat{B}} \f$
   Eigen::VectorXd m_planck = Eigen::VectorXd::Zero(m_np);
   /// \f$ \vec{T}_n \f$
@@ -71,6 +75,8 @@ public:
   Eigen::VectorXd m_driving_source = Eigen::VectorXd::Zero(m_np);
   /// \f$ \vec{T}_i
   Eigen::VectorXd m_t_new = Eigen::VectorXd::Zero(m_np);
+  /// \f$ k_{T,i} \f$
+  Eigen::VectorXd m_k_vec = Eigen::VectorXd::Zero(m_np);
   
   /// the size of this vector is equal to the number of DFEM integration (quadrature points)
   std::vector<double> m_temp_mat_vec;
@@ -86,7 +92,9 @@ public:
     /// number of cells
   const int m_n_cells;
   
-  Time_Stepper* m_time_stepper;
+  const int m_n_source_quad_pts;
+  
+  std::vector<double> m_rk_a;
 
 private:  
 

@@ -32,7 +32,9 @@ public:
   
   void construct_left_upwind_vector(Eigen::VectorXd& f_mu_pos);
   
-  void construction_right_upwind_vector(Eigen::VectorXd& f_mu_neg);
+  void construct_right_upwind_vector(Eigen::VectorXd& f_mu_neg);
+  
+  void construct_source_moments(Eigen::VectorXd& source_mom, std::vector<double>& source_evals);
   
 protected:
 

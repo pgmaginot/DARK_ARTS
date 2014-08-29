@@ -69,7 +69,7 @@ void V_Matrix_Construction::construct_left_upwind_vector(Eigen::VectorXd& f_mu_p
   return;
 }
   
-void V_Matrix_Construction::construction_right_upwind_vector(Eigen::VectorXd& f_mu_neg)
+void V_Matrix_Construction::construct_right_upwind_vector(Eigen::VectorXd& f_mu_neg)
 {
   for(int j=0; j<m_n_basis_pts;j++)
   {
@@ -77,3 +77,19 @@ void V_Matrix_Construction::construction_right_upwind_vector(Eigen::VectorXd& f_
   }
   return;
 }   
+
+/** Use integration points already stored.  In the future, may want to have seperate quadrature that is more exact,
+  because NSE article showed that exact integration of moments is more robust (and most correct)
+*/
+void V_Matrix_Construction::construct_source_moments(Eigen::VectorXd& source_mom, 
+  std::vector<double>& source_evals)
+{
+  for(int j=0; j<m_n_basis_pts;j++)
+  {
+    source_mom(j) = 0.;
+    for(int q=0;q<m_n_quad_pts;q++)
+      source_mom(j) += m_integration_weights[q]*m_basis_at_quad[q+j*m_n_quad_pts]*source_evals[q];
+  }
+  
+  return;
+}
