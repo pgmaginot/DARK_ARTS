@@ -66,6 +66,9 @@ public:
   void get_sigma_a_boundary(const int grp, std::vector<double>& sig_a);
   void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv_boundary(std::vector<double>& cv);
+  
+  double get_mf_planck_derivative(const double temperature, const int grp);
+  double get_mf_planck(const double temperature, const int grp);
  
   Planck planck;
 private:
@@ -131,6 +134,9 @@ private:
   /// data needed for arranging material property in memory
   int m_n_groups = -1;
   int m_n_l_mom = -1;
+  
+  std::vector<double> m_grp_e_min;
+  std::vector<double> m_grp_e_max;
   
 };
 
