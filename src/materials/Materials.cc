@@ -282,3 +282,12 @@ void Materials::load_materials(const Input_Reader& input_reader)
   }
 }
 
+double Materials::get_mf_planck_derivative(const double temperature, const int grp)
+{
+  return planck.integrate_dBdT(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
+}
+  
+double Materials::get_mf_planck(const double temperature, const int grp)
+{
+  return planck.integrate_B(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
+}

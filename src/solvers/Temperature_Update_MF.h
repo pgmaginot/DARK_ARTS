@@ -8,7 +8,7 @@
   *   @brief Declare the Temperautre_Update class that will update a Temperature_Object given an Intensity_Object
  */
 
-class Temperature_Update_MF : public V_Temperature_Update
+class Temperature_Update_MF : private V_Temperature_Update
 {
 public:
   Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
@@ -23,14 +23,22 @@ public:
     const double time, const double dt) override;    
 private:  
    
-
+  int m_n_groups;
+  
+  /// matrix to hold \f$ \sum_{g=1}^G{\mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g } \f$
+  Eigen::MatrixXd m_spectrum = Eigen::VectorXd::Zero(m_np);
 /* ****************************************************
 *
 *     Protected Functions
 *
   **************************************************** */
+  void calculate_local_matrices(const int cell , const Eigen::VectorXd& m_t_star ,
+    const double dt, const double a_ii , const double time,
+    const Intensity_Data& intensity);
+    
+  void get_planck_vector(const Eigen::VectorXd& t_eval, const int grp);
   
-  
+  void get_planck_derivative_matrix(const Eigen::VectorXd& t_eval, const int grp);
 };
 
 #endif
