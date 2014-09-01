@@ -29,113 +29,55 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
   
+  std::cout << "Input File Read" << std::endl;
+  
   /// Initialize a Quadrule object to be able to get all of the quadrature we need
   Quadrule_New quad_fun;
+  
+  std::cout << "Quadrule object created" << std::endl;
   
   /// Initialize FEM data
   /// get all interpolation points, quadrature formuals, matrix formation routines, etc.
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);
+  
+  std::cout << "Fem_Quadrature object created" << std::endl;
     
   /// Initalize cell data (dx, xL, xR, x_ip, material_number)
   Cell_Data cell_data( input_reader );
   
+  std::cout << "Cell_Data object created" << std::endl;
+  
   /// Initialize time-stepping scheme (SDIRK method)
   Time_Stepper time_stepper( input_reader );
   
+  std::cout << "Time stepper object created" << std::endl;
+    
   /// Initialize angular quadrature data.  Will include number of: directions, groups, and legendre moments.
   /// will also include evaluations of Legendre polynomials
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );
   
+  std::cout << "Angular quadrature object created" << std::endl;
+  
   /// Initialize intensity and angle integrated intensity of previous time step
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature);
+  
+  std::cout << "Intensity object created" << std::endl;
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);
   
-  // V_Temperature_Update temp(fem_quadrature, &cell_data, &materials);
+  std::cout << "Materials object created successfully" << std::endl;
   
-  Eigen::MatrixXd result(3,3);  
-  Eigen::DiagonalMatrix<double,Eigen::Dynamic> diag1(3);
-  Eigen::Matrix3d base;
-  
-  base(0,0) = 11.;
-  base(0,1) = 12.;
-  base(0,2) = 13.;
-  base(1,0) = 21.;
-  base(1,1) = 22.;
-  base(1,2) = 23.;
-  base(2,0) = 31.;
-  base(2,1) = 32.;
-  base(2,2) = 33.;
-  
-  
-  
-  diag1.diagonal()[0] = 0.1;
-  diag1.diagonal()[1] = 0.2;
-  diag1.diagonal()[2] = 0.3;
-  
-  
-  
-  base = Eigen::Matrix3d::Random();
-  std::cout << "base matrix= "<< std::endl << base << std::endl;  
-  
-  std::cout << "inverse of base matrix" << std::endl << base.inverse() << std::endl;
-  
-  result =  base.inverse();
-
-  std::cout << "Storing the result in a separate matrix\n" << result << std::endl;
-   
-  base = base.inverse();
-  
-  std::cout << "Did the inverse overwrite the matrix?\n" << base <<std::endl;
-  
-  
-  
-  std::cout << "diagonal matrix="<< std::endl << diag1.diagonal() << std::endl;
-  
-  
-  result = base * diag1;
-  std::cout << "base*diag1" << std::endl << result << std::endl;
-  
-  result = diag1*base;
-  std::cout << "diag1*base" << std::endl << result << std::endl;
-  
-  // Eigen::Matrix3d dense_diagonal;
-  // dense_diagonal(0,0) = 0.1;
-  // dense_diagonal(1,1) = 0.2;
-  // dense_diagonal(2,2) = 0.3;
-  
-  // result = base * dense_diagonal;
-  // std::cout << "base*dense_diagonal" << std::endl << result << std::endl;
-  
-  // result = dense_diagonal*base;
-  // std::cout << "dense_diagonal*base" << std::endl << result << std::endl;
-  
-  // result = base + dense_diagonal;
-  // std::cout << "base+dense_diagonal" << std::endl << result << std::endl;
-  
-  // result = dense_diagonal + base;
-  // std::cout << "dense_diagonal+base" << std::endl << result << std::endl;
-  
-  // std::cout << "Diagonal of dense_diagonal" << std::endl << dense_diagonal.diagonal() << std::endl;
-  
-  // Eigen::VectorXd eig_type_vec(3);
-  // eig_type_vec(0) = 0.01;
-  // eig_type_vec(1) = 0.02;
-  // eig_type_vec(2) = 0.02;
-  
-  
-  
-
-  
-  
-  
-  // std::vector<double> dbl_vec(3,0.);
-  // dbl_vec[0] = 0.01;
-  // dbl_vec[1] = 0.02;
-  // dbl_vec[2] = 0.03;
-  
-  
-  
+  if(angular_quadrature.get_number_of_groups() == 1)
+  {
+    Temperature_Update_Grey temp(fem_quadrature, &cell_data, &materials, angular_quadrature, time_stepper);
+    std::cout << "Grey temperature update created" << std::endl;
+  }
+  else
+  {
+    Temperature_Update_MF temp(fem_quadrature, &cell_data, &materials, angular_quadrature, time_stepper);
+    std::cout << "MF temperature update object created" << std::endl;
+  }
+ 
   return 0;
 }

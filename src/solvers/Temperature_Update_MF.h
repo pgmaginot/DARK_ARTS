@@ -26,7 +26,7 @@ private:
   int m_n_groups;
   
   /// matrix to hold \f$ \sum_{g=1}^G{\mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g } \f$
-  Eigen::MatrixXd m_spectrum = Eigen::VectorXd::Zero(m_np);
+  Eigen::MatrixXd m_spectrum;
 /* ****************************************************
 *
 *     Protected Functions

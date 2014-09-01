@@ -3,8 +3,9 @@
 Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
     const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper)
   :
-  V_Temperature_Update(fem_quadrature, cell_data,material, angular_quadrature, time_stepper),
-  m_n_groups(angular_quadrature.get_number_of_groups() )  
+  V_Temperature_Update(fem_quadrature, cell_data,material, angular_quadrature, time_stepper),  
+  m_n_groups{angular_quadrature.get_number_of_groups() }  ,
+  m_spectrum{ Eigen::VectorXd::Zero(m_np) }
 {
 
 }

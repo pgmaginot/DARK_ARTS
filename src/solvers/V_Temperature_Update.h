@@ -48,40 +48,7 @@ public:
   /// need to access material objects, save a ptr to avoid passing it all the time
   Materials* m_material;
   
- 
-  /// object that will build all local matrices for the temperature update
-  std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
-  
-    /// \f$ \mathbf{R}_{\sigma_a} \f$
-  Eigen::MatrixXd m_r_sig_a = Eigen::MatrixXd::Zero(m_np,m_np);
-  /// \f$ \mathbf{R}_{C_v} \f$
-  Eigen::MatrixXd m_r_cv = Eigen::MatrixXd::Zero(m_np,m_np);
-  /// \f$ \mathbf{I} \f$
-  Eigen::MatrixXd m_i_matrix = Eigen::MatrixXd::Identity(m_np,m_np);
-  /// \f$ \mathbf{D} \f$
-  Eigen::MatrixXd m_d_matrix = Eigen::MatrixXd::Zero(m_np,m_np);
-  /// \f$ \mathbf{I} + 4\pi \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}  \f$
-  Eigen::MatrixXd m_coeff_matrix = Eigen::MatrixXd::Zero(m_np,m_np);
-  
-  /// \f$ \vec{\phi}_i \f$
-  Eigen::VectorXd m_phi = Eigen::VectorXd::Zero(m_np);
-  /// \f$ \vec{\widehat{B}} \f$
-  Eigen::VectorXd m_planck = Eigen::VectorXd::Zero(m_np);
-  /// \f$ \vec{T}_n \f$
-  Eigen::VectorXd m_t_old = Eigen::VectorXd::Zero(m_np);
-  /// \f$ \vec{T}^* \f$
-  Eigen::VectorXd m_t_star = Eigen::VectorXd::Zero(m_np);
-  /// \f$ \vec{S}_T \f$
-  Eigen::VectorXd m_driving_source = Eigen::VectorXd::Zero(m_np);
-  /// \f$ \vec{T}_i
-  Eigen::VectorXd m_t_new = Eigen::VectorXd::Zero(m_np);
-  /// \f$ k_{T,i} \f$
-  Eigen::VectorXd m_k_vec = Eigen::VectorXd::Zero(m_np);
-  
-  /// the size of this vector is equal to the number of DFEM integration (quadrature points)
-  std::vector<double> m_temp_mat_vec;
-  
-  const int m_sn_w;
+  const double m_sn_w;
   
   /// number of DFEM points per cell
   const int m_np;
@@ -93,6 +60,38 @@ public:
   const int m_n_cells;
   
   const int m_n_source_quad_pts;
+  
+  /// \f$ \mathbf{R}_{\sigma_a} \f$
+  Eigen::MatrixXd m_r_sig_a; // = Eigen::MatrixXd::Zero(m_np,m_np);
+  /// \f$ \mathbf{R}_{C_v} \f$
+  Eigen::MatrixXd m_r_cv;// = Eigen::MatrixXd::Zero(m_np,m_np);
+  /// \f$ \mathbf{I} \f$
+  Eigen::MatrixXd m_i_matrix;// = Eigen::MatrixXd::Identity(m_np,m_np);
+  /// \f$ \mathbf{D} \f$
+  Eigen::MatrixXd m_d_matrix;// = Eigen::MatrixXd::Zero(m_np,m_np);
+  /// \f$ \mathbf{I} + 4\pi \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}  \f$
+  Eigen::MatrixXd m_coeff_matrix;// = Eigen::MatrixXd::Zero(m_np,m_np);
+  
+  /// \f$ \vec{\phi}_i \f$
+  Eigen::VectorXd m_phi; 
+  /// \f$ \vec{\widehat{B}} \f$
+  Eigen::VectorXd m_planck;
+  /// \f$ \vec{T}_n \f$
+  Eigen::VectorXd m_t_old;
+  /// \f$ \vec{T}^* \f$
+  Eigen::VectorXd m_t_star; 
+  /// \f$ \vec{S}_T \f$
+  Eigen::VectorXd m_driving_source;
+  /// \f$ \vec{T}_i
+  Eigen::VectorXd m_t_new; 
+  /// \f$ k_{T,i} \f$
+  Eigen::VectorXd m_k_vec; 
+  
+  /// object that will build all local matrices for the temperature update
+  std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
+    
+  /// the size of this vector is equal to the number of DFEM integration (quadrature points)
+  std::vector<double> m_temp_mat_vec;  
   
   std::vector<double> m_rk_a;
 
