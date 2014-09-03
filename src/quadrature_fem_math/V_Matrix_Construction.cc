@@ -8,10 +8,10 @@
 #include "V_Matrix_Construction.h"
 
 V_Matrix_Construction::V_Matrix_Construction(const Fem_Quadrature& fem_quadrature)
-{  
-  m_n_basis_pts = fem_quadrature.get_number_of_interpolation_points();
-  m_n_quad_pts = fem_quadrature.get_number_of_integration_points();
-  
+:
+  m_n_quad_pts{ fem_quadrature.get_number_of_interpolation_points() }, 
+  m_n_basis_pts{ fem_quadrature.get_number_of_integration_points()} 
+{    
   fem_quadrature.get_integration_weights(m_integration_weights);
   
   fem_quadrature.get_dfem_at_edges(m_basis_at_left_edge,m_basis_at_right_edge);

@@ -58,14 +58,16 @@ protected:
     Fem_Quadrature objects
   */
   
-  int m_n_quad_pts = -1;
-  int m_n_basis_pts = -1;
+  const int m_n_quad_pts ;
+  const int m_n_basis_pts ;
   
   std::vector<double> m_integration_weights;
   
   std::vector<double> m_basis_at_quad;
   
 private:
+
+
   /// only used in the gradient matrix and upwind contributions, don't need to copy to derived matrix construction types
   std::vector<double> m_basis_deriv_at_quad;
   

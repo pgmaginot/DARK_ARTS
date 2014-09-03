@@ -88,13 +88,30 @@ private:
   std::vector<double> m_mat_property_evals;
   
   /// total number of materials
-  int m_num_materials = -1;
+  const int m_num_materials;
+  
+    /// XS evaluation points
+  const int m_n_xs_quad;
+  
+    /// DFEM integration points
+  const int m_n_dfem_integration_points;
+  
+    /// number of DFEM unknwons per cell
+  const int m_n_el_cell;
+  
+    /// data needed for arranging material property in memory
+  const int m_n_groups;
+  
+  const int m_n_l_mom;
+  
+  
+  /// what material the current cell is in
+  int m_current_material=-1;
   
   /// translator from material evaluations at xs quadrature points to xs at DFEM integration points
   std::shared_ptr<V_XS_Treatment> m_xs_treatment;
   
-  /// XS evaluation points
-  int m_n_xs_quad = -1;
+
   /// resized by fem_quadrature
   std::vector<double> m_xs_eval_quad;
   /// only initialized if used (moment_preserving)
@@ -113,8 +130,6 @@ private:
   /// pointer to Cell_Data
   Cell_Data* cell_data_ptr;
   
-  /// DFEM integration points
-  int m_n_dfem_integration_points = -1;
   /// Used in moment_preserving and interpolating schemes only
   std::vector<double> m_dfem_integration_points;
   
@@ -122,18 +137,8 @@ private:
   std::vector<double> m_dfem_at_xs;
   std::vector<double> m_dfem_at_left_edge;
   std::vector<double> m_dfem_at_right_edge;
-  
-  /// number of DFEM unknwons per cell
-  int m_n_el_cell = -1;
-  
-  /// what material the current cell is in
-  int m_current_material = -1;
-  
+
   std::vector<double> m_xs_position;
-  
-  /// data needed for arranging material property in memory
-  int m_n_groups = -1;
-  int m_n_l_mom = -1;
   
   std::vector<double> m_grp_e_min;
   std::vector<double> m_grp_e_max;

@@ -14,10 +14,14 @@
 *  ****************************************************************/
 
 Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_ptr)
-{
-  /// Loop over the number of materials, load each object type as a appropriate
-  m_num_materials = input_reader.get_number_of_materials();
-  
+:
+  m_num_materials{input_reader.get_number_of_materials()},
+  m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
+  m_n_dfem_integration_points{ fem_quadrature.get_number_of_integration_points() },
+  m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },
+  m_n_groups{ input_reader.get_number_of_groups() },
+  m_n_l_mom{ input_reader.get_number_of_legendre_moments() }
+{ 
   m_abs_opacities.resize(m_num_materials);
   m_scat_opacities.resize(m_num_materials);
 
@@ -54,20 +58,13 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   }
   
   fem_quadrature.get_xs_eval_points(m_xs_eval_quad);
-  m_n_xs_quad = m_xs_eval_quad.size();
+  
   fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);
-  
-  m_n_el_cell = fem_quadrature.get_number_of_interpolation_points();
-  
+    
   fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);
   
   m_xs_position.resize(m_n_xs_quad,0.);
-  
-  /// data used to access arrays
-  m_n_groups = input_reader.get_number_of_groups();
-  m_n_l_mom = input_reader.get_number_of_legendre_moments();
-  m_n_dfem_integration_points = fem_quadrature.get_number_of_integration_points();
- 
+   
   m_mat_property_evals.resize(m_n_xs_quad,0.);
   m_t_at_xs_eval_points.resize(m_n_xs_quad,0.);
   

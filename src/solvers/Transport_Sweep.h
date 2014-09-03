@@ -1,7 +1,7 @@
 #ifndef Transport_Sweep_h
 #define Transport_Sweep_h
 
-// #include "V_Sweep_Matrix_Creator.h"
+#include "V_Sweep_Matrix_Creator.h"
 
 #include "Temperature_Data.h"
 #include "Intensity_Data.h"
@@ -70,7 +70,7 @@ private:
   Eigen::VectorXd m_local_soln;
   
   /// Creator of the linear boltzmann matrices (and source moment vector) that describe the transport sweep
-  // std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_creator;
+  std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_creator;
 };
 
 #endif
