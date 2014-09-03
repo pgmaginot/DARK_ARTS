@@ -57,39 +57,37 @@ public:
   void set_cell_angle_integrated_intensity(const int cell,
     const int group, const int l_mom, const Eigen::VectorXd& val);
   
-protected:
+private:
   std::vector<double> m_i;
   std::vector<double> m_phi;
   
   /// total number of cells in the problem
-  int m_cells;
+  const int m_cells;
   /// total number of groups in the problem
-  int m_groups;
+  const int m_groups;
   /// total number of directions in the problem
-  int m_dir;
+  const int m_dir;
+    /// number of legendre moments to store of the full intensity
+  const int m_leg;
+    /// number of DFEM unknowns in each cell
+  const int m_el_per_cell;
   
   /// quantities necessary for faster indexing of intensity
-  int m_dir_div_2 = -1;
+  const int m_dir_div_2;
+  
   /// offset from negative mu to positive mu data ordering
-  int m_offset= -1;
-  int m_el_times_dir_div_2= -1;
-  int m_el_times_dir_div_2_times_grp= -1;
+  const int m_offset;
+  const int m_el_times_dir_div_2;
+  const int m_el_times_dir_div_2_times_grp;
   
-  /// quantities necessary for faster indexing of angle integrate intensity
-  int m_el_times_l_mom= -1;
-  int m_el_times_l_mom_times_group = -1;
-  
-  /// number of legendre moments to store of the full intensity
-  int m_leg;
-  
-  /// number of DFEM unknowns in each cell
-  int m_el_per_cell;
-  
+  /// quantities necessary for faster indexing of angle integrated intensity
+  const int m_el_times_l_mom;
+  const int m_el_times_l_mom_times_group;
   
   /// total length of the intensity data
-  int m_i_length;
+  const int m_i_length;
   /// total length of the angle integrated intensity data
-  int m_phi_length;
+  const int m_phi_length;
   
   /* ***************************************************
   *

@@ -6,25 +6,23 @@
 #include "Intensity_Data.h"
 
 Intensity_Data::Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
-    const Fem_Quadrature& fem_quad)
+  const Fem_Quadrature& fem_quad)
   /// initilaize range members
-  : m_cells{cell_data.get_total_number_of_cells() } , 
-    m_groups{ang_quad.get_number_of_groups() } , 
-    m_dir{ang_quad.get_number_of_dir() } , 
-    m_leg{ ang_quad.get_number_of_leg_moments() }, 
-    m_el_per_cell{fem_quad.get_number_of_interpolation_points() }  
-  {
-    m_dir_div_2 = m_dir/2;
-    
-    m_el_times_dir_div_2 = m_dir_div_2*m_el_per_cell;
-    m_el_times_dir_div_2_times_grp = m_el_times_dir_div_2 * m_groups;
-    
-    m_el_times_l_mom = m_leg*m_el_per_cell;
-    m_el_times_l_mom_times_group = m_el_times_l_mom*m_groups;
-    
-    m_i_length = m_cells*m_groups*m_dir*m_el_per_cell;
-    m_phi_length = m_cells*m_groups*m_leg*m_el_per_cell;
-    
+  : 
+  m_cells{cell_data.get_total_number_of_cells() } , 
+  m_groups{ang_quad.get_number_of_groups() } , 
+  m_dir{ang_quad.get_number_of_dir() } , 
+  m_leg{ ang_quad.get_number_of_leg_moments() }, 
+  m_el_per_cell{fem_quad.get_number_of_interpolation_points() }  ,
+  m_dir_div_2{m_dir/2},    
+  m_offset{ m_dir_div_2*m_el_per_cell*m_dir*m_groups*m_cells },
+  m_el_times_dir_div_2{ m_dir_div_2*m_el_per_cell }, 
+  m_el_times_dir_div_2_times_grp{m_el_times_dir_div_2 * m_groups},
+  m_el_times_l_mom{m_leg*m_el_per_cell},
+  m_el_times_l_mom_times_group{m_el_times_l_mom*m_groups},    
+  m_i_length{m_cells*m_groups*m_dir*m_el_per_cell},
+  m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell}
+  {    
     m_i.resize(m_i_length,0.);
     m_phi.resize(m_phi_length,0.);
   }
@@ -327,7 +325,7 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
   if(dir < m_dir_div_2)
   {
     /// mu < 0
-    loc = el + dir*m_el_per_cell + group*m_el_times_dir_div_2 + cell*m_el_times_dir_div_2_times_grp;
+    loc = el + dir*m_el_per_cell + group*m_el_times_dir_div_2 + (m_cells-cell-1)*m_el_times_dir_div_2_times_grp;
   }
   else
   {
