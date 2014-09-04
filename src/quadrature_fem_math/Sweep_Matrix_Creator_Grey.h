@@ -9,23 +9,24 @@
   *     Concrete cases for  SELF_LUMPING , TRAD_LUMPING , and EXACT integration techniques
  */
 
-class Sweep_Matrix_Creator_Grey : private V_Sweep_Matrix_Creator
+class Sweep_Matrix_Creator_Grey : public V_Sweep_Matrix_Creator
 {
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature);
+  Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials* const materials,
+    Cell_Data* const cell_data, const int n_stages);
   virtual ~Sweep_Matrix_Creator_Grey(){}
   
-  void construct_r_sig_t(const int cell, const int grp, Eigen::MatrixXd& r_sig_t) override;
-  
-  void construct_r_sig_s(const int cell, const int grp, const int l_mom, Eigen::MatrixXd& r_sig_s) override;
-  
-  void construct_s_i(const int cell,const int grp, const int l_mom, Eigen::VectorXd& s_i) override;
+
    
   
 private:
-
+  void construct_r_sig_t(void);
+  
+  void construct_r_sig_s(void);
+  
+  void construct_s_i(void);
 };
 
 #endif

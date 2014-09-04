@@ -104,6 +104,9 @@ public:
 
   Planck(double accuracy_parameter = 1e-15);//  {gauss_quad(accuracy)};
   ~Planck() {}; // empty destructor
+  
+  /// to access c constant
+  double get_c(void);
 
   // to find the planck function B at a specific temperature and energy
   double get_B(double T, double E);

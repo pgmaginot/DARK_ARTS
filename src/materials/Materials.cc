@@ -211,6 +211,31 @@ void Materials::get_intensity_source(const double time, const int grp, const int
   return;
 }
 
+double Materials::get_mf_planck_derivative(const double temperature, const int grp)
+{
+  return m_planck.integrate_dBdT(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
+}
+  
+double Materials::get_mf_planck(const double temperature, const int grp)
+{
+  return m_planck.integrate_B(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
+}
+
+double Materials::get_grey_planck(const double temperature)
+{
+  return m_planck.integrate_B_grey(temperature);
+}
+
+double Materials::get_grey_planck_derivative(const double temperature)
+{
+  return m_planck.integrate_dBdT_grey(temperature);
+}
+
+double Materials::get_c(void)
+{
+  return m_plack.get_c() ;
+}
+
 /* *****************************************************************
 *   Private Member functions
 *  ****************************************************************/
@@ -279,12 +304,3 @@ void Materials::load_materials(const Input_Reader& input_reader)
   }
 }
 
-double Materials::get_mf_planck_derivative(const double temperature, const int grp)
-{
-  return planck.integrate_dBdT(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
-}
-  
-double Materials::get_mf_planck(const double temperature, const int grp)
-{
-  return planck.integrate_B(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
-}

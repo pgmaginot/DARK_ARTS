@@ -102,7 +102,7 @@ void  Temperature_Update_Grey::calculate_local_matrices(const int cell_num, Eige
 void Temperature_Update_Grey::get_planck_vector(const Eigen::VectorXd& t_eval)
 {
   for(int i=0;i<m_np ; i++)
-    m_planck(i) = m_material->planck.integrate_B_grey(t_eval(i));
+    m_planck(i) = m_material->get_grey_planck(t_eval(i));
 
   return;
 }
@@ -110,7 +110,7 @@ void Temperature_Update_Grey::get_planck_vector(const Eigen::VectorXd& t_eval)
 void Temperature_Update_Grey::get_planck_derivative_matrix(const Eigen::VectorXd& t_eval)
 {
   for(int i=0;i <m_np ; i++)
-    m_d_matrix(i,i) = m_material->planck.integrate_dBdT_grey(t_eval(i));
+    m_d_matrix(i,i) = m_material->get_grey_planck_derivative(t_eval(i));
   
   return;
 }

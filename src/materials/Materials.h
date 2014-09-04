@@ -69,9 +69,16 @@ public:
   
   double get_mf_planck_derivative(const double temperature, const int grp);
   double get_mf_planck(const double temperature, const int grp);
- 
-  Planck planck;
+  
+  double get_grey_planck(const double temperature);
+  double get_grey_planck_derivative(const double temperature);
+  
+  double get_c(void);
+   
+  
 private:
+  Planck m_planck;
+
   void load_materials(const Input_Reader& input_reader);
 
 private:

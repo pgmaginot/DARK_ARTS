@@ -87,6 +87,11 @@ Planck::Planck(double accuracy_parameter)
 
 }
 
+double Planck::get_c(void)
+{
+  return c;
+}
+
 double Planck::getTempForEnergy(double E)
 {
 	if( E < 0 )
