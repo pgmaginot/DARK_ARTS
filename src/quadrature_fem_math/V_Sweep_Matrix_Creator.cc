@@ -12,11 +12,12 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
 :
   m_matrix_type{fem_quadrature.get_integration_type() },
   m_np{fem_quadrature.get_number_of_interpolation_points()},  
-  
+  m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_r_sig_s{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_r_sig_t{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_identity_matrix{ Eigen::MatrixXd::Identity(m_np,m_np) },  
   m_r_cv{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  
   m_d_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_coefficent{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
@@ -32,9 +33,9 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   
   m_c{materials->get_c() },
   
-  m_dt{-1.},
-  m_time{-1.},
+  m_dt{-1.},  
   m_stage{-1},
+  m_time{-1.},
   
   m_t_old{nullptr},
   m_t_star{nullptr},  
@@ -43,9 +44,18 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_i_old{nullptr},
   m_ki{nullptr},
   
-  m_dx{-1.}  
+  m_dx{-1.}  ,
+  m_cell_num{-1},
+
+  m_t_old_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_t_star_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_planck_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_ki_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_kt_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_xi_isotropic{ Eigen::VectorXd::Zero(m_np) },
+  m_driving_source{ Eigen::VectorXd::Zero(m_np) }
 {  
-  m_rk_a.resize(n_stages-1,0.);
+  m_rk_a.resize(n_stages,0.);
   /// initialize matrix constructor
   if(m_matrix_type ==  EXACT)
   {
@@ -136,28 +146,18 @@ void V_Sweep_Matrix_Creator::set_timestep_data(const double dt)
   return;
 }
 
-void V_Sweep_Matrix_Creator::get_cell_size(const int cell)
-{
-  m_dx = m_cell_data->get_cell_width(cell);
-  return;
-}
-
 void V_Sweep_Matrix_Creator::get_r_sig_t(Eigen::MatrixXd& r_sig_t)
 {
   r_sig_t = m_r_sig_t;
   return;
 }
-void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s)
+
+void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom)
 {
   return;
 }
 
-void V_Sweep_Matrix_Creator::get_r_sig_s_higher_moment(const int l_mom, Eigen::MatrixXd& r_sig_s_ho)
-{
-  return;
-}
-
-void V_Sweep_Matrix_Creator::contstruct_sweep_matrices(const int cell, const int grp)
+void V_Sweep_Matrix_Creator::get_s_i(Eigen::VectorXd& s_i, const int dir)
 {
   return;
 }

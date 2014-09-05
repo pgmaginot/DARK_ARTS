@@ -233,7 +233,7 @@ double Materials::get_grey_planck_derivative(const double temperature)
 
 double Materials::get_c(void)
 {
-  return m_plack.get_c() ;
+  return m_planck.get_c() ;
 }
 
 /* *****************************************************************

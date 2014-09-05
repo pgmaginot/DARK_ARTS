@@ -14,22 +14,19 @@ Sweep_Matrix_Creator_MF::Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadr
   
 }
 
-/**
-  \f[
-    \text{m_r_sig_t} = \bar{\bar{\mathbf R}}_{\sigma_{t,i}} = \mathbf{R}_{\sigma_t} + \frac{1}{c \Delta t a_{ii} } \mathbf{M}
-  \f]
-*/
-void Sweep_Matrix_Creator_MF::construct_r_sig_t(void)
+    /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
+void Sweep_Matrix_Creator_MF::update_cell_dependencies(const int cell)
 {
   return;
 }
+  
+  /**
+    get \f$ \vec{\widehat{B}}_g, ~\mathbf{D}_G^* \f$
+    calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$ , the isotropic components of \f$ \vec{S}_I \f$, and 
+    if grey \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$ 
+  */  
 
-void Sweep_Matrix_Creator_MF::construct_r_sig_s(void)
-{
-  return;
-}
-
-void Sweep_Matrix_Creator_MF::construct_s_i(void)
+  void Sweep_Matrix_Creator_MF::update_group_dependencies(const int grp)
 {
   return;
 }

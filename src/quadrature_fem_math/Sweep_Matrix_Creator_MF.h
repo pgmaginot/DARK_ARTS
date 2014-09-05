@@ -17,15 +17,20 @@ public:
     Cell_Data* const cell_data, const int n_stages);
   virtual ~Sweep_Matrix_Creator_MF(){}
   
-
+    /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
+  void update_cell_dependencies(const int cell) override;
+  
+  /**
+    get \f$ \vec{\widehat{B}}_g, ~\mathbf{D}_G^* \f$
+    calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$ , the isotropic components of \f$ \vec{S}_I \f$, and 
+    if grey \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$ 
+  */  
+  void update_group_dependencies(const int grp) override;
    
   
+  
 private:
-  void construct_r_sig_t(void) override;
-  
-  void construct_r_sig_s(void) override;
-  
-  void construct_s_i(void) override;
+  Eigen::MatrixXd m_spectrum;
 };
 
 #endif

@@ -36,19 +36,13 @@ public:
     
   virtual ~V_Sweep_Matrix_Creator(){}
   
-  void get_r_sig_t(Eigen::MatrixXd& r_sig_t);
-  void get_r_sig_s(Eigen::MatrixXd& r_sig_s);
-  void get_r_sig_s_higher_moment(const int l_mom, Eigen::MatrixXd& r_sig_s_ho);
-  void contstruct_sweep_matrices(const int cell, const int grp);  
-  
   void construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix);
   
   void construct_f_vector(const double mu, Eigen::VectorXd& f_vector);
   
   /// data that changes every time we update radiation intensity
   void set_thermal_iteration_data(const Temperature_Data* t_eval, const Temperature_Data* t_old, 
-    const K_Temperature* kt );
-  
+    const K_Temperature* kt );  
 
   void set_intensity_iteration_data(const Intensity_Data* i_old, const K_Intensity* ki);
   
@@ -58,28 +52,66 @@ public:
 
   void set_timestep_data(const double dt);
   
-  void get_cell_size(const int cell);
+  /** MF needs to update M, r_cv, and spectrium \f$ \sum_{g=0}^G{\mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g}   \f$
+    Grey needs to update M, r_cv only
+  */
+  virtual void update_cell_dependencies(const int cell) = 0;
   
+  /**
+    calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$ , the isotropic components of \f$ \vec{S}_I \f$, and 
+    if grey \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$ else if MF, calculate
+    only \f$ \mathbf{R}_{\sigma_{s,g,0}} \f$ since the scattering source is part of the fixed point iteration    
+  */
+  virtual void update_group_dependencies(const int grp) = 0;
+  
+  /// retrieve the already constructed \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$
+  void get_r_sig_t(Eigen::MatrixXd& r_sig_t);
+  
+  /** if grey and l_mom = 0, retireve \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$, else retrieve
+    \f$ \mathbf{R}_{\sigma_{s,g,\text{l_mom}}} \f$
+  */
+  void get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom);
+  
+  /** add in the directional dependent components into \f$ \vec{S}_I} \f$ regardless of grey or MF, the directional components are:
+    \f[
+      \frac{1}{c\Delta a_{ii} } \mathbf{M} \vec{I}_{n,dir,g} + \frac{1}{c a_{ii} }\mathbf{M} 
+        \sum_{j=1}^{\text{stage} - 1}{a_{ij} \vec{k}_{I,j,dir,grp} }
+    \f]
+  */  
+  void get_s_i(Eigen::VectorXd& s_i, const int dir);
+    
 private:
-  virtual void construct_r_sig_t(void) = 0;
-  
-  virtual void construct_r_sig_s(void) = 0;
-  
-  virtual void construct_s_i(void) = 0;
-
   const MATRIX_INTEGRATION m_matrix_type; 
   
   const int m_np;
+    /// \f$ \mathbf{R}_{\sigma_{a,g}} \f$ evaluated at t_star
+  Eigen::MatrixXd m_r_sig_a; 
   
+    /// \f$ \mathbf{R}_{\sigma_{s,g}} \f$ evaluated at t_star
+  Eigen::MatrixXd m_r_sig_s;
+  
+  /** evaluate \f$ \mathbf{R}_{\sigma_{s,g}} \f$, copy into this this matrix, evaluate \f$ \mathbf{R}_{\sigma_{a,g}} \f$ and store, copy/add
+    to this matrix, then add in \f$ \frac{1}{c\Delta t a_{ii}} \mathbf{M} \f$ component 
+  */
   Eigen::MatrixXd m_r_sig_t;
   
+  /// \f$ \mathbf{I} \f$
   const Eigen::MatrixXd m_identity_matrix;
   
+  /// will actually store the inverse, \f$ \mathbf{R}_{C_v}^{-1} \f$
   Eigen::MatrixXd m_r_cv;
-  Eigen::MatrixXd m_r_sig_a;
+  
+  /// \f$ \mathbf{D}_g \f$
   Eigen::MatrixXd m_d_matrix;
+  
+  /**
+    \f[
+      \text{m_coefficient} = \left[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_{a,g}} \mathbf{D} \right]
+    \f]
+  */
   Eigen::MatrixXd m_coefficent;
   
+  /// \f$ \mathbf{M} \f$
   Eigen::MatrixXd m_mass;
   
   Eigen::MatrixXd m_no_mu_pos_l_matrix;
@@ -95,17 +127,18 @@ private:
   Materials* const m_materials;
   
   /// pointer won't change and we better not change the Cell_Data that m_cell_data points to
-  const Cell_Data* const m_cell_data;
-  
+  const Cell_Data* const m_cell_data;  
   
   /// time stepping data that will be used often
   const double m_c;
-  
   double m_dt;
-  double m_time;
   int m_stage;
+  std::vector<double> m_rk_a;
+    
+  /// for evaluating driving sources
+  double m_time;
   
-    /// better not change any of the data pointed to by the following pointers
+    /// better not change any of the data pointed to by the following pointers (but pointers themselves may change)
   const Temperature_Data* m_t_old;
   const Temperature_Data* m_t_star;  
   const K_Temperature* m_kt;
@@ -113,11 +146,26 @@ private:
   const Intensity_Data*  m_i_old;
   const K_Intensity* m_ki;
   
-  std::vector<double> m_rk_a;
-  
+  /// cell data that is used repeatedly (set in V_Sweep_Matrix_Creator::update_cell_dependencies() )
   double m_dx;
-  
+  int m_cell_num;
+    
+  /// builder/lumper of matrices
   std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
+  
+  /// local vectors
+  Eigen::VectorXd m_t_old_vec;
+  Eigen::VectorXd m_t_star_vec;
+  Eigen::VectorXd m_planck_vec;
+  Eigen::VectorXd m_ki_vec;
+  Eigen::VectorXd m_kt_vec;
+  
+  /// isotropic component of xi_i
+  Eigen::VectorXd m_xi_isotropic;
+  
+  /// driving source moments (S_T and S_I)
+  Eigen::VectorXd m_driving_source;
+  
 };
 
 #endif

@@ -13,28 +13,20 @@ Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_q
 {  
   
 }
-void Sweep_Matrix_Creator_Grey::construct_r_sig_t(void)
+
+
+  /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
+void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
 {
+  return;
+}
+
   /**
-    \f[
-      \bar{\bar{\mathbf R}}_{\sigma_{t,i}} = \mathbf{R}_{\sigma_t} + \frac{1}{c \Delta t a_{ii} }\mathbf{M}    
-    \f]
-  */
-  m_material->get_sigma_a(0,m_temp_mat_vec);  
-  m_mtrx_builder->construct_reaction_matrix(m_r_sig_a,m_temp_mat_vec);
-  m_r_sig_a *= dx;
-  
-  r_sig_t = 1./(m_dt*m_c*m_rk_a[stage])*m_mass;
-  
-  return;
-}
-
-void Sweep_Matrix_Creator_Grey::construct_r_sig_s(void)
-{
-  return;
-}
-
-void Sweep_Matrix_Creator_Grey::construct_s_i(void)
+    get \f$ \vec{\widehat{B}}_g, ~\mathbf{D}_G^* \f$
+    calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$ , the isotropic components of \f$ \vec{S}_I \f$, and 
+    if grey \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$ 
+  */  
+void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
 {
   return;
 }
