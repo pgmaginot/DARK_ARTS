@@ -33,7 +33,7 @@
 class V_Temperature_Update
 {
 public:
-  V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
+  V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
     const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper);
     
     
@@ -46,7 +46,7 @@ public:
   void load_rk_a(const int stage, const std::vector<double>& outside_rk_a );
 
   /// need to access material objects, save a ptr to avoid passing it all the time
-  Materials* m_material;
+  Materials* const m_material;
   
   const double m_sn_w;
   

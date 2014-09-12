@@ -6,9 +6,13 @@
 #include "Fem_Quadrature.h"
 
 Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun)
+:
+m_n_interpolation_points{ input_reader.get_dfem_degree() + 1},
+m_int_method{ input_reader.get_integration_method() },
+m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
 {  
   /// Get the DFEM interpolation points
-  m_n_interpolation_points = input_reader.get_dfem_degree() + 1;
+  // m_n_interpolation_points = input_reader.get_dfem_degree() + 1;
   
   m_dfem_interpolation_points.resize(m_n_interpolation_points,0.);
   m_dfem_interpolation_weights.resize(m_n_interpolation_points,0.);
@@ -129,7 +133,7 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
   }
   
   /// Get the quadrature points we are going to use to form the matrices
-  m_int_method = input_reader.get_integration_method();
+  // m_int_method = input_reader.get_integration_method();
   switch(m_int_method)
   {
     case SELF_LUMPING:
@@ -212,6 +216,13 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
   evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_right_edge);  
   evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_right_edge);
   
+  /// use a finer quadrature to evaluate source moment
+  /// use Lobatto just for giggles in case we really want to caputre the end point data
+  m_source_points.resize(m_n_source_points,0.);
+  m_source_weights.resize(m_n_source_points,0.);
+  quad_fun.lobatto_compute(m_n_source_points , m_source_points, m_source_weights);
+  /// calculate dfem at source weigths
+  
 }
 
 int Fem_Quadrature::get_number_of_integration_points(void) const
@@ -290,6 +301,28 @@ void Fem_Quadrature::get_integration_weights(std::vector<double>& weights) const
   return;
 }
 
+int Fem_Quadrature::get_number_of_source_points(void) const
+{
+  return m_n_source_points;
+}
+
+void Fem_Quadrature::get_dfem_at_source_points(std::vector<double>& dfem_at_source_quad) const
+{
+  dfem_at_source_quad = m_dfem_at_source_moments;
+  return;
+}
+
+void Fem_Quadrature::get_source_points(std::vector<double>& source_pts) const
+{
+  source_pts = m_source_points;
+  return;
+}
+
+void Fem_Quadrature::get_source_weights(std::vector<double>& source_weights) const
+{
+  source_weights = m_source_weights;
+  return;
+}
 
 void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& func_evals)

@@ -1,6 +1,6 @@
 #include "Temperature_Update_Grey.h"
 
-Temperature_Update_Grey::Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material,
+Temperature_Update_Grey::Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material,
   const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper)
   :
   V_Temperature_Update(fem_quadrature, cell_data, material,angular_quadrature,time_stepper)
@@ -23,6 +23,9 @@ void Temperature_Update_Grey::update_temperature(const Intensity_Data& intensity
     
     t_n.get_cell_temperature(c,m_t_old);
     
+    /// Since we are going to evaluate material properties, first we need to populate local data in the Materials object
+    m_material->calculate_local_temp_and_position(c, m_t_star);
+    
     /** this routine will calculate 
      1. \f$ \mathbf{R}_{\sigma_a}  \f$ (m_r_sig_a)
      2. \f$ \mathbf{R}_{C_v}^{-1} \f$ (m_r_cv)
@@ -41,7 +44,7 @@ void Temperature_Update_Grey::update_temperature(const Intensity_Data& intensity
     /// calculate \f$ \mathbf{R}_{\sigma_a} \left(\vec{\phi}_i - \text{m_sn_w} \mathbf{B}^*   \right) + \vec{S}_T \f$
     /// store quantity in m_phi
     intensity.get_cell_angle_integrated_intensity(c,0,0,m_phi);
-    get_planck_vector(m_t_star);
+    m_material->get_grey_planck(m_t_star,m_planck);
     
     m_phi -= m_sn_w * m_planck;
     m_phi *= m_r_sig_a*m_phi;
@@ -61,28 +64,18 @@ void  Temperature_Update_Grey::calculate_local_matrices(const int cell_num, Eige
 {
   /// Calculate R_cv, R_sig_a, D, and the constant matrix
   
-  /// First we must calculate material properties at DFEM integration points
-  m_material->calculate_local_temp_and_position(cell_num , t_eval);
-  
-  /// cell width
-  double dx = m_cell_data->get_cell_width(cell_num);
-  
   /**
     m_material has temperature and material number already after call to calculate_local_temp_and_position()
   */
   /// get sigma_a now
   /// implicitly we know that since this is grey, we want group 0
-  m_material->get_sigma_a(0,m_temp_mat_vec);  
-  m_mtrx_builder->construct_reaction_matrix(m_r_sig_a,m_temp_mat_vec);
-  m_r_sig_a *= dx;
+  m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,0);
   
   /// get cv now
-  m_material->get_cv(m_temp_mat_vec);  
-  m_mtrx_builder->construct_reaction_matrix(m_r_cv,m_temp_mat_vec);
-  m_r_cv *= dx;
+  m_mtrx_builder->construct_r_cv(m_r_cv);
   
   /// get derivative of planck function WRT temperature
-  get_planck_derivative_matrix(t_eval);
+  m_material->get_grey_planck_derivative(t_eval,m_d_matrix);
    
   /// temporarily store \$f \mathbf{R}_{C_v}^{-1}  \$f
   m_coeff_matrix = m_r_cv.inverse();
@@ -92,26 +85,7 @@ void  Temperature_Update_Grey::calculate_local_matrices(const int cell_num, Eige
   m_coeff_matrix = m_i_matrix + m_sn_w*dt*a_ii*m_r_cv*m_r_sig_a*m_d_matrix;  
   
   /// get temperature driving source
-  m_material->get_temperature_source(time, m_temp_mat_vec);
-  m_mtrx_builder->construct_source_moments(m_driving_source,m_temp_mat_vec);
-  
+  m_mtrx_builder->construct_temperature_source_moments(m_driving_source,time);
   
   return;
 }
-
-void Temperature_Update_Grey::get_planck_vector(const Eigen::VectorXd& t_eval)
-{
-  for(int i=0;i<m_np ; i++)
-    m_planck(i) = m_material->get_grey_planck(t_eval(i));
-
-  return;
-}
-
-void Temperature_Update_Grey::get_planck_derivative_matrix(const Eigen::VectorXd& t_eval)
-{
-  for(int i=0;i <m_np ; i++)
-    m_d_matrix(i,i) = m_material->get_grey_planck_derivative(t_eval(i));
-  
-  return;
-}
-

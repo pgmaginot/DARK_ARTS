@@ -1,6 +1,6 @@
 #include "V_Temperature_Update.h"
 
-V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
+V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
     const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper)
   :
   m_material{material},
@@ -28,17 +28,17 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   if(m_matrix_type ==  EXACT)
   {
     m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new    
-      Matrix_Construction_Exact(fem_quadrature) );
+      Matrix_Construction_Exact(fem_quadrature,material) );
   }
   else if(m_matrix_type == TRAD_LUMPING)
   {
     m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new 
-      Matrix_Construction_Trad_Lumping(fem_quadrature) );
+      Matrix_Construction_Trad_Lumping(fem_quadrature,material) );
   }
   else if(m_matrix_type == SELF_LUMPING)
   {
     m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new 
-      Matrix_Construction_Self_Lumping(fem_quadrature) );
+      Matrix_Construction_Self_Lumping(fem_quadrature,material) );
   }
   
   /// resize STL vectors that we use for data storage

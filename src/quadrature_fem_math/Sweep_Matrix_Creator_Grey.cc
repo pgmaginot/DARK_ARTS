@@ -18,6 +18,29 @@ Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_q
   /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
 void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
 {
+  /// set cell number
+  m_cell_num = cell;
+  /// set cell width
+  m_dx = m_cell_data->get_cell_width(m_cell_num);
+  
+  /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
+  m_dx_div_2_mass = m_dx/2.*m_mass;
+  
+  /// get \f$ \vec{T}^n \f$
+  m_t_old->get_cell_temperature(m_cell_num,m_t_old_vec) ;
+  
+  /// get \f$ \vec{T}^* \f$
+  m_t_star->get_cell_temperature(m_cell_num,m_t_star_vec) ;
+  
+  /// get Planck vector since it won't change
+  m_materials->get_grey_planck(m_t_star_vec, m_planck_vec);
+  
+  /// load \f$ \mathbf{R}_{C_v} \f$ here
+  
+ /// then invert it and store in a temporary matrix
+
+  /// put this into 
+  
   return;
 }
 

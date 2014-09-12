@@ -1,6 +1,6 @@
 #include "Temperature_Update_MF.h"
 
-Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
+Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
     const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper)
   :
   V_Temperature_Update(fem_quadrature, cell_data,material, angular_quadrature, time_stepper),  
@@ -23,6 +23,10 @@ void Temperature_Update_MF::update_temperature(const Intensity_Data& intensity,
     t_star.get_cell_temperature(c,m_t_star);
     
     t_n.get_cell_temperature(c,m_t_old);
+    
+    
+    /// Since we are going to evaluate material properties, first we need to populate local data in the Materials object
+    m_material->calculate_local_temp_and_position(c, m_t_star);
     
     /** this routine will calculate 
      1. \f$ \mathbf{R}_{\sigma_a}  \f$ (m_r_sig_a)
@@ -55,22 +59,19 @@ void Temperature_Update_MF::update_temperature(const Intensity_Data& intensity,
 
 void Temperature_Update_MF::calculate_local_matrices(const int cell , const Eigen::VectorXd& m_t_star ,
   const double dt, const double a_ii , const double time, const Intensity_Data& intensity)
-{
+{  
   /// calculate the m_spectrum matrix (planck deriviative and r_sig_a)
   /// first zero out m_spectrum
   m_spectrum = Eigen::MatrixXd::Zero(m_np,m_np);
   
   /// get temperature driving source, store all phi - planck values in this vector, to avoid calculating extra copies of m_r_sig_a
-  m_material->get_temperature_source(time, m_temp_mat_vec);
-  m_mtrx_builder->construct_source_moments(m_driving_source,m_temp_mat_vec);
-  
-  double dx = m_cell_data->get_cell_width(cell);
+  m_mtrx_builder->construct_temperature_source_moments(m_driving_source,time);
   
   for(int g=0;g<m_n_groups;g++)
   {
-    m_material->get_sigma_a(g,m_temp_mat_vec);  
-    m_mtrx_builder->construct_reaction_matrix(m_r_sig_a,m_temp_mat_vec);
-    m_r_sig_a *= dx;
+    m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,g);
+    
+    m_material->get_mf_planck_derivative(m_t_star,g,m_d_matrix);
     
     /// \f$ \sum_{g=1}^G{ \mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g} \f$
     m_spectrum += m_r_sig_a*m_d_matrix;
@@ -79,15 +80,14 @@ void Temperature_Update_MF::calculate_local_matrices(const int cell , const Eige
     intensity.get_cell_angle_integrated_intensity(cell, g, 0, m_phi);
     
     /// group g Planck integration
-    get_planck_vector(m_t_star,g);
+    m_material->get_mf_planck(m_t_star,g,m_planck);
     
     /// \f$ \sum_{g=1}^G{ \mathbf{R}_{\sigma_{a,g}} \left( \vec{\phi}_g - \text{m_sn_w} \vec{\widehat{B}}_g \right) } \f$
     m_driving_source += m_r_sig_a*( m_phi - m_sn_w*m_planck );
   }
   
   /// calculate \f$ \mathbf{R}_{C_v} \f$
-  m_material->get_cv(m_temp_mat_vec);
-  m_mtrx_builder->construct_reaction_matrix(m_r_cv,m_temp_mat_vec);
+  m_mtrx_builder->construct_r_cv(m_r_cv);
   
   /// temporarily store the inverse in m_coefficient_matrix;  
   m_coeff_matrix = m_r_cv.inverse();
@@ -96,23 +96,6 @@ void Temperature_Update_MF::calculate_local_matrices(const int cell , const Eige
   m_r_cv = m_coeff_matrix;
   
   m_coeff_matrix = m_i_matrix + m_sn_w*a_ii*dt*m_r_cv*m_spectrum;  
-  
-  return;
-}
-
- 
-void Temperature_Update_MF::get_planck_derivative_matrix(const Eigen::VectorXd& t_eval, const int grp)
-{
-  for(int i=0;i <m_np ; i++)
-      m_d_matrix(i,i) = m_material->get_mf_planck_derivative(grp, t_eval(i));
-  return;
-}
-
-void Temperature_Update_MF::get_planck_vector(const Eigen::VectorXd& t_eval, const int grp)
-{
-  for(int i=0;i <m_np ; i++)
-      m_planck(i) = m_material->get_mf_planck(grp, t_eval(i));
-  return;
   
   return;
 }

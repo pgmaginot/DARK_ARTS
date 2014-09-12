@@ -11,32 +11,15 @@
 class Matrix_Construction_Trad_Lumping : public V_Matrix_Construction
 {
 public:
-  Matrix_Construction_Trad_Lumping(const Fem_Quadrature& fem_quadrature): V_Matrix_Construction{fem_quadrature}{}
+  Matrix_Construction_Trad_Lumping(const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr);
   virtual ~Matrix_Construction_Trad_Lumping(){}
+
+protected:
   
-  void construct_mass_matrix(Eigen::MatrixXd& mass_mat) override;
+  void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass_mat) override;
   
   void construct_reaction_matrix(Eigen::MatrixXd& rx_mat, std::vector<double>& xs) override;
-    
-private:  
-
-/* ****************************************************
-*
-*     Protected Functions
-*
-  **************************************************** */
-
-
-/* ****************************************************
-*
-*     Protected Variables
-*
-  **************************************************** */
   
-  /**
-    Have all quadrature points that we need inherited from the base class V_Matrix_Construction
-  */
-
 };
 
 #endif

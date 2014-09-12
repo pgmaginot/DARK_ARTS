@@ -83,6 +83,7 @@ public:
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
   
+public:
   const int m_np;
     /// \f$ \mathbf{R}_{\sigma_{a,g}} \f$ evaluated at t_star
   Eigen::MatrixXd m_r_sig_a; 
@@ -111,7 +112,7 @@ private:
   */
   Eigen::MatrixXd m_coefficent;
   
-  /// \f$ \mathbf{M} \f$
+  /// \f$ \mathbf{M} \f$ wihtout \f$ \frac{\Delta x}{2} \f$ term
   Eigen::MatrixXd m_mass;
   
   Eigen::MatrixXd m_no_mu_pos_l_matrix;
@@ -165,6 +166,11 @@ private:
   
   /// driving source moments (S_T and S_I)
   Eigen::VectorXd m_driving_source;
+  
+  /// scaled mass matrix
+  Eigen::MatrixXd m_dx_div_2_mass;
+  
+  /// vector store material properties in
   
 };
 

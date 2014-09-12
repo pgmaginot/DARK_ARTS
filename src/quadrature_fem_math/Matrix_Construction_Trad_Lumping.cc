@@ -7,7 +7,13 @@
  */
 
 #include "Matrix_Construction_Trad_Lumping.h"
-void Matrix_Construction_Trad_Lumping::construct_mass_matrix(
+Matrix_Construction_Trad_Lumping::Matrix_Construction_Trad_Lumping(
+  const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr)
+  : V_Matrix_Construction(fem_quadrature,materials_ptr)
+  {}
+
+
+void Matrix_Construction_Trad_Lumping::construct_dimensionless_mass_matrix(
   Eigen::MatrixXd& mass_mat) 
 {
   for(int i=0;i<m_n_basis_pts;i++)

@@ -53,24 +53,25 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_ki_vec{ Eigen::VectorXd::Zero(m_np) },
   m_kt_vec{ Eigen::VectorXd::Zero(m_np) },
   m_xi_isotropic{ Eigen::VectorXd::Zero(m_np) },
-  m_driving_source{ Eigen::VectorXd::Zero(m_np) }
+  m_driving_source{ Eigen::VectorXd::Zero(m_np) },
+  m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) }
 {  
   m_rk_a.resize(n_stages,0.);
   /// initialize matrix constructor
   if(m_matrix_type ==  EXACT)
   {
     m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new    
-      Matrix_Construction_Exact(fem_quadrature) );
+      Matrix_Construction_Exact(fem_quadrature,materials) );
   }
   else if(m_matrix_type == TRAD_LUMPING)
   {
     m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new 
-      Matrix_Construction_Trad_Lumping(fem_quadrature) );
+      Matrix_Construction_Trad_Lumping(fem_quadrature,materials) );
   }
   else if(m_matrix_type == SELF_LUMPING)
   {
     m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new 
-      Matrix_Construction_Self_Lumping(fem_quadrature) );
+      Matrix_Construction_Self_Lumping(fem_quadrature,materials) );
   }
   
   /// construct gradient terms once

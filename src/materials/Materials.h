@@ -53,28 +53,29 @@ public:
   
   void calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature);
   
-  /// just return the appropriate data, which the Materials object has stored for the given cell
+  /// calculate the appropriate data, which the Materials object has stored for the given cell
   void get_sigma_a(const int grp, std::vector<double>& sig_a);
   void get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv(std::vector<double>& cv);
   
   /// get a vector of unknowns equal to the number of source moment quadrature points
   /// pass this vector to matrix constructors, for consistency!
-  void get_temperature_source(const double time, std::vector<double>& t_source);
-  void get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source);
+  void get_temperature_source(const double time, std::vector<double>& t_source_evals);
+  void get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source_evals);
   
   void get_sigma_a_boundary(const int grp, std::vector<double>& sig_a);
   void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv_boundary(std::vector<double>& cv);
-  
-  double get_mf_planck_derivative(const double temperature, const int grp);
-  double get_mf_planck(const double temperature, const int grp);
-  
-  double get_grey_planck(const double temperature);
-  double get_grey_planck_derivative(const double temperature);
-  
-  double get_c(void);
    
+  void get_mf_planck(const Eigen::VectorXd& t_eval_vec, const int grp, Eigen::VectorXd& planck);
+  void get_grey_planck(const Eigen::VectorXd& t_eval_vec, Eigen::VectorXd& planck);
+  
+  void get_mf_planck_derivative(const Eigen::VectorXd& t_eval_vec, const int grp, Eigen::MatrixXd& d_planck);
+  void get_grey_planck_derivative(const Eigen::VectorXd& t_eval_vec, Eigen::MatrixXd& d_planck);
+  
+  double get_c(void);  
+
+  double get_cell_width(void);
   
 private:
   Planck m_planck;
@@ -97,20 +98,20 @@ private:
   /// total number of materials
   const int m_num_materials;
   
-    /// XS evaluation points
+  /// XS evaluation points
   const int m_n_xs_quad;
   
-    /// DFEM integration points
-  const int m_n_dfem_integration_points;
-  
-    /// number of DFEM unknwons per cell
+  /// number of DFEM unknwons per cell
   const int m_n_el_cell;
   
-    /// data needed for arranging material property in memory
-  const int m_n_groups;
+    /// cell width that needs to be accesible to matrix constructors
+  double m_dx;
   
-  const int m_n_l_mom;
+  /// pointer to Cell_Data
+  Cell_Data* const m_cell_data_ptr;
   
+  /// number of quadrature points used to evaluate driving source moments
+  const int m_n_source_pts;
   
   /// what material the current cell is in
   int m_current_material=-1;
@@ -134,22 +135,25 @@ private:
   double m_x_left = 0.;
   double m_x_right = 0.;
   
-  /// pointer to Cell_Data
-  Cell_Data* cell_data_ptr;
-  
   /// Used in moment_preserving and interpolating schemes only
   std::vector<double> m_dfem_integration_points;
   
-  /// basis functions at selected points
+  /// dfem functions at selected points
   std::vector<double> m_dfem_at_xs;
   std::vector<double> m_dfem_at_left_edge;
   std::vector<double> m_dfem_at_right_edge;
 
+  /// physical position at material property evaluation points
   std::vector<double> m_xs_position;
   
+  /// energy group bounds
   std::vector<double> m_grp_e_min;
   std::vector<double> m_grp_e_max;
   
+  
+  /// variables needed to evaluate driving sources at driving source quadrature points
+  std::vector<double> m_source_quad;
+  std::vector<double> m_position_at_source_quad;    
 };
 
 #endif

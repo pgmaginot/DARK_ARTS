@@ -53,32 +53,35 @@ public:
   
   void get_integration_weights(std::vector<double>& m_integration_weights) const;
   
+  void get_dfem_at_source_points(std::vector<double>& dfem_at_source_quad) const;
+
+  void get_source_weights(std::vector<double>& source_weights) const;
+  
+  void get_source_points(std::vector<double>& source_pts) const;
+  
+  int get_number_of_source_points(void) const;
 private:
 
-/* ****************************************************
-*
-*     Protected Functions
-*
-  **************************************************** */
   void evaluate_lagrange_func(const std::vector<double>& interp_points, 
     const std::vector<double>& eval_points, std::vector<double>& func_evals);
 
   void evaluate_lagrange_func_derivatives(const std::vector<double>& interp_points, 
     const std::vector<double>& eval_points, std::vector<double>& deriv_evals);
 
-/* ****************************************************
-*
-*     Protected Variables
-*
-  **************************************************** */
-  const int m_xs_extra_points = 10;
   
-  MATRIX_INTEGRATION m_int_method = INVALID_MATRIX_INTEGRATION;
+  const int m_n_interpolation_points;
+  
+  const MATRIX_INTEGRATION m_int_method;
+  
+  const int m_n_source_points;
+  
+  const int m_xs_extra_points = 10;  
+  
   
   /// number of quadrature points that will be used to evaluate DFEM matrices/integrals (L,M,R matrices)
   int m_n_integration_points = -1;
   /// number of DFEM interpolation points.  Better equal trial space degree + 1
-  int m_n_interpolation_points = -1;
+  
   /// number of points to evaluate opacity at within each spatial cell
   int m_n_xs_evaluation_points = -1;
   /** number of opacity interpolation points: 
@@ -121,6 +124,13 @@ private:
   
   std::vector<double> m_d_dfem_d_s_at_left_edge;
   std::vector<double> m_d_dfem_d_s_at_right_edge;  
+  
+  /// driving source moment evaluation quadrature
+  std::vector<double> m_source_points;
+  std::vector<double> m_source_weights;
+  
+  /// dfem basis functions at driving source moment quadrature points
+  std::vector<double> m_dfem_at_source_moments;
 };
 
 #endif

@@ -13,25 +13,26 @@
 *   Public Member functions
 *  ****************************************************************/
 
-Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_ptr)
+Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_ptr)
 :
   m_num_materials{input_reader.get_number_of_materials()},
   m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
-  m_n_dfem_integration_points{ fem_quadrature.get_number_of_integration_points() },
   m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },
-  m_n_groups{ input_reader.get_number_of_groups() },
-  m_n_l_mom{ input_reader.get_number_of_legendre_moments() }
+  m_dx{-1.},
+  m_cell_data_ptr{ cell_ptr },
+  m_n_source_pts{ fem_quadrature.get_number_of_source_points() }
 { 
+  /// resize material property objects
   m_abs_opacities.resize(m_num_materials);
   m_scat_opacities.resize(m_num_materials);
-
   m_cv_obj.resize(m_num_materials);
   m_source_t.resize(m_num_materials);
   m_source_i.resize(m_num_materials);  
   
+  /// load material property objects for each different material
   load_materials(input_reader);
   
-  /// create a smart pointers that looks at input once, then select cross section generating functions
+  /// create smart pointers that look at input once, then select cross section treatment type
   switch( input_reader.get_opacity_treatment() )
   {
     case SLXS:
@@ -57,36 +58,42 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
     }    
   }
   
-  fem_quadrature.get_xs_eval_points(m_xs_eval_quad);
-  
-  fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);
-    
+  /// get cross section evaluation quadrature points, dfem evaluations at integration points and cell edges
+  fem_quadrature.get_xs_eval_points(m_xs_eval_quad);  
+  fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);    
   fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);
   
-  m_xs_position.resize(m_n_xs_quad,0.);
-   
-  m_mat_property_evals.resize(m_n_xs_quad,0.);
+  /// allocate space for physical position and temperature at material property evaluation points
+  m_xs_position.resize(m_n_xs_quad,0.);  
   m_t_at_xs_eval_points.resize(m_n_xs_quad,0.);
+  /// allocate scratch vector space for material property evaluations
+  m_mat_property_evals.resize(m_n_xs_quad,0.);
   
-  cell_data_ptr = cell_ptr;
+  /// qet source moment quadrature points and allocate space for source moment evaluations
+  fem_quadrature.get_source_points(m_source_quad);
+  m_position_at_source_quad.resize(m_n_source_pts,0.);
 }
 
 void Materials::calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)
 {
   /// determine what material we are in
-  m_current_material = cell_data_ptr->get_cell_material_number(cell_num);
+  m_current_material = m_cell_data_ptr->get_cell_material_number(cell_num);
   
   /// calculate the local position at the xs evalaution points
-  double xL = cell_data_ptr->get_cell_width(cell_num);
-  double dx = cell_data_ptr->get_cell_left_edge(cell_num);
+  m_dx = m_cell_data_ptr->get_cell_width(cell_num);
+  double xL = m_cell_data_ptr->get_cell_left_edge(cell_num);
   
+  /// for evaluating material properties
   for(int i=0; i< m_n_xs_quad; i++)
-  {
-    m_xs_position[i] = xL + dx/2.*(1. + m_xs_eval_quad[i]);
-  }
+    m_xs_position[i] = xL + m_dx/2.*(1. + m_xs_eval_quad[i]);
   
+  /// for evaluating driving source moments
+  for(int i=0; i< m_n_source_pts; i++)
+    m_position_at_source_quad[i] = xL + m_dx/2.*(1. + m_source_quad[i]);
+     
+  /// for edge values (possibly needed by MIP DSA acceleration)
   m_x_left = xL;
-  m_x_right = xL + dx;
+  m_x_right = xL + m_dx;
   
   /// calculate the local temperature at the xs evaluation points
   /// basis function evaluation is laid out in a vector: B_{1,1} ... B_{1,N_eval} B_{2,1} ...
@@ -109,6 +116,8 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
       m_t_at_xs_eval_points[i] += t_el*m_dfem_at_xs[p];
       p++;
     }
+    
+
   }
   
   return;
@@ -183,52 +192,60 @@ void Materials::get_cv_boundary(std::vector<double>& cv)
   return;
 }
 
-void Materials::get_temperature_source(const double time, std::vector<double>& t_source)
+/** evaluate temperature  driving source moments at a fine mesh number of points.
+  Do not apply any type of opacity_treatment.  Exact integration works best.
+  V_Matrix_Construction has called this function and will assemble the source moments
+*/
+void Materials::get_temperature_source(const double time, std::vector<double>& t_source_evals)
 {
-  for(int i=0; i < m_n_xs_quad; i++)
-  {
-    /// t_source is a vector that is \f$ N_P \f$ points long
-    m_mat_property_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_xs_position[i], time);
-  }  
-  /// convert from vector of m_n_xs_quad to m_n_integration_points
-  /// xs_treatment types are moment, interpolating, self-lumping
-  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, t_source);
+  for(int i=0; i < m_n_source_pts; i++)
+    m_mat_property_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_position_at_source_quad[i], time);
   
   return;
 }
 
-void Materials::get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source)
+/** evaluate intensity  driving source moments at a fine mesh number of points.
+  Do not apply any type of opacity_treatment.  Exact integration works best.
+  V_Matrix_Construction has called this function and will assemble the source moments
+*/
+void Materials::get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source_evals)
 {
-  for(int i=0; i < m_n_xs_quad; i++)
-  {
-    /// t_source is a vector that is \f$ N_P \f$ points long
-    m_mat_property_evals[i] = m_source_i[m_current_material]->get_intensity_source(m_xs_position[i], grp, dir, time);
-  }  
-  /// convert from vector of m_n_xs_quad to m_n_integration_points
-  /// xs_treatment types are moment, interpolating, self-lumping
-  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, i_source);
+  for(int i=0; i < m_n_source_pts; i++)
+    m_mat_property_evals[i] = m_source_i[m_current_material]->get_intensity_source(m_position_at_source_quad[i], grp, dir, time);
   
   return;
 }
 
-double Materials::get_mf_planck_derivative(const double temperature, const int grp)
+void Materials::get_mf_planck(const Eigen::VectorXd& t_eval_vec, const int grp, Eigen::VectorXd& planck)
 {
-  return m_planck.integrate_dBdT(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
-}
-  
-double Materials::get_mf_planck(const double temperature, const int grp)
-{
-  return m_planck.integrate_B(temperature, m_grp_e_min[grp], m_grp_e_max[grp] );
+  for(int i=0 ; i < m_n_el_cell ; i++)
+    planck(i) = m_planck.integrate_B(t_eval_vec(i), m_grp_e_min[grp], m_grp_e_max[grp] );
+
+  return;
 }
 
-double Materials::get_grey_planck(const double temperature)
+void Materials::get_grey_planck(const Eigen::VectorXd& t_eval_vec, Eigen::VectorXd& planck)
 {
-  return m_planck.integrate_B_grey(temperature);
+  for(int i=0 ; i < m_n_el_cell ; i++)
+    planck(i) = m_planck.integrate_B_grey(t_eval_vec(i) );
+    
+  return;
 }
 
-double Materials::get_grey_planck_derivative(const double temperature)
+void Materials::get_mf_planck_derivative(const Eigen::VectorXd& t_eval_vec, const int grp, Eigen::MatrixXd& d_planck)
 {
-  return m_planck.integrate_dBdT_grey(temperature);
+  for(int i=0 ; i < m_n_el_cell ; i++)
+    d_planck(i,i) = m_planck.integrate_dBdT(t_eval_vec(i), m_grp_e_min[grp], m_grp_e_max[grp] );
+
+  return;
+}
+
+void Materials::get_grey_planck_derivative(const Eigen::VectorXd& t_eval_vec, Eigen::MatrixXd& d_planck)
+{
+  for(int i=0 ; i < m_n_el_cell ; i++)
+    d_planck(i,i) = m_planck.integrate_dBdT_grey( t_eval_vec(i) );
+
+  return;
 }
 
 double Materials::get_c(void)
@@ -302,5 +319,10 @@ void Materials::load_materials(const Input_Reader& input_reader)
       m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_Constant( input_reader, mat_num)  ) ;
     }
   }
+}
+
+double Materials::get_cell_width(void)
+{
+  return m_dx;
 }
 

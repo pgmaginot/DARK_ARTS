@@ -11,7 +11,7 @@
 class Temperature_Update_Grey: private V_Temperature_Update
 {
 public:
-  Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material,
+  Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material,
     const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper);
     
     
@@ -32,10 +32,6 @@ private:
   **************************************************** */
   void calculate_local_matrices(const int cell_num, Eigen::VectorXd& t_eval,
     const double dt, const double a_ii, const double time);
-    
-  void get_planck_vector(const Eigen::VectorXd& t_eval);
-  
-  void get_planck_derivative_matrix(const Eigen::VectorXd& t_eval);
   
 };
 

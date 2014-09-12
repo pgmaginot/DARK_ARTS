@@ -3,6 +3,7 @@
 
 #include "Inputs_Allowed.h"
 #include "Fem_Quadrature.h"
+#include "Materials.h"
 #include "Eigen/Dense"
 
 #include <vector>
@@ -19,12 +20,26 @@ class V_Matrix_Construction
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  V_Matrix_Construction(const Fem_Quadrature& fem_quadrature);
+  V_Matrix_Construction(const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr);
   virtual ~V_Matrix_Construction(){}
   
-  virtual void construct_mass_matrix(Eigen::MatrixXd& mass_mat) = 0;
   
-  virtual void construct_reaction_matrix(Eigen::MatrixXd& rx_mat, std::vector<double>& xs) = 0;
+  
+  /**
+    These are the only callable material properties reaction matrix constructors
+    \fn construct_r_cv , \fn construct_r_sigma_a , \fn construct_r_sigma_s
+       
+    The matrices returned will already include the Jacobian of the transformation
+  */
+  void construct_mass_matrix(Eigen::MatrixXd& mass_mat);
+  
+  void construct_r_cv(Eigen::MatrixXd& r_cv);
+  
+  void construct_r_sigma_a(Eigen::MatrixXd& r_sig_a, const int grp);
+  
+  void construct_r_sigma_s(Eigen::MatrixXd& r_sig_s, const int grp, const int l_mom);
+  
+  /// Calculate gradient quantities (without mu multiplied through)
   
   void construct_pos_gradient_matrix(Eigen::MatrixXd& l_mat);
   
@@ -34,41 +49,51 @@ public:
   
   void construct_right_upwind_vector(Eigen::VectorXd& f_mu_neg);
   
+  /// Construct driving source moments
+  
+  void construct_temperature_source_moments(Eigen::VectorXd& s_t, const double time);
+  
+  void construct_radiation_source_moments(Eigen::VectorXd& s_i, const double time, const int dir, const int grp);
+
+protected:
+  /// want derived members to have access to these variables and methods
+  /// Construct reaction matrix will not be called by any non-derived member
+  virtual void construct_reaction_matrix(Eigen::MatrixXd& rx_mat, std::vector<double>& xs) = 0;
+  
+  virtual void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass_mat) = 0;
+  
   void construct_source_moments(Eigen::VectorXd& source_mom, std::vector<double>& source_evals);
   
-protected:
-
-  
-
-/* ****************************************************
-*
-*     Protected Functions
-*
-  **************************************************** */
-
-
-/* ****************************************************
-*
-*     Protected Variables
-*
-  **************************************************** */
+  Materials* const m_materials_ptr;  
   
   /**
     Store the evaluated basis functions and quadrature rules from
     Fem_Quadrature objects
   */
-  
+
+  /// DFEM matrix quadrature
   const int m_n_quad_pts ;
+  /// number of DFEM basis functions (1 basis function per interpoaltion/basis point
   const int m_n_basis_pts ;
   
+  /// source moment quadrature (may be different / more exact than matrix quadrature
+  const int m_n_source_quad_pts;
+  std::vector<double> m_source_weights;
+  std::vector<double> m_dfem_at_source_quad;
+  
+  /// a vector of driving source evaluations at the source moment quadrature points
+  std::vector<double> m_source_evals;
+  
+  /// a vector of material properties evalauted at the dfem integration points
+  std::vector<double> m_xs_evals;
+  
+  /// quadrature weights for DFEM matrix formation
   std::vector<double> m_integration_weights;
   
+  /// DFEM basis functions evalauted at quadrature points
   std::vector<double> m_basis_at_quad;
   
-private:
-
-
-  /// only used in the gradient matrix and upwind contributions, don't need to copy to derived matrix construction types
+  /// derivatives of 
   std::vector<double> m_basis_deriv_at_quad;
   
   std::vector<double> m_basis_at_left_edge;
