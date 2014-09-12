@@ -31,39 +31,43 @@ public:
        
     The matrices returned will already include the Jacobian of the transformation
   */
-  void construct_mass_matrix(Eigen::MatrixXd& mass_mat);
-  
+   
+  /// construct most of \f$ \mathbf{M} \f$, except for the \f$ \frac{\Delta x}{2} \f$ constant multiplication
+  virtual void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass_mat) = 0;
+    
   void construct_r_cv(Eigen::MatrixXd& r_cv);
   
   void construct_r_sigma_a(Eigen::MatrixXd& r_sig_a, const int grp);
   
   void construct_r_sigma_s(Eigen::MatrixXd& r_sig_s, const int grp, const int l_mom);
   
-  /// Calculate gradient quantities (without mu multiplied through)
-  
-  void construct_pos_gradient_matrix(Eigen::MatrixXd& l_mat);
-  
-  void construct_neg_gradient_matrix(Eigen::MatrixXd& l_mat);
-  
-  void construct_left_upwind_vector(Eigen::VectorXd& f_mu_pos);
-  
-  void construct_right_upwind_vector(Eigen::VectorXd& f_mu_neg);
-  
   /// Construct driving source moments
   
   void construct_temperature_source_moments(Eigen::VectorXd& s_t, const double time);
   
   void construct_radiation_source_moments(Eigen::VectorXd& s_i, const double time, const int dir, const int grp);
-
+ 
+  void construct_pos_gradient_matrix(Eigen::MatrixXd& l_pos);
+  void construct_neg_gradient_matrix(Eigen::MatrixXd& l_neg);
+  void construct_pos_upwind_vector(Eigen::VectorXd& f_pos);
+  void construct_neg_upwind_vector(Eigen::VectorXd& f_neg);
+  
 protected:
-  /// want derived members to have access to these variables and methods
-  /// Construct reaction matrix will not be called by any non-derived member
+  
+  /** construct a reaction matrix, called only from any of the following:
+      \fn construct_r_cv , 
+      \fn construct_r_sigma_a,
+      \fn construct_r_sigma_s
+  */
   virtual void construct_reaction_matrix(Eigen::MatrixXd& rx_mat, std::vector<double>& xs) = 0;
   
-  virtual void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass_mat) = 0;
-  
+  /// quadrature integration and scaling by Jacobian of driving source moments
   void construct_source_moments(Eigen::VectorXd& source_mom, std::vector<double>& source_evals);
   
+  /// Calculate gradient quantities (without mu multiplied through)
+
+  
+  /// pointer to the Materials class object where all properties of given materials reside
   Materials* const m_materials_ptr;  
   
   /**
@@ -98,6 +102,9 @@ protected:
   
   std::vector<double> m_basis_at_left_edge;
   std::vector<double> m_basis_at_right_edge;
+  
+  
+
 };
 
 #endif

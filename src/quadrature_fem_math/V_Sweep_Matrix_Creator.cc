@@ -8,9 +8,10 @@
 #include "V_Sweep_Matrix_Creator.h"
 
 V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-  Cell_Data* const cell_data, const int n_stages)
+  const int n_stages, const double sn_w)
 :
   m_matrix_type{fem_quadrature.get_integration_type() },
+  m_sn_w{ sn_w },
   m_np{fem_quadrature.get_number_of_interpolation_points()},  
   m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_r_sig_s{ Eigen::MatrixXd::Zero(m_np,m_np) },
@@ -19,7 +20,7 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_r_cv{ Eigen::MatrixXd::Zero(m_np,m_np) },
   
   m_d_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_coefficent{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_coefficient{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
   
   m_no_mu_pos_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
@@ -28,8 +29,6 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_no_mu_neg_f_vector{ Eigen::VectorXd::Zero(m_np) },
   
   m_materials{ materials},
-  
-  m_cell_data{ cell_data } ,
   
   m_c{materials->get_c() },
   
@@ -78,10 +77,9 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_mtrx_builder->construct_pos_gradient_matrix(m_no_mu_pos_l_matrix);
   m_mtrx_builder->construct_neg_gradient_matrix(m_no_mu_neg_l_matrix);
   
-  m_mtrx_builder->construct_left_upwind_vector(m_no_mu_pos_f_vector);
-  m_mtrx_builder->construct_right_upwind_vector(m_no_mu_neg_f_vector);
+  m_mtrx_builder->construct_pos_upwind_vector(m_no_mu_pos_f_vector);
+  m_mtrx_builder->construct_neg_upwind_vector(m_no_mu_neg_f_vector);
   
-  m_mtrx_builder->construct_mass_matrix(m_mass);
 }
 
 void V_Sweep_Matrix_Creator::construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix)

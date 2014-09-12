@@ -45,6 +45,7 @@ public:
     
   void load_rk_a(const int stage, const std::vector<double>& outside_rk_a );
 
+protected:
   /// need to access material objects, save a ptr to avoid passing it all the time
   Materials* const m_material;
   

@@ -16,9 +16,9 @@ public:
   Matrix_Construction_Self_Lumping(const Fem_Quadrature& fem_quadrature,  Materials* const materials_ptr);
   virtual ~Matrix_Construction_Self_Lumping(){}
   
-protected:
+  void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) override;
   
-  void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass_mat) override;
+protected:  
   
   void construct_reaction_matrix(Eigen::MatrixXd& rx_mat, std::vector<double>& xs) override;
 };

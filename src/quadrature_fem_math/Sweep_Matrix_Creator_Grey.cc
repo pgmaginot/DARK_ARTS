@@ -7,9 +7,9 @@
 #include "Sweep_Matrix_Creator_Grey.h"
 
 Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    Cell_Data* const cell_data, const int n_stages)
+    const int n_stages, const double sn_w)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, cell_data, n_stages )
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages, sn_w )
 {  
   
 }
@@ -20,11 +20,6 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
 {
   /// set cell number
   m_cell_num = cell;
-  /// set cell width
-  m_dx = m_cell_data->get_cell_width(m_cell_num);
-  
-  /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
-  m_dx_div_2_mass = m_dx/2.*m_mass;
   
   /// get \f$ \vec{T}^n \f$
   m_t_old->get_cell_temperature(m_cell_num,m_t_old_vec) ;
@@ -32,24 +27,83 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   /// get \f$ \vec{T}^* \f$
   m_t_star->get_cell_temperature(m_cell_num,m_t_star_vec) ;
   
+  /// populate Materials object with local temperature and position to evalaute material properties
+  m_materials->calculate_local_temp_and_position(cell,m_t_star_vec);
+  
   /// get Planck vector since it won't change
   m_materials->get_grey_planck(m_t_star_vec, m_planck_vec);
   
+  /// set cell width
+  m_dx = m_materials->get_cell_width();
+  
+  /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
+  m_dx_div_2_mass = m_dx/2.*m_mass;
+    
   /// load \f$ \mathbf{R}_{C_v} \f$ here
+  m_mtrx_builder->construct_r_cv(m_r_cv);
   
  /// then invert it and store in a temporary matrix
-
-  /// put this into 
+  m_coefficient = m_r_cv.inverse(); 
+  /// put this back into m_r_cv
+  m_r_cv = m_coefficient;
   
   return;
 }
 
   /**
-    get \f$ \vec{\widehat{B}}_g, ~\mathbf{D}_G^* \f$
+    calculate \f$ \vec{\widehat{B}}_g, ~\mathbf{D}_G^* \f$
     calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$ , the isotropic components of \f$ \vec{S}_I \f$, and 
     if grey \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$ 
   */  
 void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
 {
+  m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,0);
+  m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,0,0);
+  
+  m_r_sig_t = m_r_sig_a + m_r_sig_s;
+  /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
+  m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass;
+  
+  /// calculate \f$ \mathbf{D} \f$
+  m_materials->get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
+  
+  /** calculate the "coefficient matrix":
+    \f[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}
+    \f]    
+  */
+  m_coefficient = m_identity_matrix;
+  m_coefficient += m_sn_w*m_dt*m_rk_a[m_stage]*m_r_cv*m_r_sig_a*m_d_matrix;
+  
+  /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
+  
+  m_r_sig_s += (m_sn_w*m_dt*m_rk_a[m_stage])*
+    m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a;
+    
+  /// start building the isotropic portion of \f$ \bar{\bar{\xi}} \f$
+  
+  /// \f$ \text{m_xi_isotropic} = \vec{T}^n - - \vec{T}^* \f$
+  m_xi_isotropic = m_t_old_vec - m_t_star_vec;
+  
+  /// \f$ \text{m_xi_isotropic} += \Delta t \sum_{j=1}^{i-1}{a_{ij} \vec{k}_{T,j} } \f$
+  for(int s=0; s< m_stage ; s++)
+  {
+    m_kt->get_kt(m_cell_num, m_stage, m_kt_vec);
+    m_xi_isotropic += m_dt*m_rk_a[s]*m_kt_vec;
+  }
+  
+  /// calculate planck vector for this cell
+  m_materials->get_grey_planck(m_t_star_vec,m_planck_vec);
+  /// get \f$ \vec{S}_T \f$
+  m_mtrx_builder->construct_temperature_source_moments(m_driving_source,m_time);
+  
+  /** \f$ \text{m_xi_isotropic} += 
+    \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \left[ \vec{S}_T - \text{m_sn_w} \mathbf{R}_{\sigma_a} \vec{\widehat{B}} \right] \f$ 
+  */
+  m_xi_isotropic += m_dt*m_rk_a[m_stage]*m_r_cv*( m_driving_source - m_sn_w*m_r_sig_a*m_planck_vec );
+  
+  m_xi_isotropic *= m_r_sig_a*m_d_matrix*m_coefficient;
+  
+  m_xi_isotropic += m_r_sig_a*m_planck_vec;
+  
   return;
 }

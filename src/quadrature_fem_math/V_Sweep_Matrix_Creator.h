@@ -32,7 +32,7 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    Cell_Data* const cell_data, const int n_stages);
+    const int n_stages, const double sn_w);
     
   virtual ~V_Sweep_Matrix_Creator(){}
   
@@ -64,11 +64,11 @@ public:
   */
   virtual void update_group_dependencies(const int grp) = 0;
   
-  /// retrieve the already constructed \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$
+  /// retrieve the already constructed \f$ \bar{\bar{\mathbf{R}}}_{\sigma_{t,g}} \f$.  Constructed in \fn update_group_dependencies
   void get_r_sig_t(Eigen::MatrixXd& r_sig_t);
   
   /** if grey and l_mom = 0, retireve \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$, else retrieve
-    \f$ \mathbf{R}_{\sigma_{s,g,\text{l_mom}}} \f$
+    \f$ \mathbf{R}_{\sigma_{s,g,\text{l_mom}}} \f$ . Matrix created in \fn update_group_dependencies
   */
   void get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom);
   
@@ -83,7 +83,8 @@ public:
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
   
-public:
+protected:
+  const double m_sn_w;
   const int m_np;
     /// \f$ \mathbf{R}_{\sigma_{a,g}} \f$ evaluated at t_star
   Eigen::MatrixXd m_r_sig_a; 
@@ -110,7 +111,7 @@ public:
       \text{m_coefficient} = \left[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_{a,g}} \mathbf{D} \right]
     \f]
   */
-  Eigen::MatrixXd m_coefficent;
+  Eigen::MatrixXd m_coefficient;
   
   /// \f$ \mathbf{M} \f$ wihtout \f$ \frac{\Delta x}{2} \f$ term
   Eigen::MatrixXd m_mass;
@@ -126,10 +127,7 @@ public:
     but we don't ever want to be able to change this pointer!
   */
   Materials* const m_materials;
-  
-  /// pointer won't change and we better not change the Cell_Data that m_cell_data points to
-  const Cell_Data* const m_cell_data;  
-  
+   
   /// time stepping data that will be used often
   const double m_c;
   double m_dt;
@@ -170,8 +168,7 @@ public:
   /// scaled mass matrix
   Eigen::MatrixXd m_dx_div_2_mass;
   
-  /// vector store material properties in
-  
+
 };
 
 #endif

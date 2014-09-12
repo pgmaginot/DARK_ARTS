@@ -11,11 +11,11 @@ Matrix_Construction_Self_Lumping::Matrix_Construction_Self_Lumping(
     : V_Matrix_Construction(fem_quadrature,materials_ptr)
     {}
 
-void Matrix_Construction_Self_Lumping::construct_dimensionless_mass_matrix(
-  Eigen::MatrixXd& mass_mat) 
+void Matrix_Construction_Self_Lumping::construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) 
 {
+  
   for(int i=0;i<m_n_basis_pts;i++)
-    mass_mat(i,i) = m_integration_weights[i];
+    mass(i,i) = m_integration_weights[i];
   return;
 }
   

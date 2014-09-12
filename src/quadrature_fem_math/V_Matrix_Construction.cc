@@ -58,14 +58,8 @@ void V_Matrix_Construction::construct_r_sigma_s(Eigen::MatrixXd& r_sig_s, const 
   return;
 }
 
-void V_Matrix_Construction::construct_mass_matrix(Eigen::MatrixXd& mass_mat)
-{
-  construct_dimensionless_mass_matrix(mass_mat);
-  mass_mat *= m_materials_ptr->get_cell_width()/2.;
-  return;
-}
-    
-void V_Matrix_Construction::construct_pos_gradient_matrix(Eigen::MatrixXd& l_mat)
+
+void V_Matrix_Construction::construct_pos_gradient_matrix(Eigen::MatrixXd& l_pos)
 {
   double temp_sum = 0.;
   for(int i=0; i<m_n_basis_pts;i++)
@@ -73,19 +67,19 @@ void V_Matrix_Construction::construct_pos_gradient_matrix(Eigen::MatrixXd& l_mat
     for(int j=0; j<m_n_basis_pts;j++)
     {
       temp_sum =0.;
-      l_mat(i,j) = m_basis_at_right_edge[i]*m_basis_at_right_edge[j];
+      l_pos(i,j) = m_basis_at_right_edge[i]*m_basis_at_right_edge[j];
       for(int q=0;q<m_n_quad_pts;q++)
       {  
         temp_sum += m_integration_weights[q]*
           m_basis_deriv_at_quad[q+i*m_n_quad_pts]*m_basis_at_quad[q+j*m_n_quad_pts];
       }
-      l_mat(i,j) -= temp_sum;
+      l_pos(i,j) -= temp_sum;
     }
   }
   return;
 }
 
-void V_Matrix_Construction::construct_neg_gradient_matrix(Eigen::MatrixXd& l_mat)
+void V_Matrix_Construction::construct_neg_gradient_matrix(Eigen::MatrixXd& l_neg)
 {
   double temp_sum = 0.;
   for(int i=0; i<m_n_basis_pts;i++)
@@ -93,32 +87,32 @@ void V_Matrix_Construction::construct_neg_gradient_matrix(Eigen::MatrixXd& l_mat
     for(int j=0; j<m_n_basis_pts;j++)
     {
       temp_sum =0.;
-      l_mat(i,j) = -m_basis_at_left_edge[i]*m_basis_at_left_edge[j];
+      l_neg(i,j) = -m_basis_at_left_edge[i]*m_basis_at_left_edge[j];
       for(int q=0;q<m_n_quad_pts;q++)
       {  
         temp_sum += m_integration_weights[q]*
           m_basis_deriv_at_quad[q+i*m_n_quad_pts]*m_basis_at_quad[q+j*m_n_quad_pts];
       }
-      l_mat(i,j) -= temp_sum;
+      l_neg(i,j) -= temp_sum;
     }
   }
   return;
 }
 
-void V_Matrix_Construction::construct_left_upwind_vector(Eigen::VectorXd& f_mu_pos)
+void V_Matrix_Construction::construct_pos_upwind_vector(Eigen::VectorXd& f_pos)
 {
   for(int j=0; j<m_n_basis_pts;j++)
   {
-    f_mu_pos(j) = m_basis_at_left_edge[j];
+    f_pos(j) = m_basis_at_left_edge[j];
   }
   return;
 }
   
-void V_Matrix_Construction::construct_right_upwind_vector(Eigen::VectorXd& f_mu_neg)
+void V_Matrix_Construction::construct_neg_upwind_vector(Eigen::VectorXd& f_neg)
 {
   for(int j=0; j<m_n_basis_pts;j++)
   {
-    f_mu_neg(j) = m_basis_at_right_edge[j];
+    f_neg(j) = m_basis_at_right_edge[j];
   }
   return;
 }   
@@ -155,3 +149,5 @@ void V_Matrix_Construction::construct_source_moments(Eigen::VectorXd& source_mom
   
   return;
 }
+
+

@@ -15,10 +15,10 @@ public:
   
   virtual ~Matrix_Construction_Exact(){}
   
+  void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) override;
+  
 protected:
-  
-  void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass_mat) override;
-  
+
   void construct_reaction_matrix(Eigen::MatrixXd& rx_mat, std::vector<double>& xs) override;
   
 };

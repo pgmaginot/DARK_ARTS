@@ -13,9 +13,8 @@ Matrix_Construction_Trad_Lumping::Matrix_Construction_Trad_Lumping(
   {}
 
 
-void Matrix_Construction_Trad_Lumping::construct_dimensionless_mass_matrix(
-  Eigen::MatrixXd& mass_mat) 
-{
+void Matrix_Construction_Trad_Lumping::construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) 
+{  
   for(int i=0;i<m_n_basis_pts;i++)
   {
     double sum = 0.;
@@ -27,7 +26,7 @@ void Matrix_Construction_Trad_Lumping::construct_dimensionless_mass_matrix(
         sum += m_integration_weights[q]*m_basis_at_quad[q+i*m_n_quad_pts]*m_basis_at_quad[q+j*m_n_quad_pts];
       }      
     }
-    mass_mat(i,i) = sum;
+    mass(i,i) = sum;
   }
   return;
 }

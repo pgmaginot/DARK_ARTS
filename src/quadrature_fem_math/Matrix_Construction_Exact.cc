@@ -15,8 +15,7 @@ Matrix_Construction_Exact::Matrix_Construction_Exact(const Fem_Quadrature& fem_q
 
 }
 
-void Matrix_Construction_Exact::construct_dimensionless_mass_matrix(
-  Eigen::MatrixXd& mass_mat) 
+void Matrix_Construction_Exact::construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) 
 {
   for(int i=0;i<m_n_basis_pts;i++)
   {
@@ -27,7 +26,7 @@ void Matrix_Construction_Exact::construct_dimensionless_mass_matrix(
       {
         sum += m_integration_weights[q]*m_basis_at_quad[q+i*m_n_quad_pts]*m_basis_at_quad[q+j*m_n_quad_pts];
       }
-      mass_mat(i,j) = sum;
+      mass(i,j) = sum;
     }
   }
   return;

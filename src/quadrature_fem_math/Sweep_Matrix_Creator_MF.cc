@@ -7,9 +7,9 @@
 #include "Sweep_Matrix_Creator_MF.h"
 
 Sweep_Matrix_Creator_MF::Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    Cell_Data* const cell_data, const int n_stages)
+    const int n_stages, const double sn_w)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, cell_data, n_stages )
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w)
 {  
   
 }

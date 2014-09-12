@@ -8,7 +8,7 @@
   *   @brief Declare the Temperautre_Update class that will update a Temperature_Object given an Intensity_Object
  */
 
-class Temperature_Update_Grey: private V_Temperature_Update
+class Temperature_Update_Grey: public V_Temperature_Update
 {
 public:
   Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material,
