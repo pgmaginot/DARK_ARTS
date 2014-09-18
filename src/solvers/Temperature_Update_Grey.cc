@@ -8,7 +8,7 @@ Temperature_Update_Grey::Temperature_Update_Grey(const Fem_Quadrature& fem_quadr
 
 }
 
-void Temperature_Update_Grey::update_temperature(const Intensity_Data& intensity, 
+void Temperature_Update_Grey::update_temperature(const Intensity_Moment_Data& phi, 
   Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
   const K_Temperature& k_t, const int stage, const std::vector<double>& outside_rk_a,
   const double time, const double dt)
@@ -43,7 +43,7 @@ void Temperature_Update_Grey::update_temperature(const Intensity_Data& intensity
     
     /// calculate \f$ \mathbf{R}_{\sigma_a} \left(\vec{\phi}_i - \text{m_sn_w} \mathbf{B}^*   \right) + \vec{S}_T \f$
     /// store quantity in m_phi
-    intensity.get_cell_angle_integrated_intensity(c,0,0,m_phi);
+    phi.get_cell_angle_integrated_intensity(c,0,0,m_phi);
     m_material->get_grey_planck(m_t_star,m_planck);
     
     m_phi -= m_sn_w * m_planck;

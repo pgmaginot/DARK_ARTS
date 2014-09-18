@@ -10,7 +10,7 @@ Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadratur
 
 }
 
-void Temperature_Update_MF::update_temperature(const Intensity_Data& intensity, 
+void Temperature_Update_MF::update_temperature(const Intensity_Moment_Data& phi, 
   Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
   const K_Temperature& k_t, const int stage, const std::vector<double>& outside_rk_a, const double time, const double dt)
 {
@@ -33,7 +33,7 @@ void Temperature_Update_MF::update_temperature(const Intensity_Data& intensity,
      2. \f$ \mathbf{R}_{C_v}^{-1} \f$ (m_r_cv)
      3. \f$ \left[ \mathbf{I} + \text{m_sn_w}*\Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D} \right] \f$ (m_coeff_matrix)    
     */
-    calculate_local_matrices(c , m_t_star ,dt, m_rk_a[stage] , time, intensity);
+    calculate_local_matrices(c , m_t_star ,dt, m_rk_a[stage] , time, phi);
     
     ///calculate \f$ \vec{T}_{n} - \vec{T}^* + \Delta t \sum_{j=1}^{stage-1} a_{ij k_{T,j} \f$
     m_t_old -= m_t_star;
@@ -58,7 +58,7 @@ void Temperature_Update_MF::update_temperature(const Intensity_Data& intensity,
 }
 
 void Temperature_Update_MF::calculate_local_matrices(const int cell , const Eigen::VectorXd& m_t_star ,
-  const double dt, const double a_ii , const double time, const Intensity_Data& intensity)
+  const double dt, const double a_ii , const double time, const Intensity_Moment_Data& phi)
 {  
   /// calculate the m_spectrum matrix (planck deriviative and r_sig_a)
   /// first zero out m_spectrum
@@ -77,7 +77,7 @@ void Temperature_Update_MF::calculate_local_matrices(const int cell , const Eige
     m_spectrum += m_r_sig_a*m_d_matrix;
     
     /// group g anagle integrated intensity
-    intensity.get_cell_angle_integrated_intensity(cell, g, 0, m_phi);
+    phi.get_cell_angle_integrated_intensity(cell, g, 0, m_phi);
     
     /// group g Planck integration
     m_material->get_mf_planck(m_t_star,g,m_planck);

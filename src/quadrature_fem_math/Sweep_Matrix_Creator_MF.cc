@@ -17,6 +17,38 @@ Sweep_Matrix_Creator_MF::Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadr
     /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
 void Sweep_Matrix_Creator_MF::update_cell_dependencies(const int cell)
 {
+  /// set cell number
+  m_cell_num = cell;
+  
+  /// get \f$ \vec{T}^n \f$
+  m_t_old->get_cell_temperature(m_cell_num,m_t_old_vec) ;
+  
+  /// get \f$ \vec{T}^* \f$
+  m_t_star->get_cell_temperature(m_cell_num,m_t_star_vec) ;
+  
+  /// populate Materials object with local temperature and position to evalaute material properties
+  m_materials->calculate_local_temp_and_position(cell,m_t_star_vec);
+  
+  /// get Planck vector since it won't change
+  m_materials->get_grey_planck(m_t_star_vec, m_planck_vec);
+  
+  /// set cell width
+  m_dx = m_materials->get_cell_width();
+  
+  /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
+  m_dx_div_2_mass = m_dx/2.*m_mass;
+    
+  /// load \f$ \mathbf{R}_{C_v} \f$ here
+  m_mtrx_builder->construct_r_cv(m_r_cv);
+  
+ /// then invert it and store in a temporary matrix
+  m_coefficient = m_r_cv.inverse(); 
+  /// put this back into m_r_cv
+  m_r_cv = m_coefficient;
+  
+  /// we assume that whatever intensity we are updating in the sweep has already calculated an absoprtion rate density
+  // m_ard_vec
+  
   return;
 }
   
@@ -30,3 +62,9 @@ void Sweep_Matrix_Creator_MF::update_cell_dependencies(const int cell)
 {
   return;
 }
+
+void Sweep_Matrix_Creator_MF::get_s_i(Eigen::VectorXd& s_i, const int dir)
+{
+  return;
+}
+

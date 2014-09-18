@@ -12,32 +12,45 @@
 class Temperature_Data
 {
 public:
-  /// Will set n_grp, n_el, n_dir, n_leg as static values
-  Temperature_Data(const Cell_Data& cell_data, const Fem_Quadrature& fem_quad);
+  Temperature_Data(const Cell_Data& cell_data, const Fem_Quadrature& fem_quad, const int n_groups);
   ~Temperature_Data(){}
   
-  /// Public accessor functions
+  /// Single element set/get functions
   double get_temperature(const int el, const int cell) const;
 
-  /// Public functions to save values
   void set_temperature(const int el, const int cell, const double val);
-  
+
+  /// single cell set/get functions
   void get_cell_temperature(const int cell, Eigen::VectorXd& vec) const;
   
   void set_cell_temperature(const int cell, const Eigen::VectorXd& vec);
   
-protected:
-  std::vector<double> m_t;
+  void get_cell_ard(const int cell, Eigen::VectorXd& vec) const;
   
-  /// total number of cells in the problem
-  int m_cells;
+  void set_cell_ard(const int cell, const Eigen::VectorXd& vec);
+  
+protected:
+    /// total number of cells in the problem
+  const int m_cells;
   
   /// number of DFEM unknowns in each cell
-  int m_el_per_cell;
-  
+  const int m_el_per_cell;
   
   /// total length of the intensity data
-  int m_t_length;
+  const int m_t_length;
+  
+  /// number of frequency groups  
+  const int m_n_groups;
+  
+  /// total length of ard.  0 if a grey problem!
+  const int m_ard_length;
+  
+  /// vector to hold temperature unknowns
+  std::vector<double> m_t;
+  
+  /// vector to hold the absorption rate density (if a MF problem only)
+  std::vector<double> m_ard;
+
   
 /* ***************************************************
   *

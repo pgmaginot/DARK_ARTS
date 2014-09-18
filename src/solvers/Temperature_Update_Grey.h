@@ -17,7 +17,7 @@ public:
     
   ~Temperature_Update_Grey(){}
 
-  void update_temperature(const Intensity_Data& intensity, 
+  void update_temperature(const Intensity_Moment_Data& phi, 
     Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
     const K_Temperature& k_t, const int stage, const std::vector<double>& outside_rk_a,
     const double time, const double dt) override;    

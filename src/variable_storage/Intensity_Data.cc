@@ -27,52 +27,6 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrat
     m_phi.resize(m_phi_length,0.);
   }
 
-double Intensity_Data::get_intensity(const int el, const int cell,
-  const int group, const int dir) const
-{
-  bool bad_input = intensity_range_check(el,cell,group,dir);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Accessing out of logical range intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = intensity_data_locator(el,cell,group,dir);
-  bool bad_location = intensity_bounds_check(val_loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Intensity location out of possible range\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  return m_i[val_loc];
-}
-
-void Intensity_Data::get_cell_intensity(const int cell, const int group, 
-  const int dir, std::vector<double>& loc_i_vec) const
-{
-  bool bad_input = intensity_range_check(0,cell,group,dir);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Accessing out of logical range intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = intensity_data_locator(0,cell,group,dir);
-  bool bad_location = intensity_bounds_check(val_loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Intensity location out of possible range\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  for(int i=0; i<m_el_per_cell; i++)
-    loc_i_vec[i] = m_i[val_loc+i];
-    
-  return;
-}
 
 void Intensity_Data::get_cell_intensity(const int cell, const int group, 
   const int dir, Eigen::VectorXd& loc_i_vec) const
@@ -99,39 +53,6 @@ void Intensity_Data::get_cell_intensity(const int cell, const int group,
   return;
 }
 
-double Intensity_Data::get_angle_integrated_intensity(const int el, const int cell,
-  const int group, const int l_mom) const
-{
-  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
-  
-  return m_phi[val_loc];
-}
-
-void Intensity_Data::get_cell_angle_integrated_intensity(const int cell,
-  const int group, const int l_mom, std::vector<double>& loc_phi_vec) const
-{
-  bool bad_input = angle_integrated_range_check(0,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = angle_integrated_data_locator(0,cell,group,l_mom);
-  
-  for(int i=0; i< m_el_per_cell; i++)
-    loc_phi_vec[i] = m_phi[val_loc+i];
-
-  return;
-}
-
 void Intensity_Data::get_cell_angle_integrated_intensity(const int cell,
   const int group, const int l_mom, Eigen::VectorXd& loc_phi_vec) const
 {
@@ -150,41 +71,6 @@ void Intensity_Data::get_cell_angle_integrated_intensity(const int cell,
   return;
 }
 
-void Intensity_Data::set_intensity(const int el, const int cell,
-  const int group, const int dir, const double val) 
-{
-  
-  
-  int loc = intensity_data_locator(el,cell,group,dir);
-  bool bad_location = intensity_bounds_check(loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Trying to write to an intensity location out of range\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  m_i[loc] = val;
-  return;
-}
-
-void Intensity_Data::set_cell_intensity(const int cell,
-  const int group, const int dir, const std::vector<double>& val) 
-{  
-  int loc = intensity_data_locator(0,cell,group,dir);
-  bool bad_location = intensity_bounds_check(loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Trying to write to an intensity location out of range\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  for(int i=0; i<m_el_per_cell ; i++)
-    m_i[loc+i] = val[i];
-    
-  return;
-}
 
 void Intensity_Data::set_cell_intensity(const int cell,
   const int group, const int dir, const Eigen::VectorXd& val) 
@@ -204,39 +90,6 @@ void Intensity_Data::set_cell_intensity(const int cell,
   return;
 }
 
-
-void Intensity_Data::set_angle_integrated_intensity(const int el, const int cell,
-    const int group, const int l_mom, const double val) 
-{
-  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom);
-  m_phi[val_loc] = val;
-  return;
-}
-
-void Intensity_Data::set_cell_angle_integrated_intensity(const int cell,
-    const int group, const int l_mom, const std::vector<double>& val) 
-{
-  bool bad_input = angle_integrated_range_check(0,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = angle_integrated_data_locator(0,cell,group,l_mom);
-  
-  for(int i=0; i< m_el_per_cell ; i++)
-    m_phi[val_loc+i] = val[i];
-    
-  return;
-}
 
 void Intensity_Data::set_cell_angle_integrated_intensity(const int cell,
     const int group, const int l_mom, const Eigen::VectorXd& val) 

@@ -7,7 +7,7 @@
 #include "Matrix_Construction_Trad_Lumping.h"
 
 #include "Temperature_Data.h"
-#include "Intensity_Data.h"
+#include "Intensity_Moment_Data.h"
 #include "K_Temperature.h"
 
 #include "Fem_Quadrature.h"
@@ -39,7 +39,7 @@ public:
     
   ~V_Temperature_Update(){}
 
-  virtual void update_temperature(const Intensity_Data& intensity, 
+  virtual void update_temperature(const Intensity_Moment_Data& phi, 
     Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
     const K_Temperature& k_t, const int stage, const std::vector<double>& rk_a, const double time, const double dt) = 0;
     

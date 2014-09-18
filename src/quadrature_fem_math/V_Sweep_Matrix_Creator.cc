@@ -45,12 +45,13 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   
   m_dx{-1.}  ,
   m_cell_num{-1},
+  m_group_num{ -1},
 
   m_t_old_vec{ Eigen::VectorXd::Zero(m_np) },
   m_t_star_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_k_vec{ Eigen::VectorXd::Zero(m_np) },
   m_planck_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_ki_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_kt_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_temp_vec{ Eigen::VectorXd::Zero(m_np) },
   m_xi_isotropic{ Eigen::VectorXd::Zero(m_np) },
   m_driving_source{ Eigen::VectorXd::Zero(m_np) },
   m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) }
@@ -153,10 +154,15 @@ void V_Sweep_Matrix_Creator::get_r_sig_t(Eigen::MatrixXd& r_sig_t)
 
 void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom)
 {
+  if(l_mom == 0)
+  {
+    r_sig_s = m_r_sig_s;
+  }
+  else
+  {
+    m_mtrx_builder->construct_r_sigma_s(r_sig_s,m_group_num,l_mom);
+  }
+  
   return;
 }
 
-void V_Sweep_Matrix_Creator::get_s_i(Eigen::VectorXd& s_i, const int dir)
-{
-  return;
-}

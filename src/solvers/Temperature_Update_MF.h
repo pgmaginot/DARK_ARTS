@@ -17,7 +17,7 @@ public:
     
   ~Temperature_Update_MF(){}
 
-  void update_temperature(const Intensity_Data& intensity, 
+  void update_temperature(const Intensity_Moment_Data& phi, 
     Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
     const K_Temperature& k_t, const int stage, const std::vector<double>& outside_rk,
     const double time, const double dt) override;    
@@ -34,7 +34,7 @@ private:
   **************************************************** */
   void calculate_local_matrices(const int cell , const Eigen::VectorXd& m_t_star ,
     const double dt, const double a_ii , const double time,
-    const Intensity_Data& intensity);
+    const Intensity_Moment_Data& phi);
 };
 
 #endif

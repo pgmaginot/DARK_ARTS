@@ -102,8 +102,6 @@ protected:
   
   std::vector<double> m_basis_at_left_edge;
   std::vector<double> m_basis_at_right_edge;
-  
-  
 
 };
 

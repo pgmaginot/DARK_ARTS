@@ -78,7 +78,7 @@ public:
         \sum_{j=1}^{\text{stage} - 1}{a_{ij} \vec{k}_{I,j,dir,grp} }
     \f]
   */  
-  void get_s_i(Eigen::VectorXd& s_i, const int dir);
+  virtual void get_s_i(Eigen::VectorXd& s_i, const int dir) = 0;
     
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
@@ -148,6 +148,7 @@ protected:
   /// cell data that is used repeatedly (set in V_Sweep_Matrix_Creator::update_cell_dependencies() )
   double m_dx;
   int m_cell_num;
+  int m_group_num;
     
   /// builder/lumper of matrices
   std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
@@ -155,9 +156,9 @@ protected:
   /// local vectors
   Eigen::VectorXd m_t_old_vec;
   Eigen::VectorXd m_t_star_vec;
+  Eigen::VectorXd m_k_vec;
   Eigen::VectorXd m_planck_vec;
-  Eigen::VectorXd m_ki_vec;
-  Eigen::VectorXd m_kt_vec;
+  Eigen::VectorXd m_temp_vec;
   
   /// isotropic component of xi_i
   Eigen::VectorXd m_xi_isotropic;

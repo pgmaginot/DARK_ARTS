@@ -60,8 +60,11 @@ int main(int argc, char** argv)
   
   /// Initialize intensity and angle integrated intensity of previous time step
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature);
-  
   std::cout << "Intensity object created" << std::endl;
+  
+  /// Initialize a Temperature_Data structure
+  Temperature_Data temperature_old( cell_data, fem_quadrature, angular_quadrature.get_number_of_groups() );
+  std::cout << "Temperature object created" << std::endl;
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);

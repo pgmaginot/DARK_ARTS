@@ -47,6 +47,8 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   /// put this back into m_r_cv
   m_r_cv = m_coefficient;
   
+
+  
   return;
 }
 
@@ -57,8 +59,10 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   */  
 void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
 {
-  m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,0);
-  m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,0,0);
+  m_group_num = grp;
+  
+  m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
+  m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,0);
   
   m_r_sig_t = m_r_sig_a + m_r_sig_s;
   /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
@@ -87,8 +91,8 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   /// \f$ \text{m_xi_isotropic} += \Delta t \sum_{j=1}^{i-1}{a_{ij} \vec{k}_{T,j} } \f$
   for(int s=0; s< m_stage ; s++)
   {
-    m_kt->get_kt(m_cell_num, m_stage, m_kt_vec);
-    m_xi_isotropic += m_dt*m_rk_a[s]*m_kt_vec;
+    m_kt->get_kt(m_cell_num, m_stage, m_temp_vec);
+    m_xi_isotropic += m_dt*m_rk_a[s]*m_temp_vec;
   }
   
   /// calculate planck vector for this cell
@@ -104,6 +108,30 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   m_xi_isotropic *= m_r_sig_a*m_d_matrix*m_coefficient;
   
   m_xi_isotropic += m_r_sig_a*m_planck_vec;
+  
+  return;
+}
+
+void Sweep_Matrix_Creator_Grey::get_s_i(Eigen::VectorXd& s_i, const int dir)
+{
+  s_i = m_xi_isotropic;
+  
+  m_i_old->get_cell_intensity(m_cell_num, m_group_num, dir, m_temp_vec);
+  
+  s_i += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
+  
+  m_temp_vec = Eigen::VectorXd::Zero(m_np);
+  for(int s=0 ; s< m_stage ; s++)
+  {
+    m_ki->get_ki(m_cell_num,m_group_num,dir,s,m_k_vec);
+    m_temp_vec += m_rk_a[s]*m_k_vec;
+  }
+  
+  s_i += 1./(m_c*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
+  
+  m_mtrx_builder->construct_radiation_source_moments(m_driving_source,m_time,dir,m_group_num);
+  
+  s_i += m_driving_source;
   
   return;
 }

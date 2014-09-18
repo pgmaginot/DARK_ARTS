@@ -28,6 +28,7 @@ public:
   */  
   void update_group_dependencies(const int grp) override;
    
+  void get_s_i(Eigen::VectorXd& s_i, const int dir) override;
   
 private:
   
