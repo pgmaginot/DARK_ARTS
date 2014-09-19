@@ -303,7 +303,7 @@ double Input_Reader::get_within_group_solve_tolerance(void) const
 
 double Input_Reader::get_between_group_solve_tolerance(void) const
 {
-  return m_bg_tolerance
+  return m_bg_tolerance;
 }
 
 /* ***************************************************
@@ -1053,7 +1053,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   return 0;
 }
 
-int Input_Reader::load_solver_method_data(TiXmlElement* solver_element)
+int Input_Reader::load_solver_data(TiXmlElement* solver_element)
 {
   TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_Solver_type");
   TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");
@@ -1090,12 +1090,12 @@ int Input_Reader::load_solver_method_data(TiXmlElement* solver_element)
     m_bg_tolerance = atof(bg_tolerance_elem->GetText() );
     if( m_bg_tolerance < m_wg_tolerance)
     {
-      std::cerr << "Invalid between group tolerance.  Must be greater than the within group scattering tolerance.\n"
+      std::cerr << "Invalid between group tolerance.  Must be greater than the within group scattering tolerance.\n";
       exit(EXIT_FAILURE);
     }
     if( m_bg_tolerance > 1.E-3)
     {
-      std::cerr << "Invalid between group tolerance.  Must be less than 1E-3.\n"
+      std::cerr << "Invalid between group tolerance.  Must be less than 1E-3.\n";
       exit(EXIT_FAILURE);
     }
   }

@@ -9,6 +9,8 @@
 #include "Materials.h"
 #include "Angular_Quadrature.h"
 
+#include "V_WGRS.h"
+#include "WGRS_FP_Sweeps.h"
 
 #include <memory>
 
@@ -20,16 +22,17 @@
 class V_Intensity_Update
 {
 public:
-  V_Intensity_Update(const Input_Reader& input_reader,
-    const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
+  V_Intensity_Update(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
     const Angular_Quadrature& angular_quadrature, const int n_stages);
     
   virtual ~V_Intensity_Update(){}
 
   virtual void update_intensity(const Temperature_Data& t_star, Intensity_Moment_Data& phi) = 0;
 protected:
-    double m_dt;
-    int m_stage;
+  double m_dt;
+  int m_stage;
+  
+  std::shared_ptr<V_WGRS> m_within_group_radiation_solver;
 };
 
 #endif

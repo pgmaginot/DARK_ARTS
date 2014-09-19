@@ -6,7 +6,9 @@
 #include "Cell_Data.h"
 #include "Materials.h"
 #include "Angular_Quadrature.h"
-
+#include "Transport_Sweep.h"
+#include "Intensity_Moment_Data.h"
+#include "Temperature_Data.h"
 
 /** @file   V_WGRS.h
   *   @author pmaginot
@@ -23,8 +25,11 @@ public:
   virtual ~V_WGRS(){}
 
   virtual void solve(const Temperature_Data& t_star, Intensity_Moment_Data& phi) = 0;
+
+  void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
 protected:
 
+  std::shared_ptr<Transport_Sweep> m_transport_sweep;
 };
 
 #endif

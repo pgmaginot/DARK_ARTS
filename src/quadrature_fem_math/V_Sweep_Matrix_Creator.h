@@ -16,6 +16,7 @@
 #include "K_Temperature.h"
 
 #include "Intensity_Data.h"
+#include "Intensity_Moment_Data.h"
 
 #include <vector>
 #include <memory>
@@ -80,6 +81,7 @@ public:
   */  
   virtual void get_s_i(Eigen::VectorXd& s_i, const int dir) = 0;
     
+  void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
   
@@ -140,10 +142,11 @@ protected:
     /// better not change any of the data pointed to by the following pointers (but pointers themselves may change)
   const Temperature_Data* m_t_old;
   const Temperature_Data* m_t_star;  
-  const K_Temperature* m_kt;
-  
+  const K_Temperature* m_kt;  
   const Intensity_Data*  m_i_old;
   const K_Intensity* m_ki;
+  
+  const Intensity_Moment_Data* m_ard_phi_ptr;
   
   /// cell data that is used repeatedly (set in V_Sweep_Matrix_Creator::update_cell_dependencies() )
   double m_dx;

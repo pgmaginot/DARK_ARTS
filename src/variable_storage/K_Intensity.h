@@ -2,7 +2,6 @@
 #define K_Intensity_h
 
 #include "Cell_Data.h"
-#include "Time_Stepper.h"
 #include "Fem_Quadrature.h"
 #include "Angular_Quadrature.h"
 

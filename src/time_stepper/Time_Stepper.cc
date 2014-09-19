@@ -29,15 +29,13 @@ Time_Stepper::Time_Stepper(const Input_Reader&  input_reader, const Angular_Quad
   fill_sdirk_vectors();
   
   /// determine if grey or MF, set-up solvers appropriately
-  if( angular_quadrature.get_number_of_groups() > 1)
-  {
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
+  if( angular_quadrature.get_number_of_groups() > 1){
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(input_reader, fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
     m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
   }
-  else
-  {
-    // m_intensity_update = std::shared_ptr<V_Intensity_Update> new Intensity_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) ;
-    // m_temperature_update = std::shared_ptr<V_Temperature_Update> new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) ;
+  else{
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(input_reader,fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) );
+    m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) );
   }
 }
 

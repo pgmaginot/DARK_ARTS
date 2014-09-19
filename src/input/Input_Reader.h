@@ -140,7 +140,7 @@ protected:
   int load_time_stepping_data(TiXmlElement* time_elem);
   int load_spatial_discretization_data(TiXmlElement* spatial_element);
   int load_angular_discretization_data(TiXmlElement* angle_element);
-  int load_solver_method_data(TiXmlElement* solver_element);
+  int load_solver_data(TiXmlElement* solver_element);
 
 };
 

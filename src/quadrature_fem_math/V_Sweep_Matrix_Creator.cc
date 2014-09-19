@@ -43,6 +43,8 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_i_old{nullptr},
   m_ki{nullptr},
   
+  m_ard_phi_ptr{nullptr},
+  
   m_dx{-1.}  ,
   m_cell_num{-1},
   m_group_num{ -1},
@@ -81,6 +83,12 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_mtrx_builder->construct_pos_upwind_vector(m_no_mu_pos_f_vector);
   m_mtrx_builder->construct_neg_upwind_vector(m_no_mu_neg_f_vector);
   
+}
+
+void V_Sweep_Matrix_Creator::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
+{
+  m_ard_phi_ptr = ard_phi_ptr;
+  return;
 }
 
 void V_Sweep_Matrix_Creator::construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix)

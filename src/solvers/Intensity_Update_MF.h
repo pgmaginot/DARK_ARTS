@@ -12,7 +12,7 @@
 class Intensity_Update_MF : public V_Intensity_Update
 {
 public:
-  Intensity_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
+  Intensity_Update_MF(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
     const Angular_Quadrature& angular_quadrature, const int n_stages);
     
   ~Intensity_Update_MF(){}

@@ -22,6 +22,7 @@ protected:
 
   const int m_n_groups;
   const double m_wg_tolerance;
+  double m_err = 0.;
 
 };
 
