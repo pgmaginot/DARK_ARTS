@@ -67,6 +67,11 @@ public:
   void get_scat_file_str(const int mat_num, std::string& filename) const;  
   double get_cv_constant(const int mat_num) const;
   
+  /// Functions used by Intensity_Update objects
+  WG_SOLVE_TYPE get_within_group_solve_type(void) const;
+  double get_within_group_solve_tolerance(void) const;
+  double get_between_group_solve_tolerance(void) const;
+  
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -120,6 +125,14 @@ protected:
   TIME_SOLVER m_time_step_scheme = INVALID_TIME_SOLVER;
   STARTING_METHOD m_time_start_meth = INVALID_STARTING_METHOD;
   std::vector<double> m_starting_constants;
+  
+  /// radiation solver type data
+  /// within group solve type
+  WG_SOLVE_TYPE m_wg_solve_type = INVALID_WG_SOLVE_TYPE;
+  /// within group scattering tolerance
+  double m_wg_tolerance = 10.;
+  /// between group scattering/absorption/re-emission tolerance
+  double m_bg_tolerance = -1.;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);
@@ -127,6 +140,7 @@ protected:
   int load_time_stepping_data(TiXmlElement* time_elem);
   int load_spatial_discretization_data(TiXmlElement* spatial_element);
   int load_angular_discretization_data(TiXmlElement* angle_element);
+  int load_solver_method_data(TiXmlElement* solver_element);
 
 };
 

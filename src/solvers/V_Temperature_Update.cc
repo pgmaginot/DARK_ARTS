@@ -1,7 +1,7 @@
 #include "V_Temperature_Update.h"
 
 V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
-    const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper)
+    const Angular_Quadrature& angular_quadrature, const int n_stages)
   :
   m_material{material},
   m_sn_w{angular_quadrature.get_sum_w() },  
@@ -44,7 +44,7 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   /// resize STL vectors that we use for data storage
   m_temp_mat_vec.resize(m_n_source_quad_pts,0.);
 
-  m_rk_a.resize(time_stepper.get_number_of_stages() );
+  m_rk_a.resize(n_stages);
 }
 
 void V_Temperature_Update::load_rk_a(const int stage, const std::vector<double>& outside_rk_a)

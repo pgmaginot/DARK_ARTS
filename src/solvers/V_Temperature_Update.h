@@ -17,7 +17,6 @@
 #include "Materials.h"
 
 #include "Angular_Quadrature.h"
-#include "Time_Stepper.h"
 
 #include "Eigen/Dense"
 
@@ -34,7 +33,7 @@ class V_Temperature_Update
 {
 public:
   V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
-    const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper);
+    const Angular_Quadrature& angular_quadrature, const int n_stages);
     
     
   ~V_Temperature_Update(){}

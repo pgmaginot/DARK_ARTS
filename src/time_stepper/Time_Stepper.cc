@@ -4,9 +4,12 @@
 */
 #include "Time_Stepper.h"
 
-Time_Stepper::Time_Stepper(Input_Reader&  input_reader)
+Time_Stepper::Time_Stepper(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
+    const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_data, Materials* const materials)
+  :
+  m_time_solver{input_reader.get_time_solver()}
 {
-  m_time_solver = input_reader.get_time_solver();
+
   
   if(m_time_solver == INVALID_TIME_SOLVER)
   {
@@ -24,6 +27,18 @@ Time_Stepper::Time_Stepper(Input_Reader&  input_reader)
   m_c.resize(m_number_stages,0.);
   
   fill_sdirk_vectors();
+  
+  /// determine if grey or MF, set-up solvers appropriately
+  if( angular_quadrature.get_number_of_groups() > 1)
+  {
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
+    m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
+  }
+  else
+  {
+    // m_intensity_update = std::shared_ptr<V_Intensity_Update> new Intensity_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) ;
+    // m_temperature_update = std::shared_ptr<V_Temperature_Update> new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) ;
+  }
 }
 
 

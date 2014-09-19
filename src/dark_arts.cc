@@ -43,19 +43,12 @@ int main(int argc, char** argv)
   std::cout << "Fem_Quadrature object created" << std::endl;
     
   /// Initalize cell data (dx, xL, xR, x_ip, material_number)
-  Cell_Data cell_data( input_reader );
-  
+  Cell_Data cell_data( input_reader );  
   std::cout << "Cell_Data object created" << std::endl;
-  
-  /// Initialize time-stepping scheme (SDIRK method)
-  Time_Stepper time_stepper( input_reader );
-  
-  std::cout << "Time stepper object created" << std::endl;
     
   /// Initialize angular quadrature data.  Will include number of: directions, groups, and legendre moments.
   /// will also include evaluations of Legendre polynomials
-  Angular_Quadrature angular_quadrature( input_reader , quad_fun );
-  
+  Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
   std::cout << "Angular quadrature object created" << std::endl;
   
   /// Initialize intensity and angle integrated intensity of previous time step
@@ -67,20 +60,13 @@ int main(int argc, char** argv)
   std::cout << "Temperature object created" << std::endl;
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-  Materials materials( input_reader, fem_quadrature , &cell_data);
-  
+  Materials materials( input_reader, fem_quadrature , &cell_data);  
   std::cout << "Materials object created successfully" << std::endl;
   
-  if(angular_quadrature.get_number_of_groups() == 1)
-  {
-    Temperature_Update_Grey temp(fem_quadrature, &cell_data, &materials, angular_quadrature, time_stepper);
-    std::cout << "Grey temperature update created" << std::endl;
-  }
-  else
-  {
-    Temperature_Update_MF temp(fem_quadrature, &cell_data, &materials, angular_quadrature, time_stepper);
-    std::cout << "MF temperature update object created" << std::endl;
-  }
+  /// Initialize time-stepping scheme (SDIRK method) that will time step through the problem, and monitor temperature iteration convergence
+  Time_Stepper time_stepper( input_reader, angular_quadrature, fem_quadrature, &cell_data, &materials );  
+  std::cout << "Time stepper object created" << std::endl;
+  
  
   return 0;
 }

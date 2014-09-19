@@ -5,12 +5,12 @@
 */
 #include "K_Temperature.h"
 
-K_Temperature::K_Temperature(const Cell_Data& cell_data, const Time_Stepper& time_stepper, 
+K_Temperature::K_Temperature(const Cell_Data& cell_data, const int n_stages, 
     const Fem_Quadrature& fem_quadrature)
   /// initilaize range members
   : m_cells(cell_data.get_total_number_of_cells() ) ,
     m_el_per_cell(fem_quadrature.get_number_of_interpolation_points() ) ,
-    m_n_stages(time_stepper.get_number_of_stages() ),
+    m_n_stages(n_stages ),
     m_k_length( m_cells*m_el_per_cell*m_n_stages )
     
   {   

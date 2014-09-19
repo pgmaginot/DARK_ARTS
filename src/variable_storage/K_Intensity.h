@@ -16,7 +16,7 @@ class K_Intensity
 {
 public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
-  K_Intensity(const Cell_Data& cell_data, const Time_Stepper& time_stepper, 
+  K_Intensity(const Cell_Data& cell_data, const int n_stages, 
     const Fem_Quadrature& fem_quadrature, const Angular_Quadrature& angular_quadrature);
   ~K_Intensity(){}
   

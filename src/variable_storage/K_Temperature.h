@@ -2,7 +2,6 @@
 #define K_Temperature_h
 
 #include "Cell_Data.h"
-#include "Time_Stepper.h"
 #include "Fem_Quadrature.h"
 
 
@@ -15,7 +14,7 @@ class K_Temperature
 {
 public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
-  K_Temperature(const Cell_Data& cell_data, const Time_Stepper& time_stepper, 
+  K_Temperature(const Cell_Data& cell_data, const int n_stages, 
     const Fem_Quadrature& fem_quadrature);
   ~K_Temperature(){}
   

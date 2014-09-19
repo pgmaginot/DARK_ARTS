@@ -1,9 +1,9 @@
 #include "Temperature_Update_Grey.h"
 
 Temperature_Update_Grey::Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material,
-  const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper)
+  const Angular_Quadrature& angular_quadrature, const int n_stages)
   :
-  V_Temperature_Update(fem_quadrature, cell_data, material,angular_quadrature,time_stepper)
+  V_Temperature_Update(fem_quadrature, cell_data, material,angular_quadrature,n_stages)
 {
 
 }

@@ -37,6 +37,7 @@ bool Input_Reader::read_xml(std::string xmlFile)
   TiXmlElement* time_elem = inp_block->FirstChildElement( "TIME" );
   TiXmlElement* discr_elem = inp_block->FirstChildElement( "SPATIAL_DISCRETIZATION" );
   TiXmlElement* angle_elem = inp_block->FirstChildElement( "ANGULAR_DISCRETIZATION" );
+  TiXmlElement* solver_elem = inp_block->FirstChildElement( "SOLVER" );
   
   if(!reg_elem)
   {
@@ -68,11 +69,18 @@ bool Input_Reader::read_xml(std::string xmlFile)
     exit(EXIT_FAILURE);
   }
   
+  if(!solver_elem)
+  {
+    std::cerr << "SOLVER block not found.  Error \n";
+    exit(EXIT_FAILURE);
+  }
+  
   int region_return = -1;
   int material_return = -1;
   int time_return = -1;
   int spatial_return = -1;
   int angle_return = -1;
+  int solver_return = -1;
   
   //! Load Data Appropriately from each input block
   region_return = load_region_data(reg_elem);
@@ -90,8 +98,12 @@ bool Input_Reader::read_xml(std::string xmlFile)
   angle_return = load_angular_discretization_data(angle_elem);
   std::cout << "Angle block read\n\n" ;
   
+  solver_return = load_solver_data(solver_elem);
+  std::cout << "Solver block read \n\n";
+  
+  
   if( (region_return < 0) || (material_return < 0) || (time_return < 0) || 
-      (spatial_return < 0) || (angle_return < 0) )
+      (spatial_return < 0) || (angle_return < 0) || (solver_return < 0) )
   {
     good_exit = false;
   }  
@@ -279,6 +291,20 @@ double Input_Reader::get_cv_constant(const int mat_num) const
   return m_cv_constants[mat_num];
 }
 
+WG_SOLVE_TYPE Input_Reader::get_within_group_solve_type(void) const
+{
+  return m_wg_solve_type;
+}
+
+double Input_Reader::get_within_group_solve_tolerance(void) const
+{
+  return m_wg_tolerance;
+}
+
+double Input_Reader::get_between_group_solve_tolerance(void) const
+{
+  return m_bg_tolerance
+}
 
 /* ***************************************************
  *
@@ -1024,5 +1050,73 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     exit(EXIT_FAILURE);
   }
     
+  return 0;
+}
+
+int Input_Reader::load_solver_method_data(TiXmlElement* solver_element)
+{
+  TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_Solver_type");
+  TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");
+  TiXmlElement* bg_tolerance_elem = solver_element->FirstChildElement( "BG_Tolerance");
+  
+  if(!solver_type_elem)
+  {
+    std::cerr << "Missing WG_Solver_type element\n" ;
+    exit(EXIT_FAILURE);  
+  }
+  
+  if(!wg_tolerance_elem)
+  {
+    std::cerr << "Missing WG_Tolerance element\n" ;
+    exit(EXIT_FAILURE);  
+  }
+  
+  /// only require the between group solver tolerance if number of groups is greater than 1
+  if( (m_number_groups > 1) && !bg_tolerance_elem)
+  {
+    std::cerr << "MF problems require specification of between group tolerance, BG_Tolerance.  Element not found\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  m_wg_tolerance = atof( wg_tolerance_elem->GetText() );
+  if( (m_wg_tolerance < 1.E-15) || (m_wg_tolerance> 1.E-4))
+  {
+    std::cerr << "Invalid within group tolerance.  Must be greater 1E-15 and less than 1E-4\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  if(m_number_groups > 1)
+  {
+    m_bg_tolerance = atof(bg_tolerance_elem->GetText() );
+    if( m_bg_tolerance < m_wg_tolerance)
+    {
+      std::cerr << "Invalid between group tolerance.  Must be greater than the within group scattering tolerance.\n"
+      exit(EXIT_FAILURE);
+    }
+    if( m_bg_tolerance > 1.E-3)
+    {
+      std::cerr << "Invalid between group tolerance.  Must be less than 1E-3.\n"
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  std::string solve_type_str = solver_type_elem->GetText();
+  // change to all upper case 
+  transform(solve_type_str.begin() , solve_type_str.end() , solve_type_str.begin() , toupper);
+  if(solve_type_str == "FP_SWEEPS")
+    m_wg_solve_type = FP_SWEEPS;
+  else if (solve_type_str == "FP_DSA")
+    m_wg_solve_type = FP_SWEEPS;
+  else if (solve_type_str == "KRYLOV_SWEEPS")
+    m_wg_solve_type = KRYLOV_SWEEPS;
+  else if (solve_type_str == "KRYLOV_DSA")
+    m_wg_solve_type = KRYLOV_DSA;
+  
+  if(m_wg_solve_type == INVALID_WG_SOLVE_TYPE)
+  {
+    std::cerr << "Invalid within group radiation solver type\n";
+    exit(EXIT_FAILURE);
+  }
+  
   return 0;
 }

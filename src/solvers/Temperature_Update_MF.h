@@ -12,7 +12,7 @@ class Temperature_Update_MF : public V_Temperature_Update
 {
 public:
   Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
-    const Angular_Quadrature& angular_quadrature, const Time_Stepper& time_stepper);
+    const Angular_Quadrature& angular_quadrature, const int n_stages);
     
     
   ~Temperature_Update_MF(){}
