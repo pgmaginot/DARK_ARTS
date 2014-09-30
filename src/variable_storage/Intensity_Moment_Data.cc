@@ -11,9 +11,23 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const A
   : 
   m_cells{cell_data.get_total_number_of_cells() } , 
   m_groups{ang_quad.get_number_of_groups() } , 
-  m_dir{ang_quad.get_number_of_dir() } , 
   m_leg{ ang_quad.get_number_of_leg_moments() }, 
   m_el_per_cell{fem_quad.get_number_of_interpolation_points() }  ,
+  m_el_times_l_mom{m_leg*m_el_per_cell},
+  m_el_times_l_mom_times_group{m_el_times_l_mom*m_groups},   
+  m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell}
+  {    
+    m_phi.resize(m_phi_length,0.);
+  }
+  
+Intensity_Moment_Data::Intensity_Moment_Data(const int n_cells, const int n_grp, 
+  const int n_leg_mom, const int n_el_cell)
+  /// initilaize range members
+  : 
+  m_cells{n_cells } , 
+  m_groups{ n_grp } , 
+  m_leg{ n_leg_mom }, 
+  m_el_per_cell{n_el_cell }  ,
   m_el_times_l_mom{m_leg*m_el_per_cell},
   m_el_times_l_mom_times_group{m_el_times_l_mom*m_groups},   
   m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell}
@@ -113,3 +127,52 @@ bool Intensity_Moment_Data::angle_integrated_bounds_check(const int loc) const
   return is_bad_loc;
 }
 
+void Intensity_Moment_Data::clear_angle_integrated_intensity(void)
+{
+  for(int i=0;i<m_phi_length;i++)
+    m_phi[i] = 0.;
+    
+  return;
+}
+
+void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const
+{
+  /**
+    Find the maximum, normalized difference between this iterate and another Intensity_Moment_Data object
+  */
+
+  /// Err_Phi.err , Err_Phi.el_num , Err_Phi.cell_num, Err_Phi.group_num, Err_Phi.l_mom_num
+}
+
+Intensity_Moment_Data::Intensity_Moment_Data(const Intensity_Moment_Data& intensity_moment)
+  :
+  m_cells{ intensity_moment.m_cells } , 
+  m_groups{intensity_moment.m_groups } , 
+  m_leg{ intensity_moment.m_leg }, 
+  m_el_per_cell{intensity_moment.m_el_per_cell }  ,
+  m_el_times_l_mom{intensity_moment.m_el_times_l_mom},
+  m_el_times_l_mom_times_group{intensity_moment.m_el_times_l_mom_times_group},   
+  m_phi_length{intensity_moment.m_phi_length}
+{    
+  for(int i=0;i<m_phi_length; i++)
+    m_phi[i] = intensity_moment.m_phi[i];
+}
+
+Intensity_Moment_Data& Intensity_Moment_Data::operator= (const Intensity_Moment_Data& intensity_moment)
+{
+  if( (m_phi_length != intensity_moment.m_phi_length) ||
+      (m_groups != intensity_moment.m_groups) ||
+      (m_cells != intensity_moment.m_cells) ||
+      (m_leg != intensity_moment.m_leg) 
+  )
+  {
+    std::cerr << "Error assigning to Intensity_Moment_Data object, objects not the same size\n";
+    exit(EXIT_FAILURE);
+  }
+  for(int i=0; i<m_phi_length; i++)
+    m_phi[i] = intensity_moment.m_phi[i];
+    
+  return *this;
+}
+
+  

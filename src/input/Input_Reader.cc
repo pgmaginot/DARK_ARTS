@@ -306,6 +306,11 @@ double Input_Reader::get_between_group_solve_tolerance(void) const
   return m_bg_tolerance;
 }
 
+int Input_Reader::get_max_number_sweeps(void) const
+{
+  return m_max_num_sweeps;
+}
+
 /* ***************************************************
  *
  *  Protected Functions
@@ -1116,6 +1121,22 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   {
     std::cerr << "Invalid within group radiation solver type\n";
     exit(EXIT_FAILURE);
+  }  
+  
+  if( (m_wg_solve_type == FP_SWEEPS) || (m_wg_solve_type == FP_DSA))
+  {
+    TiXmlElement* num_sweep_elem = solver_element->FirstChildElement( "Max_Within_Group_Sweeps");
+    if(!num_sweep_elem)
+    {
+      std::cerr << "Missing Max_Within_Group_Sweeps element.\n" ;
+      exit(EXIT_FAILURE);
+    }
+    m_max_num_sweeps = atoi( num_sweep_elem->GetText() );
+    if(m_max_num_sweeps < 1)
+    {
+      std::cerr << "Must allow at least one sweep per within group solve\n";
+      exit(EXIT_FAILURE);
+    }
   }
   
   return 0;

@@ -12,3 +12,4 @@ void V_WGRS::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
   m_transport_sweep->set_ard_phi_ptr(ard_phi_ptr);
   return;
 }
+

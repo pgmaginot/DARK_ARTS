@@ -8,6 +8,8 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data
   m_n_dir{ angular_quadrature.get_number_of_dir() },
   m_n_l_mom{ angular_quadrature.get_number_of_leg_moments() },
   m_np{ fem_quadrature.get_number_of_interpolation_points() }, 
+  m_sum_w{ angular_quadrature.get_sum_w() },
+  m_ang_quad{&angular_quadrature},
   m_matrix_scratch{ Eigen::MatrixXd(m_np,m_np) },
   m_rhs_vec{ Eigen::VectorXd::Zero(m_np) },
   m_lhs_mat{ Eigen::MatrixXd(m_np,m_np) },
@@ -30,11 +32,63 @@ void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
   return;
 }
 
-void Transport_Sweep::sweep_mesh(const bool is_krylov, Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old,
-  Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
-  const K_Temperature& k_t, const K_Intensity& k_i, const int stage, 
-  const std::vector<double>& rk_a, const double time, const double dt)
+void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new)
 {
+  /** perform a single transport sweep across the mesh
+    * Do not save the full intensity vector
+    * Full intensity vector is only needed when calculating \f$ k_I \f$, and is only needed locally to that solve
+    * this means there will be a separate transport sweep to calculate \f$ k_I \f$
+    
+    Loop over:
+      cells
+        groups
+          directions
+  */
+  
+  /// starting and ending number of cells
+  int cell_end, cell_start;
+  /// increment or deceremnt depending on direction set
+  int incr = 0;
+  
+  int dir, d_offset;
+  double mu;
+  
+  /// dir_set = 0, loop over negative mu
+  /// dir_set = 1, loop over positive mu  
+  for(int dir_set = 0; dir_set < 2 ; dir_set++)
+  {
+    if(dir_set == 0)
+    {
+      cell_start = m_n_cells-1;
+      cell_end = 0;
+      incr = -1;
+      d_offset = 0;
+    }
+    else
+    {
+      cell_start = 0;
+      cell_end = m_n_cells - 1;
+      incr = 1;
+      d_offset = m_n_dir/2;
+    }
+    for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
+    {
+      for(int d = 0; d<(m_n_dir/2) ; d++)
+      {
+        dir = d_offset + d;
+        // mu = 
+        
+        for(int grp = 0; grp < m_n_groups ; grp++)
+        {
+        
+        } /// group loop        
+      } /// direction loop
+    } /// cell loop
+  } /// direction set loop (positive vs negative mu)
+  
+  
+  
+  
   return;
 }
 

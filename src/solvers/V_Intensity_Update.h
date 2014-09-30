@@ -17,6 +17,9 @@
 /** @file   V_Intensity_Update.h
   *   @author pmaginot
   *   @brief Calculate radiation intensity for a given temperature iterate
+  *    For a given temperature iterate, t_star, calculate an Intensity_Moment_Data object, phi, that can be used by the temperature update equation
+  *  this process is different between grey and MF problems, thus update_intensity is a virtual function defined by the concrete instances of 
+  *  of V_Intensity_Update, Intensity_Update_Grey and Intensity_Update_MF, respectively.
  */
 
 class V_Intensity_Update

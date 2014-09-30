@@ -4,6 +4,7 @@
 #include "Fem_Quadrature.h"
 #include "Angular_Quadrature.h"
 #include "Cell_Data.h"
+#include "Err_Phi.h"
 #include "Eigen/Dense"
 
 #include <vector>
@@ -15,7 +16,17 @@ public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
   Intensity_Moment_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
     const Fem_Quadrature& fem_quad);
+  
+  Intensity_Moment_Data(const int n_cells, const int n_grp, 
+  const int n_leg_mom, const int n_el_cell);
+  
   ~Intensity_Moment_Data(){}
+  
+  /// Copy constructor
+  Intensity_Moment_Data(const Intensity_Moment_Data& intensity_moment);
+  
+  /// assignment operator
+  Intensity_Moment_Data& operator= (const Intensity_Moment_Data& intensity_moment);
   
   /// Public accessor functions    
   double get_angle_integrated_intensity(const int el, const int cell,
@@ -38,6 +49,10 @@ public:
     
   void set_cell_angle_integrated_intensity(const int cell,
     const int group, const int l_mom, const Eigen::VectorXd& val);
+    
+  void clear_angle_integrated_intensity(void);
+  
+  void normalized_difference(Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const;
   
 private:
   std::vector<double> m_phi;
@@ -46,8 +61,6 @@ private:
   const int m_cells;
   /// total number of groups in the problem
   const int m_groups;
-  /// total number of directions in the problem
-  const int m_dir;
     /// number of legendre moments to store of the full intensity
   const int m_leg;
     /// number of DFEM unknowns in each cell

@@ -32,10 +32,7 @@ public:
     
   ~Transport_Sweep(){}
 
-  void sweep_mesh(const bool is_krylov, Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old,
-    Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
-    const K_Temperature& k_t, const K_Intensity& k_i, const int stage, 
-    const std::vector<double>& rk_a, const double time, const double dt);
+  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new);
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
 private:  
@@ -53,6 +50,10 @@ private:
   
   /// number of DFEM points per cell
   const int m_np;    
+  
+  const double m_sum_w;
+  
+  const Angular_Quadrature* const m_ang_quad;
     
   /// scratch matrix holder to be passed to matrix creator
   Eigen::MatrixXd m_matrix_scratch;
@@ -68,6 +69,12 @@ private:
   
   /// Creator of the linear boltzmann matrices (and source moment vector) that describe the transport sweep
   std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_creator;
+  
+  /// mu of each direction
+  std::vector<double> m_mu;
+  
+  /// legendre polynomials evaluated at each mu, m_n_mom * m_n_dir length vector
+  std::vector<double> m_leg_moment;
 };
 
 #endif

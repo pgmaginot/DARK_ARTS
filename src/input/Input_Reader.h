@@ -71,7 +71,7 @@ public:
   WG_SOLVE_TYPE get_within_group_solve_type(void) const;
   double get_within_group_solve_tolerance(void) const;
   double get_between_group_solve_tolerance(void) const;
-  
+  int get_max_number_sweeps(void) const;
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -133,6 +133,8 @@ protected:
   double m_wg_tolerance = 10.;
   /// between group scattering/absorption/re-emission tolerance
   double m_bg_tolerance = -1.;
+  /// maximum number of sweeps per within group radiation solve
+  int m_max_num_sweeps = -1;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);

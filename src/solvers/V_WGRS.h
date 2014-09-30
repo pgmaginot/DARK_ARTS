@@ -13,6 +13,8 @@
 /** @file   V_WGRS.h
   *   @author pmaginot
   *   @brief provide function interfaces for within group radiation solvers
+  *   concrete V_WGRS objects WGRS_FP_Sweeps, WGRS_FP_DSA, WGRS_Krylov_Sweeps, WGRS_Krylov_DSA solve the within group
+  *     scattering problem for a given iterate of absorption/re-emission source
  */
 
 class V_WGRS
@@ -24,12 +26,12 @@ public:
     
   virtual ~V_WGRS(){}
 
-  virtual void solve(const Temperature_Data& t_star, Intensity_Moment_Data& phi) = 0;
+  virtual void solve(const Temperature_Data& t_star, Intensity_Moment_Data& phi_new) = 0;
 
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
 protected:
-
   std::shared_ptr<Transport_Sweep> m_transport_sweep;
+  
 };
 
 #endif

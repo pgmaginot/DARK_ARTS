@@ -17,12 +17,16 @@ public:
     
   virtual ~WGRS_FP_Sweeps(){}
 
-  void solve(const Temperature_Data& t_star, Intensity_Moment_Data& phi) override;
+  void solve(const Temperature_Data& t_star, Intensity_Moment_Data& phi_new) override;
 protected:
-
+  
+  
   const int m_n_groups;
   const double m_wg_tolerance;
-  double m_err = 0.;
+  const int m_max_sweeps;
+  
+  Intensity_Moment_Data m_phi_old;
+  Err_Phi m_err;
 
 };
 
