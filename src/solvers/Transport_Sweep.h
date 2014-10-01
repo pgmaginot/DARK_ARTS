@@ -16,6 +16,8 @@
 #include "Sweep_Matrix_Creator_Grey.h"
 #include "Sweep_Matrix_Creator_MF.h"
 
+#include "Psi_In.h"
+
 #include <memory>
 
 /** @file   Transport_Sweep.h
@@ -27,12 +29,11 @@ class Transport_Sweep
 {
 public:
   Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
-    const Angular_Quadrature& angular_quadrature, const int n_stages);
-    
+    Angular_Quadrature& angular_quadrature, const int n_stages);
     
   ~Transport_Sweep(){}
 
-  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new);
+  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov);
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
 private:  
@@ -53,7 +54,7 @@ private:
   
   const double m_sum_w;
   
-  const Angular_Quadrature* const m_ang_quad;
+  Angular_Quadrature* const m_ang_quad;
     
   /// scratch matrix holder to be passed to matrix creator
   Eigen::MatrixXd m_matrix_scratch;
@@ -67,14 +68,17 @@ private:
   /// new, local intensity solution
   Eigen::VectorXd m_local_soln;
   
+  double m_time;
+  
+  Psi_In m_psi_in;
+    
+  
   /// Creator of the linear boltzmann matrices (and source moment vector) that describe the transport sweep
   std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_creator;
   
-  /// mu of each direction
-  std::vector<double> m_mu;
+  void get_boundary_conditions(Psi_In& psi_in,const bool is_krylov);
   
-  /// legendre polynomials evaluated at each mu, m_n_mom * m_n_dir length vector
-  std::vector<double> m_leg_moment;
+  
 };
 
 #endif

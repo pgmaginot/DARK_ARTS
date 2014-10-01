@@ -26,7 +26,7 @@ class V_Intensity_Update
 {
 public:
   V_Intensity_Update(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
-    const Angular_Quadrature& angular_quadrature, const int n_stages);
+    Angular_Quadrature& angular_quadrature, const int n_stages);
     
   virtual ~V_Intensity_Update(){}
 

@@ -1,7 +1,7 @@
 #include "Transport_Sweep.h"
 
 Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
-  const Angular_Quadrature& angular_quadrature, const int n_stages)
+  Angular_Quadrature& angular_quadrature, const int n_stages)
   :
   m_n_cells{ cell_data->get_total_number_of_cells() },
   m_n_groups{ angular_quadrature.get_number_of_groups()  },
@@ -13,7 +13,9 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data
   m_matrix_scratch{ Eigen::MatrixXd(m_np,m_np) },
   m_rhs_vec{ Eigen::VectorXd::Zero(m_np) },
   m_lhs_mat{ Eigen::MatrixXd(m_np,m_np) },
-  m_local_soln{ Eigen::VectorXd::Zero(m_np)  }
+  m_local_soln{ Eigen::VectorXd::Zero(m_np)  },
+  m_time{-1.},
+  m_psi_in(m_n_groups,m_n_dir)
 {
   if(m_n_groups > 1)
   {
@@ -32,7 +34,7 @@ void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
   return;
 }
 
-void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new)
+void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov)
 {
   /** perform a single transport sweep across the mesh
     * Do not save the full intensity vector
@@ -62,7 +64,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       cell_start = m_n_cells-1;
       cell_end = 0;
       incr = -1;
-      d_offset = 0;
+      d_offset = 0;      
     }
     else
     {
@@ -71,16 +73,32 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       incr = 1;
       d_offset = m_n_dir/2;
     }
+    
+    /// load boundary conditions / inflow intesities
+    get_boundary_conditions(m_psi_in,is_krylov);
+    
     for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
     {
-      for(int d = 0; d<(m_n_dir/2) ; d++)
+      for(int grp = 0; grp < m_n_groups ; grp++)
       {
-        dir = d_offset + d;
-        // mu = 
+        /// avoid calculating cross sections as much as possible
         
-        for(int grp = 0; grp < m_n_groups ; grp++)
+        for(int d = 0; d<(m_n_dir/2) ; d++)
         {
+          dir = d_offset + d;
+          mu = m_ang_quad->get_mu(dir);
         
+          m_sweep_matrix_creator->construct_l_matrix(mu,m_lhs_mat);
+          m_sweep_matrix_creator->construct_f_vector(mu,m_rhs_vec);
+
+          m_rhs_vec *= m_psi_in(dir,grp);
+          
+          /// add fixed sources in
+          if(is_krylov)
+          {
+          
+          }
+          
         } /// group loop        
       } /// direction loop
     } /// cell loop
@@ -90,5 +108,25 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
   
   
   return;
+}
+
+void Transport_Sweep::get_boundary_conditions(Psi_In& psi_in, const bool is_krylov)
+{
+  double val = -1.;
+  for(int d=0 ; d< m_n_dir ; d++)
+  {
+    for(int g=0; g< m_n_groups ; g++)
+    {
+      if(is_krylov)
+      {
+        val = m_ang_quad->calculate_boundary_conditions(d, g, m_time);
+      }
+      else
+      {
+        val = 0.;
+      }
+      psi_in.set(g,d,val);
+    }
+  }
 }
 

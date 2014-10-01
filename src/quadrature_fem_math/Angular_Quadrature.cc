@@ -6,15 +6,13 @@
 #include "Angular_Quadrature.h"
 
 Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun)
+:   
+  m_n_dir{input_reader.get_number_of_angles() },
+  m_n_groups{input_reader.get_number_of_groups() },   
+  m_n_legendre_moments{input_reader.get_number_of_legendre_moments() }
 {
-  /// get number of groups, number of angles, quadrature type from Input_Reader
-  m_n_dir = input_reader.get_number_of_angles();
-  m_n_groups = input_reader.get_number_of_groups();
-  
   ANGULAR_QUADRATURE_TYPE quad_type = input_reader.get_angular_quadrature_type();
-  
-  m_n_legendre_moments = input_reader.get_number_of_legendre_moments();
-  
+ 
   m_mu.resize(m_n_dir,0.);
   m_w.resize(m_n_dir,0.);
   
@@ -78,4 +76,10 @@ double Angular_Quadrature::get_w(const int dir) const
 double Angular_Quadrature::get_sum_w(void) const
 {
   return m_sum_w;
+}
+
+double Angular_Quadrature::calculate_boundary_conditions(const int dir, const int grp, const double time)
+{
+  double val = 0.;
+  return val;
 }

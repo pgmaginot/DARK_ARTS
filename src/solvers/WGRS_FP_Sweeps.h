@@ -13,7 +13,7 @@ class WGRS_FP_Sweeps : public V_WGRS
 public:
   WGRS_FP_Sweeps(const Input_Reader& input_reader,
     const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
-    const Angular_Quadrature& angular_quadrature, const int n_stages);
+    Angular_Quadrature& angular_quadrature, const int n_stages);
     
   virtual ~WGRS_FP_Sweeps(){}
 

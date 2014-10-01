@@ -3,8 +3,7 @@
   *   @brief Implement the Time_Stepper class, SDIRK information, time step controlling
 */
 #include "Time_Stepper.h"
-
-Time_Stepper::Time_Stepper(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
+Time_Stepper::Time_Stepper(const Input_Reader&  input_reader, Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_data, Materials* const materials)
   :
   m_time_solver{input_reader.get_time_solver()}

@@ -1,7 +1,7 @@
 #include "Intensity_Update_MF.h"
 
 Intensity_Update_MF::Intensity_Update_MF(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
-    const Angular_Quadrature& angular_quadrature, const int n_stages)
+    Angular_Quadrature& angular_quadrature, const int n_stages)
   :
   V_Intensity_Update(input_reader, fem_quadrature,cell_data,materials, angular_quadrature,n_stages )
 {

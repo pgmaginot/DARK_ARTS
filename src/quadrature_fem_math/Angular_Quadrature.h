@@ -32,8 +32,17 @@ public:
   double get_w(const int dir) const;
   double get_sum_w(void) const;
   
+  double calculate_boundary_conditions(const int dir, const int grp, const double time);
   
 protected:  
+  /// number of directions
+  const int m_n_dir;
+  /// number of groups
+  const int m_n_groups;  
+  /// number of angle integrated legendre moments to keep
+  const int m_n_legendre_moments;
+  
+
   /// discrete ordinates values
   std::vector<double> m_mu;
   
@@ -45,15 +54,7 @@ protected:
   /// legendre polynomials evaluated at discrete ordinates
   std::vector<double> m_legendre_poly;
   
-  /// number of groups
-  int m_n_groups=-1;
-  
-  /// number of directions
-  int m_n_dir=-1;
-  
-  /// number of angle integrated legendre moments to keep
-  int m_n_legendre_moments=-1;
-  
+
 };
 
 #endif

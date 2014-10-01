@@ -25,7 +25,7 @@ class Time_Stepper
 {
 public:
   /// Only able to initialize if given input object and quadrature object
-  Time_Stepper(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
+  Time_Stepper(const Input_Reader&  input_reader, Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_data, Materials* const materials);
     
   ~Time_Stepper(){}
