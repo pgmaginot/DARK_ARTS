@@ -7,11 +7,13 @@
 #include "Sweep_Matrix_Creator_Grey.h"
 
 Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w)
+    const int n_stages, const double sn_w, 
+    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Intensity_Data* const i_old,
+    const K_Temperature* const kt, const K_Intensity* const ki)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages, sn_w )
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, t_old, t_star, i_old, kt, ki )
 {  
-  
 }
 
 
@@ -22,10 +24,10 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_cell_num = cell;
   
   /// get \f$ \vec{T}^n \f$
-  m_t_old->get_cell_temperature(m_cell_num,m_t_old_vec) ;
+  m_t_old_ptr->get_cell_temperature(m_cell_num,m_t_old_vec) ;
   
   /// get \f$ \vec{T}^* \f$
-  m_t_star->get_cell_temperature(m_cell_num,m_t_star_vec) ;
+  m_t_star_ptr->get_cell_temperature(m_cell_num,m_t_star_vec) ;
   
   /// populate Materials object with local temperature and position to evalaute material properties
   m_materials->calculate_local_temp_and_position(cell,m_t_star_vec);
@@ -46,8 +48,6 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_coefficient = m_r_cv.inverse(); 
   /// put this back into m_r_cv
   m_r_cv = m_coefficient;
-  
-
   
   return;
 }
@@ -91,7 +91,7 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   /// \f$ \text{m_xi_isotropic} += \Delta t \sum_{j=1}^{i-1}{a_{ij} \vec{k}_{T,j} } \f$
   for(int s=0; s< m_stage ; s++)
   {
-    m_kt->get_kt(m_cell_num, m_stage, m_temp_vec);
+    m_kt_ptr->get_kt(m_cell_num, m_stage, m_temp_vec);
     m_xi_isotropic += m_dt*m_rk_a[s]*m_temp_vec;
   }
   
@@ -116,14 +116,14 @@ void Sweep_Matrix_Creator_Grey::get_s_i(Eigen::VectorXd& s_i, const int dir)
 {
   s_i = m_xi_isotropic;
   
-  m_i_old->get_cell_intensity(m_cell_num, m_group_num, dir, m_temp_vec);
+  m_i_old_ptr->get_cell_intensity(m_cell_num, m_group_num, dir, m_temp_vec);
   
   s_i += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
   
   m_temp_vec = Eigen::VectorXd::Zero(m_np);
   for(int s=0 ; s< m_stage ; s++)
   {
-    m_ki->get_ki(m_cell_num,m_group_num,dir,s,m_k_vec);
+    m_ki_ptr->get_ki(m_cell_num,m_group_num,dir,s,m_k_vec);
     m_temp_vec += m_rk_a[s]*m_k_vec;
   }
   

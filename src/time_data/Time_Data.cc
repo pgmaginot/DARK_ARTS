@@ -1,11 +1,11 @@
-/** @file   Time_Stepper.cc
+/** @file   Time_Data.cc
   *   @author pmaginot
   *   @brief Implement the Time_Stepper class, SDIRK information, time step controlling
 */
-#include "Time_Stepper.h"
-Time_Stepper::Time_Stepper(const Input_Reader&  input_reader, Angular_Quadrature& angular_quadrature,
-    const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_data, Materials* const materials)
+#include "Time_Data.h"
+Time_Data::Time_Data(const Input_Reader&  input_reader)
   :
+  m_number_stages{-1},
   m_time_solver{input_reader.get_time_solver()}
 {
 
@@ -28,23 +28,16 @@ Time_Stepper::Time_Stepper(const Input_Reader&  input_reader, Angular_Quadrature
   fill_sdirk_vectors();
   
   /// determine if grey or MF, set-up solvers appropriately
-  if( angular_quadrature.get_number_of_groups() > 1){
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(input_reader, fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
-    m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages) );
-  }
-  else{
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(input_reader,fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) );
-    m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_number_stages ) );
-  }
+
 }
 
 
-int Time_Stepper::get_number_of_stages(void) const
+int Time_Data::get_number_of_stages(void) const
 {
   return m_number_stages;
 }
 
-void Time_Stepper::fill_sdirk_vectors(void)
+void Time_Data::fill_sdirk_vectors(void)
 {
   if( m_time_solver == IMPLICIT_EULER)
   {
@@ -56,7 +49,7 @@ void Time_Stepper::fill_sdirk_vectors(void)
   return;
 }
 
-double Time_Stepper::get_a(const int stage, const int index)
+double Time_Data::get_a(const int stage, const int index)
 {
   if( (stage >= m_number_stages) || (stage < 0) )
   {

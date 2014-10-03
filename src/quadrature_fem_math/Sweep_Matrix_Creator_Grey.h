@@ -15,7 +15,10 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w);
+    const int n_stages, const double sn_w, 
+    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Intensity_Data* const i_old,
+    const K_Temperature* const kt, const K_Intensity* const ki);
   virtual ~Sweep_Matrix_Creator_Grey(){}
   
   /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$

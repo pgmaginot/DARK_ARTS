@@ -1,16 +1,13 @@
 #include "Input_Reader.h"
 #include "Fem_Quadrature.h"
 #include "Cell_Data.h"
-#include "Time_Stepper.h"
+#include "Time_Data.h"
+#include "Time_Marcher.h"
 #include "Angular_Quadrature.h"
 #include "Intensity_Data.h"
+#include "Temperature_Data.h"
 #include "Materials.h"
-#include "V_Temperature_Update.h"
-#include "Temperature_Update_Grey.h"
-#include "Temperature_Update_MF.h"
 
-#include <Eigen/Dense>
-#include <Eigen/LU>
 
 int main(int argc, char** argv)
 {
@@ -56,16 +53,22 @@ int main(int argc, char** argv)
   std::cout << "Intensity object created" << std::endl;
   
   /// Initialize a Temperature_Data structure
-  Temperature_Data temperature_old( cell_data, fem_quadrature, angular_quadrature.get_number_of_groups() );
+  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature);
   std::cout << "Temperature object created" << std::endl;
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);  
   std::cout << "Materials object created successfully" << std::endl;
   
-  /// Initialize time-stepping scheme (SDIRK method) that will time step through the problem, and monitor temperature iteration convergence
-  Time_Stepper time_stepper( input_reader, angular_quadrature, fem_quadrature, &cell_data, &materials );  
-  std::cout << "Time stepper object created" << std::endl;
+  /// Load SDIRK data
+  Time_Data time_data( input_reader);  
+  std::cout << "Time data object created" << std::endl;
+  
+  /// Time Marcher.  This is the key to the whole operation.  Everything happens here!
+  Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
+    &cell_data, &materials, temperature_old, intensity_old, time_data);
+  
+  
   
  
   return 0;

@@ -5,17 +5,13 @@
 */
 #include "Temperature_Data.h"
 
-Temperature_Data::Temperature_Data(const Cell_Data& cell_data, const Fem_Quadrature& fem_quad,
-  const int n_groups)
+Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_quad)
   /// initilaize range members
-  : m_cells{cell_data.get_total_number_of_cells() } ,     
+  : m_cells{ n_cells } ,     
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() },
-    m_t_length{ m_cells*m_el_per_cell} ,
-    m_n_groups{ n_groups },
-    m_ard_length{ n_groups > 1 ? m_t_length : 0 } 
+    m_t_length{ m_cells*m_el_per_cell} 
   {
     m_t.resize(m_t_length,0.);
-    m_ard.resize(m_ard_length,0.);
   }
   
 /// Public accessor functions
@@ -44,23 +40,6 @@ void Temperature_Data::set_cell_temperature(const int cell, const Eigen::VectorX
   int loc = temperature_data_locator(0,cell);
   for(int i=0; i< m_el_per_cell ; i++)
     m_t[loc+i] = vec(i);
-    
-  return ;
-}
-
-void Temperature_Data::get_cell_ard(const int cell, Eigen::VectorXd& vec) const
-{  
-  int base = temperature_data_locator(0,cell);
-  for(int i=0; i< m_el_per_cell; i++ )
-    vec(i) = m_ard[base + i];
-  return; 
-}
-
-void Temperature_Data::set_cell_ard(const int cell, const Eigen::VectorXd& vec)
-{
-  int loc = temperature_data_locator(0,cell);
-  for(int i=0; i< m_el_per_cell ; i++)
-    m_ard[loc+i] = vec(i);
     
   return ;
 }

@@ -14,7 +14,10 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w);
+    const int n_stages, const double sn_w, 
+    const Temperature_Data* const t_old, const Temperature_Data* t_star, 
+    const Intensity_Data* const i_old,
+    const K_Temperature* const kt, const K_Intensity* const ki);
   virtual ~Sweep_Matrix_Creator_MF(){}
   
     /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
@@ -30,6 +33,7 @@ public:
   void get_s_i(Eigen::VectorXd& s_i, const int dir) override;
   
 private:
+
   Eigen::MatrixXd m_spectrum;
 };
 

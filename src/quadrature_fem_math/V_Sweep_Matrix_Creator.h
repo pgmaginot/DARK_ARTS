@@ -18,6 +18,8 @@
 #include "Intensity_Data.h"
 #include "Intensity_Moment_Data.h"
 
+#include "V_Sweep_Fixed_Source.h"
+
 #include <vector>
 #include <memory>
 
@@ -33,20 +35,17 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w);
+    const int n_stages, const double sn_w, 
+    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Intensity_Data* const i_old,
+    const K_Temperature* const kt, const K_Intensity* const ki);
     
   virtual ~V_Sweep_Matrix_Creator(){}
   
   void construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix);
   
   void construct_f_vector(const double mu, Eigen::VectorXd& f_vector);
-  
-  /// data that changes every time we update radiation intensity
-  void set_thermal_iteration_data(const Temperature_Data* t_eval, const Temperature_Data* t_old, 
-    const K_Temperature* kt );  
-
-  void set_intensity_iteration_data(const Intensity_Data* i_old, const K_Intensity* ki);
-  
+    
   /// data that changes once per stage (per time step)
   
   void set_stage_data(const int stage, const std::vector<double>& rk_a, const double time);
@@ -81,13 +80,20 @@ public:
   */  
   virtual void get_s_i(Eigen::VectorXd& s_i, const int dir) = 0;
     
+  std::shared_ptr<V_Sweep_Fixed_Source> m_fixed_source;
+  
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
   
 protected:
-  const double m_sn_w;
-  const int m_np;
+  /** ****************************************************************
+    * Variables that are initialzed in the constructor initialization list
+    ****************************************************************
+   */
+  const double m_sn_w; /// needed here to build source terms in linearization
+  const int m_np; /// needed to know the length/size of vectors/matrices
+  
     /// \f$ \mathbf{R}_{\sigma_{a,g}} \f$ evaluated at t_star
   Eigen::MatrixXd m_r_sig_a; 
   
@@ -118,43 +124,11 @@ protected:
   /// \f$ \mathbf{M} \f$ wihtout \f$ \frac{\Delta x}{2} \f$ term
   Eigen::MatrixXd m_mass;
   
+  /// local matrices
   Eigen::MatrixXd m_no_mu_pos_l_matrix;
   Eigen::MatrixXd m_no_mu_neg_l_matrix;
   Eigen::VectorXd m_no_mu_pos_f_vector;
   Eigen::VectorXd m_no_mu_neg_f_vector;
-  
-  /** can't be const reference because when call for a material property at DFEM integration points, we modify the scratch vector 
-    m_ that is a member of the Materials object
-    
-    but we don't ever want to be able to change this pointer!
-  */
-  Materials* const m_materials;
-   
-  /// time stepping data that will be used often
-  const double m_c;
-  double m_dt;
-  int m_stage;
-  std::vector<double> m_rk_a;
-    
-  /// for evaluating driving sources
-  double m_time;
-  
-    /// better not change any of the data pointed to by the following pointers (but pointers themselves may change)
-  const Temperature_Data* m_t_old;
-  const Temperature_Data* m_t_star;  
-  const K_Temperature* m_kt;  
-  const Intensity_Data*  m_i_old;
-  const K_Intensity* m_ki;
-  
-  const Intensity_Moment_Data* m_ard_phi_ptr;
-  
-  /// cell data that is used repeatedly (set in V_Sweep_Matrix_Creator::update_cell_dependencies() )
-  double m_dx;
-  int m_cell_num;
-  int m_group_num;
-    
-  /// builder/lumper of matrices
-  std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
   
   /// local vectors
   Eigen::VectorXd m_t_old_vec;
@@ -172,6 +146,45 @@ protected:
   /// scaled mass matrix
   Eigen::MatrixXd m_dx_div_2_mass;
   
+  
+  /** can't be const reference because when call for a material property at DFEM integration points, we modify the scratch vector 
+    m_ that is a member of the Materials object
+    
+    but we don't ever want to be able to change this pointer!
+  */
+  Materials* const m_materials;   
+  
+  const double m_c;
+  
+  /// time stepping data that will be used/changed during the search for each intensity 
+  double m_dt;
+  int m_stage;
+  double m_time;
+  
+  /// pointers that will not change during a problem, and are used regardless of frequency treatment
+  const Temperature_Data* const m_t_old_ptr;
+  const Temperature_Data* const m_t_star_ptr; 
+  const Intensity_Data*  const m_i_old_ptr;  
+  const K_Temperature* const m_kt_ptr;  
+  const K_Intensity* const m_ki_ptr;
+  
+  /// cell data that is used repeatedly (set in V_Sweep_Matrix_Creator::update_cell_dependencies() )
+  double m_dx;
+  int m_cell_num;
+  int m_group_num;
+  
+  Intensity_Moment_Data* m_ard_phi_ptr;
+  
+  
+  /** ****************************************************************
+    * Variables that are initialzed in the constructor body
+    **************************************************************** */
+ 
+  /// builder/lumper of matrices
+  std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
+  /// vector of length n_stages that will old the rk_a data (changed at each time step stage)
+  std::vector<double> m_rk_a;
+
 
 };
 

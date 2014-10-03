@@ -87,11 +87,11 @@ add_subdirectory(cells)
 PropagateSG(CELLS)
 
 #----------------------------------------
-# SDIRK methods
+# SDIRK data
 #----------------------------------------
 
-add_subdirectory(time_stepper)
-PropagateSG(TIME_STEPPER)
+add_subdirectory(time_data)
+PropagateSG(TIME_DATA)
 
 #----------------------------------------
 # Intensity and Temperature Storage Arrays
@@ -106,6 +106,13 @@ PropagateSG(VARIABLE_STORAGE)
 
 add_subdirectory(materials)
 PropagateSG(MATERIALS)
+
+#----------------------------------------
+# Time Marcher
+#----------------------------------------
+
+add_subdirectory(time_marcher)
+PropagateSG(TIME_MARCHER)
 
 #----------------------------------------
 # Temperature and Radiation Solvers

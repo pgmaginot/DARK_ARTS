@@ -14,7 +14,7 @@ class K_Temperature
 {
 public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
-  K_Temperature(const Cell_Data& cell_data, const int n_stages, 
+  K_Temperature(const int n_cells, const int n_stages, 
     const Fem_Quadrature& fem_quadrature);
   ~K_Temperature(){}
   

@@ -5,11 +5,11 @@
 */
 #include "K_Intensity.h"
 
-K_Intensity::K_Intensity(const Cell_Data& cell_data, const int n_stages, 
+K_Intensity::K_Intensity(const int n_cells, const int n_stages, 
     const Fem_Quadrature& fem_quadrature, const Angular_Quadrature& angular_quadrature)
   /// initilaize range members
   :
-  m_cells{ cell_data.get_total_number_of_cells() },
+  m_cells{ n_stages },
   m_el_per_cell{ fem_quadrature.get_number_of_interpolation_points()},
   m_n_stages{n_stages},
   m_n_dir{ angular_quadrature.get_number_of_dir() },

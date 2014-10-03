@@ -1,7 +1,10 @@
 #include "Transport_Sweep.h"
 
 Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
-  Angular_Quadrature& angular_quadrature, const int n_stages)
+  Angular_Quadrature& angular_quadrature, const int n_stages,
+  const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+  const Intensity_Data* const i_old,
+  const K_Temperature* const kt, const K_Intensity* const ki)
   :
   m_n_cells{ cell_data->get_total_number_of_cells() },
   m_n_groups{ angular_quadrature.get_number_of_groups()  },
@@ -11,6 +14,7 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data
   m_sum_w{ angular_quadrature.get_sum_w() },
   m_ang_quad{&angular_quadrature},
   m_matrix_scratch{ Eigen::MatrixXd(m_np,m_np) },
+  m_vector_scratch{ Eigen::VectorXd::Zero(m_np) },
   m_rhs_vec{ Eigen::VectorXd::Zero(m_np) },
   m_lhs_mat{ Eigen::MatrixXd(m_np,m_np) },
   m_local_soln{ Eigen::VectorXd::Zero(m_np)  },
@@ -19,13 +23,18 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data
 {
   if(m_n_groups > 1)
   {
-    m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_MF(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() ) );
+    m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> 
+    (new Sweep_Matrix_Creator_MF(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() , 
+      t_old, t_star, i_old, kt, ki) );
   }
   else
   {
-    m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w()) );
+    m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() ,
+      t_old, t_star, i_old, kt, ki) );
   }
- 
+  m_fixed_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_Linearization(fem_quadrature,m_sweep_matrix_creator) );
+  m_no_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_None(fem_quadrature) );
+  
 }
 
 void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
@@ -46,6 +55,14 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
         groups
           directions
   */
+  if(is_krylov)
+  {
+    m_sweep_source = m_no_source;
+  }
+  else
+  {
+    m_sweep_source = m_fixed_source;
+  }
   
   /// starting and ending number of cells
   int cell_end, cell_start;
@@ -93,11 +110,9 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
 
           m_rhs_vec *= m_psi_in(dir,grp);
           
-          /// add fixed sources in
-          if(is_krylov)
-          {
+          m_sweep_source->get_source(m_vector_scratch,dir);
           
-          }
+          m_rhs_vec += m_vector_scratch;
           
         } /// group loop        
       } /// direction loop

@@ -7,11 +7,14 @@
 #include "Sweep_Matrix_Creator_MF.h"
 
 Sweep_Matrix_Creator_MF::Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w)
+  const int n_stages, const double sn_w, 
+  const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+  const Intensity_Data* const i_old,
+  const K_Temperature* const kt, const K_Intensity* const ki)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w)
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, t_old, t_star, i_old, kt, ki)
 {  
-  
+
 }
 
     /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
@@ -21,10 +24,10 @@ void Sweep_Matrix_Creator_MF::update_cell_dependencies(const int cell)
   m_cell_num = cell;
   
   /// get \f$ \vec{T}^n \f$
-  m_t_old->get_cell_temperature(m_cell_num,m_t_old_vec) ;
+  m_t_old_ptr->get_cell_temperature(m_cell_num,m_t_old_vec) ;
   
   /// get \f$ \vec{T}^* \f$
-  m_t_star->get_cell_temperature(m_cell_num,m_t_star_vec) ;
+  m_t_star_ptr->get_cell_temperature(m_cell_num,m_t_star_vec) ;
   
   /// populate Materials object with local temperature and position to evalaute material properties
   m_materials->calculate_local_temp_and_position(cell,m_t_star_vec);

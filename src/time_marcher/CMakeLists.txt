@@ -1,7 +1,7 @@
 
-AddSubdirectoryFiles(TIME_STEPPER
-    TIME_STEPPER
-    time_stepper
+AddSubdirectoryFiles(TIME_MARCHER
+    TIME_MARCHER
+    time_marcher
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_NAME}_INCLUDE_DIRS
     "h"

@@ -8,7 +8,10 @@
 #include "V_Sweep_Matrix_Creator.h"
 
 V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-  const int n_stages, const double sn_w)
+  const int n_stages, const double sn_w, 
+  const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+  const Intensity_Data* const i_old,
+  const K_Temperature* const kt, const K_Intensity* const ki)
 :
   m_matrix_type{fem_quadrature.get_integration_type() },
   m_sn_w{ sn_w },
@@ -28,27 +31,6 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_no_mu_pos_f_vector{ Eigen::VectorXd::Zero(m_np) },
   m_no_mu_neg_f_vector{ Eigen::VectorXd::Zero(m_np) },
   
-  m_materials{ materials},
-  
-  m_c{materials->get_c() },
-  
-  m_dt{-1.},  
-  m_stage{-1},
-  m_time{-1.},
-  
-  m_t_old{nullptr},
-  m_t_star{nullptr},  
-  m_kt{nullptr},
-  
-  m_i_old{nullptr},
-  m_ki{nullptr},
-  
-  m_ard_phi_ptr{nullptr},
-  
-  m_dx{-1.}  ,
-  m_cell_num{-1},
-  m_group_num{ -1},
-
   m_t_old_vec{ Eigen::VectorXd::Zero(m_np) },
   m_t_star_vec{ Eigen::VectorXd::Zero(m_np) },
   m_k_vec{ Eigen::VectorXd::Zero(m_np) },
@@ -56,7 +38,27 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_temp_vec{ Eigen::VectorXd::Zero(m_np) },
   m_xi_isotropic{ Eigen::VectorXd::Zero(m_np) },
   m_driving_source{ Eigen::VectorXd::Zero(m_np) },
-  m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) }
+  m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  
+  m_materials{materials},
+  
+  m_c{ materials->get_c() },
+  
+  m_dt{-1.},  
+  m_stage{-1},
+  m_time{-1.},
+  
+  m_t_old_ptr{t_old},
+  m_t_star_ptr{t_star}, 
+  m_i_old_ptr{i_old},  
+  m_kt_ptr{kt},  
+  m_ki_ptr{ki},
+  
+  m_dx{-1.}  ,
+  m_cell_num{-1},
+  m_group_num{ -1},
+  
+  m_ard_phi_ptr{nullptr}
 {  
   m_rk_a.resize(n_stages,0.);
   /// initialize matrix constructor
@@ -81,14 +83,7 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_mtrx_builder->construct_neg_gradient_matrix(m_no_mu_neg_l_matrix);
   
   m_mtrx_builder->construct_pos_upwind_vector(m_no_mu_pos_f_vector);
-  m_mtrx_builder->construct_neg_upwind_vector(m_no_mu_neg_f_vector);
-  
-}
-
-void V_Sweep_Matrix_Creator::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
-{
-  m_ard_phi_ptr = ard_phi_ptr;
-  return;
+  m_mtrx_builder->construct_neg_upwind_vector(m_no_mu_neg_f_vector);  
 }
 
 void V_Sweep_Matrix_Creator::construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix)
@@ -115,24 +110,6 @@ void V_Sweep_Matrix_Creator::construct_f_vector(const double mu, Eigen::VectorXd
   {
     f_vector = mu*m_no_mu_neg_f_vector;
   }
-  
-  return;
-}
-
-void V_Sweep_Matrix_Creator::set_thermal_iteration_data(const Temperature_Data* t_eval, const Temperature_Data* t_old, 
-    const K_Temperature* kt )
-{
-  m_t_old = t_old;
-  m_t_star = t_eval;
-  m_kt = kt;
-  
-  return;
-}
-
-void V_Sweep_Matrix_Creator::set_intensity_iteration_data(const Intensity_Data* i_old, const K_Intensity* ki)
-{
-  m_i_old = i_old;
-  m_ki = ki;
   
   return;
 }
@@ -174,3 +151,8 @@ void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_m
   return;
 }
 
+ void V_Sweep_Matrix_Creator::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
+ {
+  m_ard_phi_ptr = ard_phi_ptr;
+  return;
+ }

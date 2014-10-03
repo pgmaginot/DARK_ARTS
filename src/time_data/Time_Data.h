@@ -1,47 +1,45 @@
-#ifndef Time_Stepper_h
-#define Time_Stepper_h
+#ifndef Time_Data_h
+#define Time_Data_h
 
-#include "Inputs_Allowed.h"
 #include "Input_Reader.h"
-#include "Angular_Quadrature.h"
-#include "Fem_Quadrature.h"
-#include "Cell_Data.h"
-#include "Materials.h"
+#include "Inputs_Allowed.h"
+// #include "Angular_Quadrature.h"
+// #include "Fem_Quadrature.h"
+// #include "Cell_Data.h"
+// #include "Materials.h"
 
-#include "V_Temperature_Update.h"
-#include "Temperature_Update_Grey.h"
-#include "Temperature_Update_MF.h"
+// #include "V_Temperature_Update.h"
+// #include "Temperature_Update_Grey.h"
+// #include "Temperature_Update_MF.h"
 
-#include "V_Intensity_Update.h"
-#include "Intensity_Update_Grey.h"
-#include "Intensity_Update_MF.h"
+// // #include "V_Intensity_Update.h"
+// #include "Intensity_Update_Grey.h"
+// #include "Intensity_Update_MF.h"
 
-#include <vector>
-#include <memory>
-#include <stdlib.h>
-#include <iostream>
+// #include <vector>
+// #include <memory>
+// #include <stdlib.h>
+// #include <iostream>
 
-class Time_Stepper
+class Time_Data
 {
 public:
-  /// Only able to initialize if given input object and quadrature object
-  Time_Stepper(const Input_Reader&  input_reader, Angular_Quadrature& angular_quadrature,
-    const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_data, Materials* const materials);
-    
-  ~Time_Stepper(){}
-  
   /* ***************************************************
   *
   *   Public Functions
   *
   *************************************************** */
+  Time_Data(const Input_Reader&  input_reader);
+  ~Time_Data(){}
   
   int get_number_of_stages(void) const;
   
   double get_a(const int stage, const int index);
   
-protected:
-
+protected:  
+  int m_number_stages;
+  
+  const TIME_SOLVER m_time_solver = INVALID_TIME_SOLVER;
   /**
    SDIRK time integration basics
    \f{eqnarray}{
@@ -58,9 +56,7 @@ protected:
   /// lower triangular matrix (represented as a vector, of size(n_stages*(n_stages+1)/2)
   std::vector<double> m_a;   
   
-  int m_number_stages = -1;
-  
-  const TIME_SOLVER m_time_solver = INVALID_TIME_SOLVER;
+
   
   void fill_sdirk_vectors(void);
   
@@ -72,8 +68,6 @@ protected:
 
   void fill_sdirk_vectors(std::vector<double>& a, std::vector<double>& b, std::vector<double>& c);
   
-  std::shared_ptr<V_Intensity_Update> m_intensity_update;
-  std::shared_ptr<V_Temperature_Update> m_temperature_update;
 };
 
 #endif
