@@ -3,23 +3,11 @@
 
 #include "Input_Reader.h"
 #include "Inputs_Allowed.h"
-// #include "Angular_Quadrature.h"
-// #include "Fem_Quadrature.h"
-// #include "Cell_Data.h"
-// #include "Materials.h"
 
-// #include "V_Temperature_Update.h"
-// #include "Temperature_Update_Grey.h"
-// #include "Temperature_Update_MF.h"
-
-// // #include "V_Intensity_Update.h"
-// #include "Intensity_Update_Grey.h"
-// #include "Intensity_Update_MF.h"
-
-// #include <vector>
-// #include <memory>
-// #include <stdlib.h>
-// #include <iostream>
+#include "DT_Calculator_Ramp.h"
+#include "DT_Calculator_Exponential.h"
+#include "DT_Calculator_Vector.h"
+#include <memory>
 
 class Time_Data
 {
@@ -34,12 +22,26 @@ public:
   
   int get_number_of_stages(void) const;
   
-  double get_a(const int stage, const int index);
+  double get_a(const int stage, const int index) const;
+  
+  double get_c(const int stage) const;
+  
+  double get_dt(const int step);
+  
+  double get_t_start(void) const;
+  double get_t_end(void) const;
+  double get_dt_min(void) const;
+  double get_dt_max(void) const;
   
 protected:  
   int m_number_stages;
   
   const TIME_SOLVER m_time_solver = INVALID_TIME_SOLVER;
+  
+  const double m_dt_min;
+  const double m_dt_max;
+  const double m_t_end;
+  const double m_t_start;
   /**
    SDIRK time integration basics
    \f{eqnarray}{
@@ -56,8 +58,6 @@ protected:
   /// lower triangular matrix (represented as a vector, of size(n_stages*(n_stages+1)/2)
   std::vector<double> m_a;   
   
-
-  
   void fill_sdirk_vectors(void);
   
 /* ***************************************************
@@ -68,6 +68,7 @@ protected:
 
   void fill_sdirk_vectors(std::vector<double>& a, std::vector<double>& b, std::vector<double>& c);
   
+  std::shared_ptr<V_DT_Calculator> m_calculate_dt;  
 };
 
 #endif

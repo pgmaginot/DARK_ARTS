@@ -67,6 +67,9 @@ int main(int argc, char** argv)
   /// Time Marcher.  This is the key to the whole operation.  Everything happens here!
   Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
     &cell_data, &materials, temperature_old, intensity_old, time_data);
+    
+  /// this is the entire time loop !
+  time_marcher.solve(intensity_old, temperature_old, time_data);
   
   
   

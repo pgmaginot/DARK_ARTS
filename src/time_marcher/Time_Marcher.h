@@ -18,6 +18,8 @@ public:
     const Time_Data& time_data);
     
   ~Time_Marcher(){}
+  
+  void solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Data& time_data);
 private:
   const int m_n_stages;
 
@@ -27,6 +29,9 @@ private:
   
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
   std::shared_ptr<V_Temperature_Update> m_temperature_update;
+  
+  void advance_intensity(Intensity_Data& i_old, K_Intensity& k_i);
+  void advance_temperature(Temperature_Data& t_old, K_Temperature& k_t);
 };
 
 #endif

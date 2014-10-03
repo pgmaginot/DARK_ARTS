@@ -41,8 +41,19 @@ public:
   double get_min_cell_size(int reg_num) const;
   double get_r_factor(int reg_num) const;
   
-  /// called by Time_Stepper class to get data
+  /// called by Time_Data class
+  double get_t_start(void) const;
+  double get_t_end(void) const;
+  double get_dt_min(void) const;
+  double get_dt_max(void) const;
   TIME_SOLVER get_time_solver(void) const;
+  STARTING_METHOD get_starting_time_method(void) const;
+  /// if STARTING_METHOD==EXPONENTIAL, need to know the ratio between time step sizes
+  double get_time_start_exponential_ratio(void) const;
+  /// if STARTING_METHOD == VECTOR, need vector of time step sizes and vector of the number of steps for each time step size
+  void get_time_start_vectors(std::vector<double>& step_size_in_vector_stage, std::vector<int>& steps_in_vector_stage) const;
+  /// if STARTING_METHOD == RAMP, need number of time steps to do before hitting full time step
+  int get_number_of_ramp_steps(void) const;
   
   /// Additional functions needed by Angular_Quadrature
   int get_number_of_groups(void) const;
@@ -123,8 +134,11 @@ protected:
   double m_t_start = -3.;
   double m_t_end = -4.;
   TIME_SOLVER m_time_step_scheme = INVALID_TIME_SOLVER;
-  STARTING_METHOD m_time_start_meth = INVALID_STARTING_METHOD;
-  std::vector<double> m_starting_constants;
+  STARTING_METHOD m_time_starting_method = INVALID_STARTING_METHOD;
+  std::vector<double> m_vector_start_sizes;
+  std::vector<int> m_vector_start_step_numbers;
+  double m_exponential_ratio = -1.;
+  int m_ramp_steps = -1;
   
   /// radiation solver type data
   /// within group solve type

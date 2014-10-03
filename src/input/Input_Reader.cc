@@ -189,9 +189,51 @@ double Input_Reader::get_r_factor(int reg_num) const
   return m_region_spacing_constant[reg_num];
 }
 
+double Input_Reader::get_t_start(void) const
+{
+  return m_t_start;
+}
+
+double Input_Reader::get_t_end(void) const
+{
+  return m_t_end;
+}
+
+double Input_Reader::get_dt_min(void) const
+{
+  return m_dt_min;
+}
+
+double Input_Reader::get_dt_max(void) const
+{
+  return m_dt_max;
+}
+
 TIME_SOLVER Input_Reader::get_time_solver(void) const
 {
   return m_time_step_scheme;
+}
+
+STARTING_METHOD Input_Reader::get_starting_time_method(void) const
+{
+  return m_time_starting_method;
+}
+
+double Input_Reader::get_time_start_exponential_ratio(void) const
+{
+  return m_exponential_ratio;
+}
+  
+void Input_Reader::get_time_start_vectors(std::vector<double>& step_size_in_vector_stage, std::vector<int>& steps_in_vector_stage) const
+{
+  step_size_in_vector_stage = m_vector_start_sizes;
+  steps_in_vector_stage = m_vector_start_step_numbers;
+  return;
+}
+
+int Input_Reader::get_number_of_ramp_steps(void) const
+{
+  return m_ramp_steps;
 }
 
 int Input_Reader::get_number_of_groups(void) const
@@ -763,100 +805,128 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     m_time_step_scheme = IMPLICIT_EULER;
   
   if(starter_str == "EXPONENTIAL")
-    m_time_start_meth = EXPONENTIAL;
+    m_time_starting_method = EXPONENTIAL;
   else if(starter_str == "VECTOR")
-    m_time_start_meth = VECTOR;
+    m_time_starting_method = VECTOR;
+  else if(starter_str == "RAMP")
+    m_time_starting_method = RAMP;
     
   if(m_time_step_scheme == INVALID_TIME_SOLVER)
   {
     std::cerr << "Error.  Invalid time stepping scheme" << std::endl;
     exit(EXIT_FAILURE);  
   }
-  if(m_time_start_meth == INVALID_STARTING_METHOD)
-  {
-    std::cerr << "Error.  Invalid time iteration starting scheme" << std::endl;
-    exit(EXIT_FAILURE);  
-  }
   
-  if(m_time_start_meth == EXPONENTIAL)
+  switch (m_time_starting_method)
   {
-    /// Get increase factor
-    TiXmlElement* exp_incr_fact = time_elem->FirstChildElement( "Increase_factor");
-    if(!exp_incr_fact)
+    case INVALID_STARTING_METHOD:
     {
-      std::cerr << "Error.  Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    m_starting_constants.resize(1,0.);
-    m_starting_constants[0] = atof( exp_incr_fact->GetText() );
-    if(m_starting_constants[0] < 1.)
-    {
-      std::cerr << "Error.  Starting time step increase must be greater than 1.0" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-  }
-  else if(m_time_start_meth == VECTOR)
-  {
-    TiXmlElement* n_stages = time_elem->FirstChildElement( "N_vector_stages" );
-    if(!n_stages)
-    {
-      std::cerr << "Error.  VECTOR time starter requires N_stages element" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    int num_vec_stages = atoi(n_stages->GetText() );
-    if(num_vec_stages < 1)
-    {
-      std::cerr << "Error.  Must have at least 1 stage of small time steps with VECTOR time starter" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+      std::cerr << "Error.  Invalid time iteration starting scheme" << std::endl;
+      exit(EXIT_FAILURE);  
     
-    m_starting_constants.resize(2*num_vec_stages , 0.);
-    
-    TiXmlElement* vector_stage = time_elem->FirstChildElement("Vector_stage");
-
-
-    for(int i=0; i<num_vec_stages ; i++)
+      break;
+    }
+    case EXPONENTIAL:
     {
-      if(!vector_stage)
+      /// Get increase factor
+      TiXmlElement* exp_incr_fact = time_elem->FirstChildElement( "Increase_factor");
+      if(!exp_incr_fact)
       {
-        std::cerr << "Error.  Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
-        std::cerr << "Only found: " << i << " Vector_stage elements" << std::endl;
+        std::cerr << "Error.  Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" << std::endl;
         exit(EXIT_FAILURE);
       }
-      
-      int curr_stage = atoi(vector_stage->GetText() );
-      if(curr_stage < 0 || curr_stage == num_vec_stages)
+     
+      m_exponential_ratio = atof( exp_incr_fact->GetText() );
+      if(m_exponential_ratio < 1.)
       {
-        std::cerr << "Error.  Vector_stage number must be between 0 and n_stages - 1" << std::endl;
+        std::cerr << "Error.  Starting time step increase must be greater than 1.0" << std::endl;
         exit(EXIT_FAILURE);
       }
     
-      TiXmlElement* stage_steps = vector_stage->FirstChildElement("Stage_steps");
-      TiXmlElement* stage_factor = vector_stage->FirstChildElement("Stage_size");
-
-      if(!stage_steps || !stage_factor)
+      break;
+    }
+    case RAMP:
+    {
+      TiXmlElement* ramp_steps = time_elem->FirstChildElement( "Ramp_steps" );
+      if(!ramp_steps)
       {
-        std::cerr << "Expect a Stage_steps and Stage_size element in each Vector_stage element" << std::endl;
+        std::cerr << "Error.  RAMP time starter requires Ramp_steps element\n" ;
         exit(EXIT_FAILURE);
       }
       
-      int stages = atoi( stage_steps->GetText() );
-      double size_factor = atof( stage_factor->GetText() );
+      m_ramp_steps = atoi(ramp_steps->GetText() );
       
-      if(stages < 1)
+      if(m_ramp_steps < 1)
       {
-        std::cerr << "Error. Stage_steps must be an integer greater than 1" << std::endl;
-        exit(EXIT_FAILURE);       
-      }
-      if(size_factor <= 0.  || size_factor >= 1.)
+        std::cerr << "Error.  RAMP starter requires at least one time step before full time step can be taken\n";
+        exit(EXIT_FAILURE);
+      }      
+      break;
+    }
+    case VECTOR:
+    {
+      TiXmlElement* n_stages = time_elem->FirstChildElement( "N_vector_stages" );
+      if(!n_stages)
       {
-        std::cerr << "Error.  Stage_size must be a double between 0 and 1 " << std::endl;
-        exit(EXIT_FAILURE);      
+        std::cerr << "Error.  VECTOR time starter requires N_stages element" << std::endl;
+        exit(EXIT_FAILURE);
       }
-      m_starting_constants[2*curr_stage] = double (stages);
-      m_starting_constants[2*curr_stage + 1] = size_factor;      
+      int num_vec_stages = atoi(n_stages->GetText() );
+      if(num_vec_stages < 1)
+      {
+        std::cerr << "Error.  Must have at least 1 stage of small time steps with VECTOR time starter" << std::endl;
+        exit(EXIT_FAILURE);
+      }
       
-      vector_stage = vector_stage->NextSiblingElement( "Vector_stage");
+      m_vector_start_sizes.resize(num_vec_stages , 0.);
+      m_vector_start_step_numbers.resize(num_vec_stages , 0);
+      
+      TiXmlElement* vector_stage = time_elem->FirstChildElement("Vector_stage");
+
+      for(int i=0; i<num_vec_stages ; i++)
+      {
+        if(!vector_stage)
+        {
+          std::cerr << "Error.  Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
+          std::cerr << "Only found: " << i << " Vector_stage elements" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        
+        int curr_stage = atoi(vector_stage->GetText() );
+        if(curr_stage < 0 || curr_stage == num_vec_stages)
+        {
+          std::cerr << "Error.  Vector_stage number must be between 0 and n_stages - 1" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      
+        TiXmlElement* stage_steps = vector_stage->FirstChildElement("Stage_steps");
+        TiXmlElement* stage_factor = vector_stage->FirstChildElement("Stage_size");
+
+        if(!stage_steps || !stage_factor)
+        {
+          std::cerr << "Expect a Stage_steps and Stage_size element in each Vector_stage element" << std::endl;
+          exit(EXIT_FAILURE);
+        }
+        
+        int stages = atoi( stage_steps->GetText() );
+        double size_factor = atof( stage_factor->GetText() );
+        
+        if(stages < 1)
+        {
+          std::cerr << "Error. Stage_steps must be an integer greater than 1" << std::endl;
+          exit(EXIT_FAILURE);       
+        }
+        if(size_factor <= 0.  || size_factor >= 1.)
+        {
+          std::cerr << "Error.  Stage_size must be a double between 0 and 1 " << std::endl;
+          exit(EXIT_FAILURE);      
+        }
+        m_vector_start_step_numbers[curr_stage] = stages;
+        m_vector_start_sizes[curr_stage] = size_factor;      
+        
+        vector_stage = vector_stage->NextSiblingElement( "Vector_stage");
+      }
+      break;
     }
   }
     

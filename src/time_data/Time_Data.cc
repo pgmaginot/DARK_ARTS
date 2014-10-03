@@ -6,7 +6,11 @@
 Time_Data::Time_Data(const Input_Reader&  input_reader)
   :
   m_number_stages{-1},
-  m_time_solver{input_reader.get_time_solver()}
+  m_time_solver{input_reader.get_time_solver()},
+  m_dt_min{input_reader.get_dt_min() },
+  m_dt_max{input_reader.get_dt_max() },
+  m_t_end{input_reader.get_t_end() },
+  m_t_start{input_reader.get_t_start() }
 {
 
   
@@ -27,8 +31,20 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   
   fill_sdirk_vectors();
   
-  /// determine if grey or MF, set-up solvers appropriately
-
+  /// set-up time starter
+  STARTING_METHOD starting_method = input_reader.get_starting_time_method();
+  if(starting_method == RAMP)
+  {
+    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Ramp() );
+  }
+  else if(starting_method == EXPONENTIAL)
+  {
+    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Exponential() );
+  }
+  else if(starting_method == VECTOR)
+  {
+    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Vector() );
+  }
 }
 
 
@@ -49,7 +65,7 @@ void Time_Data::fill_sdirk_vectors(void)
   return;
 }
 
-double Time_Data::get_a(const int stage, const int index)
+double Time_Data::get_a(const int stage, const int index) const
 {
   if( (stage >= m_number_stages) || (stage < 0) )
   {
@@ -71,4 +87,34 @@ double Time_Data::get_a(const int stage, const int index)
   {
     return m_a[stage*(stage+1)/2 + index];
   }
+}
+
+double Time_Data::get_c(const int stage) const
+{ 
+  return m_c[stage];
+}
+
+double Time_Data::get_dt(const int step)
+{
+  return m_calculate_dt->calculate_dt(step);
+}
+
+double Time_Data::get_t_start(void) const
+{
+  return m_t_start;
+}
+
+double Time_Data::get_t_end(void) const
+{
+  return m_t_end;
+}
+
+double Time_Data::get_dt_min(void) const
+{
+  return m_dt_min;
+}
+
+double Time_Data::get_dt_max(void) const
+{
+  return m_dt_max;
 }
