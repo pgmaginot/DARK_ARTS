@@ -1,18 +1,7 @@
 #ifndef V_Intensity_Update_h
 #define V_Intensity_Update_h
 
-// #include "Input_Reader.h"
-// #include "Temperature_Data.h"
-// #include "Intensity_Moment_Data.h"
-// #include "Fem_Quadrature.h"
-// #include "Cell_Data.h"
-// #include "Materials.h"
-// #include "Angular_Quadrature.h"
-
-// #include "V_WGRS.h"
 #include "WGRS_FP_Sweeps.h"
-
-// #include <memory>
 
 /** @file   V_Intensity_Update.h
   *   @author pmaginot
@@ -34,9 +23,9 @@ public:
   virtual ~V_Intensity_Update(){}
 
   virtual void update_intensity(const Temperature_Data* const t_star, Intensity_Moment_Data& phi) = 0;
+  
+  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
 protected:
-  double m_dt;
-  int m_stage;
   
   std::shared_ptr<V_WGRS> m_within_group_radiation_solver;
 };

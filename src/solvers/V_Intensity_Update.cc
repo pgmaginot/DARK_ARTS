@@ -5,9 +5,6 @@ V_Intensity_Update::V_Intensity_Update(const Input_Reader& input_reader, const F
     const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki)
-    :
-    m_dt{-1.},
-    m_stage{-1}
 {
   /// declare WGRS
    WG_SOLVE_TYPE solver_type = input_reader.get_within_group_solve_type();
@@ -23,3 +20,8 @@ V_Intensity_Update::V_Intensity_Update(const Input_Reader& input_reader, const F
    }
 }
 
+void V_Intensity_Update::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )
+{
+  m_within_group_radiation_solver->set_time_data(dt,time_stage,rk_a_of_stage_i,stage);
+  return;
+}

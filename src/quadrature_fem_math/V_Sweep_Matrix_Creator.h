@@ -46,11 +46,8 @@ public:
   
   void construct_f_vector(const double mu, Eigen::VectorXd& f_vector);
     
-  /// data that changes once per stage (per time step)
-  
-  void set_stage_data(const int stage, const std::vector<double>& rk_a, const double time);
-
-  void set_timestep_data(const double dt);
+  /// SDRIK relevant time data (dt doesn't change at different stages, but let's keep it simple)
+  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   
   /** MF needs to update M, r_cv, and spectrium \f$ \sum_{g=0}^G{\mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g}   \f$
     Grey needs to update M, r_cv only

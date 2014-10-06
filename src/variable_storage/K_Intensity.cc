@@ -19,9 +19,12 @@ K_Intensity::K_Intensity(const int n_cells, const int n_stages,
   m_el_stage_dir_div_2{ m_el_stage*m_n_dir/2},
   m_el_stage_dir_div_2_grp{m_el_stage_dir_div_2*m_n_grp},
   m_offset{m_n_dir/2*m_n_grp*m_cells*m_n_stages},
-  m_dir_div_2{m_n_dir/2}
+  m_dir_div_2{m_n_dir/2},
+  m_vec_sum{ Eigen::VectorXd::Zero(m_el_per_cell) },
+  m_vec_retrieve{ Eigen::VectorXd::Zero(m_el_per_cell) }  
 {  
   m_ki.resize(m_k_length,0.) ;
+  m_rk_b.resize(m_el_per_cell,0.);
 }
 /// Public accessor functions
 void K_Intensity::get_ki(const int cell, const int grp, const int dir, const int stage, Eigen::VectorXd& ki) const
@@ -116,3 +119,10 @@ bool K_Intensity::ki_bounds_check(const int loc) const
   
   return is_bad_loc;
 }
+
+void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data* time_data)
+{
+  
+  return;
+}
+

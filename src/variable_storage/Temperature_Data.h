@@ -24,6 +24,9 @@ public:
   
   void set_cell_temperature(const int cell, const Eigen::VectorXd& vec);
   
+  /// assignment operator
+  Temperature_Data& operator= (const Temperature_Data& t_data);
+  
 protected:
     /// total number of cells in the problem
   const int m_cells;

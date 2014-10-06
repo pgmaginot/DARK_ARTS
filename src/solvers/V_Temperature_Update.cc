@@ -14,13 +14,13 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   m_i_matrix{Eigen::MatrixXd::Identity(m_np,m_np)},
   m_d_matrix{ Eigen::MatrixXd::Zero(m_np,m_np)},
   m_coeff_matrix{ Eigen::MatrixXd::Zero(m_np,m_np)},
-  m_phi{Eigen::VectorXd::Zero(m_np)},
-  m_planck{Eigen::VectorXd::Zero(m_np)},
-  m_t_old{Eigen::VectorXd::Zero(m_np)},
-  m_t_star{Eigen::VectorXd::Zero(m_np)},
-  m_driving_source{ Eigen::VectorXd::Zero(m_np)},
-  m_t_new{ Eigen::VectorXd::Zero(m_np)},
+  m_phi_vec{Eigen::VectorXd::Zero(m_np)},
+  m_planck_vec{Eigen::VectorXd::Zero(m_np)},
+  m_t_old_vec{Eigen::VectorXd::Zero(m_np)},
+  m_t_star_vec{Eigen::VectorXd::Zero(m_np)},
+  m_driving_source_vec{ Eigen::VectorXd::Zero(m_np)},
   m_k_vec{ Eigen::VectorXd::Zero(m_np)},
+  m_delta{ Eigen::VectorXd::Zero(m_np)},
     
   m_matrix_type{fem_quadrature.get_integration_type() }    
 {
@@ -44,13 +44,17 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   /// resize STL vectors that we use for data storage
   m_temp_mat_vec.resize(m_n_source_quad_pts,0.);
 
-  m_rk_a.resize(n_stages);
+  m_rk_a.resize(n_stages,0.);
 }
 
-void V_Temperature_Update::load_rk_a(const int stage, const std::vector<double>& outside_rk_a)
+void V_Temperature_Update::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )
 {
-  for(int i =0 ; i < stage; i++)
-    m_rk_a[i] = outside_rk_a[i];
+  m_dt = dt;
+  m_time = time_stage;
+  m_stage  = stage;
+  
+  for(int i =0 ; i < m_stage; i++)
+    m_rk_a[i] = rk_a_of_stage_i[i];
     
   return;
 }

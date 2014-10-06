@@ -88,3 +88,18 @@ bool Temperature_Data::temperature_bounds_check(const int loc) const
   
   return is_bad_loc;
 }
+
+Temperature_Data& Temperature_Data::operator= (const Temperature_Data& t_data)
+{
+  if( (m_cells != t_data.m_cells) ||
+      (m_el_per_cell != t_data.m_el_per_cell) ||
+      (m_t_length != t_data.m_t_length) )
+  {
+    std::cerr << "Trying to copy non-identical Temperature_Data objects \n";
+    exit(EXIT_FAILURE);
+  }
+  for(int i=0; i< m_t_length; i++)
+    m_t[i] = t_data.m_t[i];
+  
+  return *this;
+}

@@ -11,9 +11,11 @@ K_Temperature::K_Temperature(const int n_cells, const int n_stages,
   : m_cells(n_cells) ,
     m_el_per_cell(fem_quadrature.get_number_of_interpolation_points() ) ,
     m_n_stages(n_stages ),
-    m_k_length( m_cells*m_el_per_cell*m_n_stages )
-    
+    m_k_length( m_cells*m_el_per_cell*m_n_stages )   ,
+    m_vec_sum{ Eigen::VectorXd::Zero(m_el_per_cell) },
+    m_vec_retrieve{ Eigen::VectorXd::Zero(m_el_per_cell) }
   {   
+    m_rk_b.resize(m_n_stages,0.);
     m_kt.resize(m_k_length,0.);
   }
   
@@ -39,6 +41,7 @@ void K_Temperature::set_kt(const int cell, const int stage, Eigen::VectorXd& kt)
    
   return ;
 }
+
 bool K_Temperature::kt_range_check(const int cell, const int stage) const
 {
   bool is_bad = false;
@@ -82,3 +85,21 @@ bool K_Temperature::kt_bounds_check(const int loc) const
   
   return is_bad_loc;
 }
+
+void K_Temperature::advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data* time_data)
+{
+  time_data->get_b_dt_constants(m_rk_b,dt);
+  /// loop over all stages in a given cell then advance (based on layout of k_t  
+  for(int cell = 0; cell < m_cells ; cell++)
+  {
+    m_vec_sum = Eigen::VectorXd::Zero(m_el_per_cell);
+    for(int stage = 0; stage < m_n_stages; stage++)
+    {           
+      get_kt(cell,stage,m_vec_retrieve);
+      m_vec_sum += m_rk_b[stage]*m_vec_retrieve;
+    }
+    t_old.set_cell_temperature(cell,m_vec_sum);
+  }
+  return;
+}
+

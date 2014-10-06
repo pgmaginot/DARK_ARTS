@@ -145,3 +145,9 @@ void Transport_Sweep::get_boundary_conditions(Psi_In& psi_in, const bool is_kryl
   }
 }
 
+void Transport_Sweep::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )
+{
+  m_time = time_stage;
+  m_sweep_matrix_creator->set_time_data(dt,time_stage,rk_a_of_stage_i,stage);
+  return;
+}

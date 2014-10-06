@@ -45,3 +45,11 @@ void WGRS_FP_Sweeps::solve(const Temperature_Data* const t_star, Intensity_Momen
   
   return;
 }
+
+
+void WGRS_FP_Sweeps::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )
+{
+  m_transport_sweep->set_time_data(dt,time_stage,rk_a_of_stage_i, stage);
+  
+  return;
+}

@@ -21,6 +21,8 @@ public:
   virtual ~WGRS_FP_Sweeps(){}
 
   void solve(const Temperature_Data* const t_star, Intensity_Moment_Data& phi_new) override;
+  
+  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage ) override;
 protected:
   
   

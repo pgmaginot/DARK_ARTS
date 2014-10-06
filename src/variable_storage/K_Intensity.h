@@ -4,7 +4,8 @@
 #include "Cell_Data.h"
 #include "Fem_Quadrature.h"
 #include "Angular_Quadrature.h"
-
+#include "Intensity_Data.h"
+#include "Time_Data.h"
 
 #include <vector>
 #include <stdlib.h>
@@ -25,6 +26,7 @@ public:
   /// Public functions to save values
   void set_ki(const int cell, const int grp, const int dir, const int stage, Eigen::VectorXd& ki);
   
+  void advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data* time_data);
 private:
   
   /// total number of cells in the problem
@@ -52,6 +54,10 @@ private:
   const int m_offset;
   const int m_dir_div_2;
   
+  Eigen::VectorXd m_vec_sum;
+  Eigen::VectorXd m_vec_retrieve;
+  
+  std::vector<double> m_rk_b;
   
   std::vector<double> m_ki;
   

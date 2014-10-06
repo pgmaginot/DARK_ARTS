@@ -114,19 +114,14 @@ void V_Sweep_Matrix_Creator::construct_f_vector(const double mu, Eigen::VectorXd
   return;
 }
 
-void V_Sweep_Matrix_Creator::set_stage_data(const int stage, const std::vector<double>& rk_a, const double time)
+void V_Sweep_Matrix_Creator::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )
 {
   m_stage = stage;
-  m_time = time;
+  m_time = time_stage;
   
   for(int s=0; s<m_stage ; s++)
-    m_rk_a[s] = rk_a[s];
+    m_rk_a[s] = rk_a_of_stage_i[s];
  
-  return;
-}
-
-void V_Sweep_Matrix_Creator::set_timestep_data(const double dt)
-{
   m_dt = dt;
   return;
 }

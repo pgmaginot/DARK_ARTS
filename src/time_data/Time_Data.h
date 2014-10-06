@@ -23,7 +23,7 @@ public:
   int get_number_of_stages(void) const;
   
   double get_a(const int stage, const int index) const;
-  
+  double get_b(const int stage) const;
   double get_c(const int stage) const;
   
   double get_dt(const int step);
@@ -32,6 +32,9 @@ public:
   double get_t_end(void) const;
   double get_dt_min(void) const;
   double get_dt_max(void) const;
+  
+  
+  void get_b_dt_constants(std::vector<double>& rk_b_dt, const double dt) const;
   
 protected:  
   int m_number_stages;

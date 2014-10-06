@@ -89,6 +89,11 @@ double Time_Data::get_a(const int stage, const int index) const
   }
 }
 
+double Time_Data::get_b(const int stage) const
+{
+  return m_b[stage];
+}
+
 double Time_Data::get_c(const int stage) const
 { 
   return m_c[stage];
@@ -117,4 +122,12 @@ double Time_Data::get_dt_min(void) const
 double Time_Data::get_dt_max(void) const
 {
   return m_dt_max;
+}
+
+void Time_Data::get_b_dt_constants(std::vector<double>& rk_b_dt, const double dt) const
+{
+  for(int s=0 ; s< m_number_stages ; s++)
+    rk_b_dt[s] = dt*m_b[s];
+    
+  return;
 }

@@ -17,10 +17,8 @@ public:
     
   ~Temperature_Update_MF(){}
 
-  void update_temperature(const Intensity_Moment_Data& phi, 
-    Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
-    const K_Temperature& k_t, const int stage, const std::vector<double>& outside_rk,
-    const double time, const double dt) override;    
+  void update_temperature(const Intensity_Moment_Data& phi, Temperature_Data& t_star, 
+    const Temperature_Data& t_n, const K_Temperature& k_t, const double damping, Err_Temperature& err_temperature) override;    
 private:  
    
   int m_n_groups;
@@ -32,9 +30,7 @@ private:
 *     Protected Functions
 *
   **************************************************** */
-  void calculate_local_matrices(const int cell , const Eigen::VectorXd& m_t_star ,
-    const double dt, const double a_ii , const double time,
-    const Intensity_Moment_Data& phi);
+  void calculate_local_matrices(const int cell, const Intensity_Moment_Data& phi);
 };
 
 #endif

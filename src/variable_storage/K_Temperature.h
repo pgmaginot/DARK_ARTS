@@ -3,6 +3,8 @@
 
 #include "Cell_Data.h"
 #include "Fem_Quadrature.h"
+#include "Temperature_Data.h"
+#include "Time_Data.h"
 
 
 #include <vector>
@@ -24,6 +26,8 @@ public:
   /// Public functions to save values
   void set_kt(const int cell, const int stage, Eigen::VectorXd& kt);
   
+  void advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data* time_data);
+  
 protected:
   
   /// total number of cells in the problem
@@ -38,7 +42,13 @@ protected:
   /// total length of the intensity data
   const int m_k_length;  
   
+  Eigen::VectorXd m_vec_sum;
+  Eigen::VectorXd m_vec_retrieve;
+    
   std::vector<double> m_kt;
+  std::vector<double> m_rk_b;
+  
+
   
 /* ***************************************************
   *
@@ -52,6 +62,7 @@ protected:
    
   bool kt_bounds_check(const int loc) const;
 
+  void add_kt(const int cell, const int stage, Eigen::VectorXd& vec_scratch, const double mult_const);
 };
 
 #endif

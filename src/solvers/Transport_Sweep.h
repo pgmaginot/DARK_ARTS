@@ -1,30 +1,16 @@
 #ifndef Transport_Sweep_h
 #define Transport_Sweep_h
 
-// #include "Fem_Quadrature.h"
-// #include "Cell_Data.h"
-// #include "Materials.h"
 #include "Angular_Quadrature.h"
 
-/// this stuff is already included by V_Sweep_Matrix_Creator
-// #include "Temperature_Data.h"
-// #include "Intensity_Data.h"
-// #include "Intensity_Moment_Data.h"
-// #include "K_Temperature.h"
-// #include "K_Intensity.h"
-
 /// this file is included from Sweep_Matrix_Creator_Grey and Sweep_Matrix_Creator_MF
-// #include "V_Sweep_Matrix_Creator.h"
 #include "Sweep_Matrix_Creator_Grey.h"
 #include "Sweep_Matrix_Creator_MF.h"
 
 #include "Psi_In.h"
 
-// #include "V_Sweep_Fixed_Source.h"
 #include "Sweep_Fixed_Source_None.h"
 #include "Sweep_Fixed_Source_Linearization.h"
-
-// #include <memory>
 
 /** @file   Transport_Sweep.h
   *   @author pmaginot
@@ -44,10 +30,10 @@ public:
 
   /** set all of the first time data that the sweep will need
     * this includes: time stepping data (current stage number, rk_a, dt), 
-     * k_I, k_T, I_old, T_old, T_star (evaluation temperature)
+
     *
   */
-  void prepare_to_sweep();
+  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   
   /// sweep the mesh, calculating a phi_new
   void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov);

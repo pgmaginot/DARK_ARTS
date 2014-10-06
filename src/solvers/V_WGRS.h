@@ -34,6 +34,8 @@ public:
   virtual void solve(const Temperature_Data* const t_star, Intensity_Moment_Data& phi_new) = 0;
 
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
+  
+  virtual void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage ) = 0;
 protected:
   std::shared_ptr<Transport_Sweep> m_transport_sweep;
   

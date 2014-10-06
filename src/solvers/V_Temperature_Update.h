@@ -1,7 +1,6 @@
 #ifndef V_Temperature_Update_h
 #define V_Temperature_Update_h
 
-#include "V_Matrix_Construction.h"
 #include "Matrix_Construction_Exact.h"
 #include "Matrix_Construction_Self_Lumping.h"
 #include "Matrix_Construction_Trad_Lumping.h"
@@ -20,7 +19,7 @@
 
 #include "Eigen/Dense"
 
-
+#include "Err_Temperature.h"
 
 #include <memory>
 
@@ -38,11 +37,10 @@ public:
     
   ~V_Temperature_Update(){}
 
-  virtual void update_temperature(const Intensity_Moment_Data& phi, 
-    Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
-    const K_Temperature& k_t, const int stage, const std::vector<double>& rk_a, const double time, const double dt) = 0;
+  virtual void update_temperature(const Intensity_Moment_Data& phi, Temperature_Data& t_star, 
+    const Temperature_Data& t_n, const K_Temperature& k_t, const double damping, Err_Temperature& err_temperature) = 0;
     
-  void load_rk_a(const int stage, const std::vector<double>& outside_rk_a );
+  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
 
 protected:
   /// need to access material objects, save a ptr to avoid passing it all the time
@@ -62,38 +60,42 @@ protected:
   const int m_n_source_quad_pts;
   
   /// \f$ \mathbf{R}_{\sigma_a} \f$
-  Eigen::MatrixXd m_r_sig_a; // = Eigen::MatrixXd::Zero(m_np,m_np);
+  Eigen::MatrixXd m_r_sig_a; 
   /// \f$ \mathbf{R}_{C_v} \f$
-  Eigen::MatrixXd m_r_cv;// = Eigen::MatrixXd::Zero(m_np,m_np);
+  Eigen::MatrixXd m_r_cv;
   /// \f$ \mathbf{I} \f$
-  Eigen::MatrixXd m_i_matrix;// = Eigen::MatrixXd::Identity(m_np,m_np);
+  const Eigen::MatrixXd m_i_matrix;
   /// \f$ \mathbf{D} \f$
-  Eigen::MatrixXd m_d_matrix;// = Eigen::MatrixXd::Zero(m_np,m_np);
+  Eigen::MatrixXd m_d_matrix;
   /// \f$ \mathbf{I} + 4\pi \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}  \f$
-  Eigen::MatrixXd m_coeff_matrix;// = Eigen::MatrixXd::Zero(m_np,m_np);
+  Eigen::MatrixXd m_coeff_matrix;
   
   /// \f$ \vec{\phi}_i \f$
-  Eigen::VectorXd m_phi; 
+  Eigen::VectorXd m_phi_vec; 
   /// \f$ \vec{\widehat{B}} \f$
-  Eigen::VectorXd m_planck;
+  Eigen::VectorXd m_planck_vec;
   /// \f$ \vec{T}_n \f$
-  Eigen::VectorXd m_t_old;
+  Eigen::VectorXd m_t_old_vec;
   /// \f$ \vec{T}^* \f$
-  Eigen::VectorXd m_t_star; 
+  Eigen::VectorXd m_t_star_vec; 
   /// \f$ \vec{S}_T \f$
-  Eigen::VectorXd m_driving_source;
-  /// \f$ \vec{T}_i
-  Eigen::VectorXd m_t_new; 
+  Eigen::VectorXd m_driving_source_vec;
   /// \f$ k_{T,i} \f$
   Eigen::VectorXd m_k_vec; 
-  
+  /// delta T vector
+  Eigen::VectorXd m_delta;
+    
   /// object that will build all local matrices for the temperature update
   std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
     
   /// the size of this vector is equal to the number of DFEM integration (quadrature points)
   std::vector<double> m_temp_mat_vec;  
   
+  /// time stepping scheme data
   std::vector<double> m_rk_a;
+  double m_dt = 0.;
+  double m_time = 0.;
+  int m_stage  = 0;
 
 private:  
 

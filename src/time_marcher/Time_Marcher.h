@@ -8,6 +8,7 @@
 
 #include "Temperature_Update_Grey.h"
 #include "Temperature_Update_MF.h"
+
 class Time_Marcher
 {
 
@@ -23,15 +24,19 @@ public:
 private:
   const int m_n_stages;
 
+  const Time_Data* const m_time_data;
+  
   K_Intensity m_k_i;
   K_Temperature m_k_t;
   Temperature_Data m_t_star;
+  Intensity_Moment_Data m_ard_phi;
+  
+  /// damping variable, and temperature update err object used to track thermal iteration progress
+  double m_damping;
+  Err_Temperature m_err_temperature;
   
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
   std::shared_ptr<V_Temperature_Update> m_temperature_update;
-  
-  void advance_intensity(Intensity_Data& i_old, K_Intensity& k_i);
-  void advance_temperature(Temperature_Data& t_old, K_Temperature& k_t);
 };
 
 #endif

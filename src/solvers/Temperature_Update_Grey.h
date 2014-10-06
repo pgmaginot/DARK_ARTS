@@ -17,10 +17,8 @@ public:
     
   ~Temperature_Update_Grey(){}
 
-  void update_temperature(const Intensity_Moment_Data& phi, 
-    Temperature_Data& t_new, const Temperature_Data& t_star, const Temperature_Data& t_n,
-    const K_Temperature& k_t, const int stage, const std::vector<double>& outside_rk_a,
-    const double time, const double dt) override;    
+  void update_temperature(const Intensity_Moment_Data& phi, Temperature_Data& t_star, 
+    const Temperature_Data& t_n, const K_Temperature& k_t, const double damping, Err_Temperature& err_temperature) override;    
   
 private:  
     
@@ -30,8 +28,9 @@ private:
 *     Protected Functions
 *
   **************************************************** */
-  void calculate_local_matrices(const int cell_num, Eigen::VectorXd& t_eval,
-    const double dt, const double a_ii, const double time);
+  /// just need the cell number to access the material ptr correctly
+  /// all local variables (cell_num, t_star_vec, dt, time, a_ii, are already saved in the V_Temperature_Update object
+  void calculate_local_matrices(void);
   
 };
 
