@@ -9,7 +9,7 @@
 
 V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
   const int n_stages, const double sn_w, 
-  const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+  const Temperature_Data* const t_old, 
   const Intensity_Data* const i_old,
   const K_Temperature* const kt, const K_Intensity* const ki)
 :
@@ -49,7 +49,7 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_time{-1.},
   
   m_t_old_ptr{t_old},
-  m_t_star_ptr{t_star}, 
+  m_t_star_ptr{nullptr}, 
   m_i_old_ptr{i_old},  
   m_kt_ptr{kt},  
   m_ki_ptr{ki},
@@ -149,5 +149,16 @@ void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_m
  void V_Sweep_Matrix_Creator::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
  {
   m_ard_phi_ptr = ard_phi_ptr;
+  return;
+ }
+
+void V_Sweep_Matrix_Creator::set_t_star_ptr(const Temperature_Data* const t_star_ptr)
+{
+  m_t_star_ptr = t_star_ptr;
+  return;
+}
+ 
+ void V_Sweep_Matrix_Creator::use_k_i_definitions(const bool use_k_i_defs)
+ { 
   return;
  }

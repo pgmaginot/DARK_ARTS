@@ -12,6 +12,9 @@
 #include "Sweep_Fixed_Source_None.h"
 #include "Sweep_Fixed_Source_Linearization.h"
 
+#include "Solution_Saver_K_I.h"
+#include "Solution_Saver_Flux_Moments.h"
+
 /** @file   Transport_Sweep.h
   *   @author pmaginot
   *   @brief Declare the Transport sweep operator
@@ -22,7 +25,7 @@ class Transport_Sweep
 public:
   Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
     Angular_Quadrature& angular_quadrature, const int n_stages, 
-    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Temperature_Data* const t_old, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki);
     
@@ -36,9 +39,13 @@ public:
   void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   
   /// sweep the mesh, calculating a phi_new
-  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov);
+  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov, const bool is_k_i_sweep);
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
+  
+  void set_t_star(const Temperature_Data* const t_star);
+  
+  void sweep_for_k_i();
 private:  
   /// number of cells
   const int m_n_cells;
@@ -88,6 +95,15 @@ private:
   std::shared_ptr<V_Sweep_Fixed_Source> m_no_source;
   /// ptr that has access to the appropriate Grey/MF Sweep_Matrix_Creator shared_ptr that allows access to get_s_i
   std::shared_ptr<V_Sweep_Fixed_Source> m_fixed_source;
+  
+  
+  /// pointer used in call during sweep  mesh to save (or not) the local intensity solution or the angle integrated intensity
+  std::shared_ptr<V_Solution_Saver> m_sweep_saver;
+  /// used to save \f$ k_I \f$ .  Does not change, overrwrite, or save angle integrated intensity.  Calculates k_I ONLY
+  std::shared_ptr<V_Solution_Saver> m_k_i_saver;
+  /// used during most normal sweeps to save angle integrated moments of the local solution
+  std::shared_ptr<V_Solution_Saver> m_angle_integrated_saver;
+  
   
   
   void get_boundary_conditions(Psi_In& psi_in,const bool is_krylov);

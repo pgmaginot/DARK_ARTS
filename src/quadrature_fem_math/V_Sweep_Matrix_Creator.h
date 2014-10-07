@@ -36,7 +36,7 @@ public:
   /// constructor defined in Fem_Quadrature.cc
   V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
     const int n_stages, const double sn_w, 
-    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Temperature_Data* const t_old, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki);
     
@@ -80,6 +80,11 @@ public:
   std::shared_ptr<V_Sweep_Fixed_Source> m_fixed_source;
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
+  
+  void set_t_star_ptr(const Temperature_Data* const t_star_ptr);
+  
+  void use_k_i_definitions(const bool use_k_i_defs);
+  
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
   
@@ -160,7 +165,7 @@ protected:
   
   /// pointers that will not change during a problem, and are used regardless of frequency treatment
   const Temperature_Data* const m_t_old_ptr;
-  const Temperature_Data* const m_t_star_ptr; 
+  const Temperature_Data* m_t_star_ptr; 
   const Intensity_Data*  const m_i_old_ptr;  
   const K_Temperature* const m_kt_ptr;  
   const K_Intensity* const m_ki_ptr;

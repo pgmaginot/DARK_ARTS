@@ -16,7 +16,7 @@ class V_Intensity_Update
 public:
   V_Intensity_Update(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
     Angular_Quadrature& angular_quadrature, const int n_stages,  
-    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Temperature_Data* const t_old, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki);
     
@@ -25,6 +25,8 @@ public:
   virtual void update_intensity(const Temperature_Data* const t_star, Intensity_Moment_Data& phi) = 0;
   
   void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
+  
+  void calculate_k_i(const Temperature_Data* t_star, K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
 protected:
   
   std::shared_ptr<V_WGRS> m_within_group_radiation_solver;

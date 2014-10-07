@@ -122,6 +122,51 @@ bool K_Intensity::ki_bounds_check(const int loc) const
 
 void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data* time_data)
 {
+  int start = 0;
+  int end = m_cells;
+  int incr = -1;
+  int offset = 0;
+  int dir = 0;
+  time_data->get_b_dt_constants(m_rk_b,dt);
+  for(int dir_set = 0; dir_set < 2; dir_set++)
+  {
+    if(dir_set ==0)
+    {
+      /// negative mu
+      start = m_cells;
+      end = -1;
+      incr = -1;
+      offset = 0;
+    }
+    else if(dir_set ==1)
+    {
+      /// positive mu
+      start = 0;
+      end = m_cells;
+      incr = 1;
+      offset = m_n_dir/2;
+    }
+    
+    for(int c = start ; c != end ; c += incr)
+    {
+      for(int g = 0 ; g <= m_n_grp ; g++)
+      {
+        for(int d = 0; d < m_dir_div_2 ; d++)
+        {
+          dir = offset + d;
+          m_vec_sum = Eigen::VectorXd::Zero(m_el_per_cell) ;
+          for(int s = 0; s < m_n_stages ; s++)
+          {
+            get_ki(c,g,dir,s,m_vec_retrieve);
+            m_vec_sum += m_rk_b[s]*m_vec_retrieve;
+          }
+          i_old.get_cell_intensity(c,g,dir,m_vec_retrieve);
+          m_vec_sum += m_vec_retrieve;
+          i_old.set_cell_intensity(c,g,dir,m_vec_sum);
+        }
+      }
+    }
+  }
   
   return;
 }

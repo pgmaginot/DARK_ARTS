@@ -8,11 +8,11 @@
 
 Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials* const materials,
     const int n_stages, const double sn_w, 
-    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Temperature_Data* const t_old, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, t_old, t_star, i_old, kt, ki )
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, t_old,  i_old, kt, ki )
 {  
 }
 

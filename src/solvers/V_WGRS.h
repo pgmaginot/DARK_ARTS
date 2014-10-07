@@ -25,7 +25,7 @@ public:
   V_WGRS(const Input_Reader& input_reader,
     const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
     Angular_Quadrature& angular_quadrature, const int n_stages, 
-    const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+    const Temperature_Data* const t_old, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki);
     
@@ -36,6 +36,8 @@ public:
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   
   virtual void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage ) = 0;
+  
+  void sweep_for_k_i(const Temperature_Data* t_star, K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
 protected:
   std::shared_ptr<Transport_Sweep> m_transport_sweep;
   

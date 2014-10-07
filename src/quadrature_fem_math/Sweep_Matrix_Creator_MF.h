@@ -15,7 +15,7 @@ public:
   /// constructor defined in Fem_Quadrature.cc
   Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadrature, Materials* const materials,
     const int n_stages, const double sn_w, 
-    const Temperature_Data* const t_old, const Temperature_Data* t_star, 
+    const Temperature_Data* const t_old, 
     const Intensity_Data* const i_old,
     const K_Temperature* const kt, const K_Intensity* const ki);
   virtual ~Sweep_Matrix_Creator_MF(){}

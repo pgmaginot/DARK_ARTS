@@ -98,6 +98,8 @@ void K_Temperature::advance_temperature(Temperature_Data& t_old, const double dt
       get_kt(cell,stage,m_vec_retrieve);
       m_vec_sum += m_rk_b[stage]*m_vec_retrieve;
     }
+    t_old.get_cell_temperature(cell,m_vec_retrieve);
+    m_vec_sum += m_vec_retrieve;
     t_old.set_cell_temperature(cell,m_vec_sum);
   }
   return;

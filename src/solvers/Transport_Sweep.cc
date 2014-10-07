@@ -2,7 +2,7 @@
 
 Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
   Angular_Quadrature& angular_quadrature, const int n_stages,
-  const Temperature_Data* const t_old, const Temperature_Data* const t_star, 
+  const Temperature_Data* const t_old, 
   const Intensity_Data* const i_old,
   const K_Temperature* const kt, const K_Intensity* const ki)
   :
@@ -25,16 +25,24 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data
   {
     m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> 
     (new Sweep_Matrix_Creator_MF(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() , 
-      t_old, t_star, i_old, kt, ki) );
+      t_old, i_old, kt, ki) );
   }
   else
   {
     m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() ,
-      t_old, t_star, i_old, kt, ki) );
+      t_old, i_old, kt, ki) );
   }
   m_fixed_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_Linearization(fem_quadrature,m_sweep_matrix_creator) );
   m_no_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_None(fem_quadrature) );
   
+  m_k_i_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_K_I(fem_quadrature) );
+  m_angle_integrated_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_Flux_Moments(fem_quadrature) );
+}
+
+void Transport_Sweep::set_t_star(const Temperature_Data* const t_star)
+{
+  m_sweep_matrix_creator->set_t_star_ptr(t_star);
+  return;
 }
 
 void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
@@ -43,7 +51,7 @@ void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
   return;
 }
 
-void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov)
+void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov, const bool is_get_k_i)
 {
   /** perform a single transport sweep across the mesh
     * Do not save the full intensity vector
@@ -62,6 +70,17 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
   else
   {
     m_sweep_source = m_fixed_source;
+  }
+  
+  if(is_get_k_i)
+  {
+    m_sweep_saver = m_k_i_saver;
+    m_sweep_matrix_creator->use_k_i_definitions(true);
+  }
+  else
+  {
+    m_sweep_saver = m_angle_integrated_saver; 
+    m_sweep_matrix_creator->use_k_i_definitions(false);
   }
   
   /// starting and ending number of cells

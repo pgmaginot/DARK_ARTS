@@ -16,11 +16,11 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, Angular_Quadrature
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() )
 {   
   if( angular_quadrature.get_number_of_groups() > 1){
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(input_reader, fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, &t_old, &m_t_star, &i_old, &m_k_t, &m_k_i) );
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(input_reader, fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, &t_old, &i_old, &m_k_t, &m_k_i) );
     m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages) );
   }
   else{
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(input_reader,fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages,&t_old, &m_t_star, &i_old, &m_k_t, &m_k_i ) );
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(input_reader,fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages,&t_old, &i_old, &m_k_t, &m_k_i ) );
     m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages ) );
   }
 }
@@ -67,8 +67,14 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
 
       }    
-      /// calculate k_I and k_T
-      
+      /** calculate k_I and k_T
+       * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
+       * but let's just call the calculate k_i and k_t functions by passing references to the objects we want to change
+       * this will then imply that the more frequently called update functions are not modifying the 
+      */
+      /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
+      m_intensity_update->calculate_k_i(&m_t_star,m_k_i, m_ard_phi);
+      // m_temperature_update->calculate_k_t(&m_t_star, m_k_t, m_ard_phi);
     }
     /// advance to the next time step, overwrite t_old
     time += dt;
