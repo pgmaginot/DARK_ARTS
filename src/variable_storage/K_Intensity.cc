@@ -120,14 +120,14 @@ bool K_Intensity::ki_bounds_check(const int loc) const
   return is_bad_loc;
 }
 
-void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data* time_data)
+void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data& time_data)
 {
   int start = 0;
   int end = m_cells;
   int incr = -1;
   int offset = 0;
   int dir = 0;
-  time_data->get_b_dt_constants(m_rk_b,dt);
+  time_data.get_b_dt_constants(m_rk_b,dt);
   for(int dir_set = 0; dir_set < 2; dir_set++)
   {
     if(dir_set ==0)

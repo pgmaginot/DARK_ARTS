@@ -8,9 +8,9 @@
 
 #include "Matrix_Construction_Exact.h"
 
-Matrix_Construction_Exact::Matrix_Construction_Exact(const Fem_Quadrature& fem_quadrature,  Materials* const materials_ptr)
+Matrix_Construction_Exact::Matrix_Construction_Exact(const Fem_Quadrature& fem_quadrature,  Materials& materials)
   : 
-  V_Matrix_Construction(fem_quadrature, materials_ptr)
+  V_Matrix_Construction(fem_quadrature, materials)
 {
 
 }

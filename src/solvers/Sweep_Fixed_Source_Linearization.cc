@@ -8,9 +8,9 @@ V_Sweep_Fixed_Source(fem_quadrature),
 
 }
 
-void Sweep_Fixed_Source_Linearization::get_source(Eigen::VectorXd& source_vec,const int dir)
+void Sweep_Fixed_Source_Linearization::get_source(Eigen::VectorXd& source_vec)
 {
-  m_sweep_matrix_ptr->get_s_i(source_vec,dir);
+  m_sweep_matrix_ptr->get_s_i(source_vec);
   
   return;
 }

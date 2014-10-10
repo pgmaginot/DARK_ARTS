@@ -20,7 +20,7 @@ public:
     
   virtual ~V_Sweep_Fixed_Source(){}
 
-  virtual void get_source(Eigen::VectorXd& source_vec, const int dir) = 0;
+  virtual void get_source(Eigen::VectorXd& source_vec) = 0;
 protected:
   const int m_n_dfem_pts;
   

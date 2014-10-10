@@ -72,6 +72,23 @@ void Intensity_Moment_Data::set_cell_angle_integrated_intensity(const int cell,
   return;
 }
 
+void Intensity_Moment_Data::add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib)
+{
+  bool bad_input = angle_integrated_range_check(0,cell,grp,l_mom);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = angle_integrated_data_locator(0,cell,grp,l_mom);
+  
+  for(int i=0; i< m_el_per_cell ; i++)
+    m_phi[val_loc+i] += contrib(i);
+    
+  return;
+}
+
 
 bool Intensity_Moment_Data::angle_integrated_range_check(const int el, const int cell, 
   const int grp, const int l_mom) const
@@ -142,6 +159,17 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
   */
 
   /// Err_Phi.err , Err_Phi.el_num , Err_Phi.cell_num, Err_Phi.group_num, Err_Phi.l_mom_num
+}
+
+void Intensity_Moment_Data::get_all_moments(
+  std::vector<Eigen::VectorXd>& local_phi, const int cell, const int grp) const
+{
+  for(int l=0; l<m_leg; l++)
+  {
+    get_cell_angle_integrated_intensity(cell, grp, l, local_phi[l]);
+  }
+  
+  return;
 }
 
 Intensity_Moment_Data::Intensity_Moment_Data(const Intensity_Moment_Data& intensity_moment)

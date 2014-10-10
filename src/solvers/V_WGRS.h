@@ -2,13 +2,7 @@
 #define V_WGRS_h
 
 #include "Input_Reader.h"
-// #include "Fem_Quadrature.h"
-// #include "Cell_Data.h"
-// #include "Materials.h"
-// #include "Angular_Quadrature.h"
 #include "Transport_Sweep.h"
-// #include "Intensity_Moment_Data.h"
-// #include "Temperature_Data.h"
 
 /** @file   V_WGRS.h
   *   @author pmaginot
@@ -23,21 +17,26 @@ class V_WGRS
 {
 public:
   V_WGRS(const Input_Reader& input_reader,
-    const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* materials, 
-    Angular_Quadrature& angular_quadrature, const int n_stages, 
-    const Temperature_Data* const t_old, 
-    const Intensity_Data* const i_old,
-    const K_Temperature* const kt, const K_Intensity* const ki);
+    const Fem_Quadrature& fem_quadrature, 
+    const Cell_Data& cell_data, 
+    Materials& materials, 
+    const Angular_Quadrature& angular_quadrature, 
+    const int n_stages, 
+    const Temperature_Data& t_old, 
+    const Intensity_Data& i_old,
+    const K_Temperature& kt, 
+    K_Intensity& ki,
+    const Temperature_Data& t_star);
     
   virtual ~V_WGRS(){}
 
-  virtual void solve(const Temperature_Data* const t_star, Intensity_Moment_Data& phi_new) = 0;
+  virtual void solve(Intensity_Moment_Data& phi_new) = 0;
 
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   
   virtual void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage ) = 0;
   
-  void sweep_for_k_i(const Temperature_Data* t_star, K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
+  void sweep_for_k_i(K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
 protected:
   std::shared_ptr<Transport_Sweep> m_transport_sweep;
   

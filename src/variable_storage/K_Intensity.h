@@ -26,7 +26,7 @@ public:
   /// Public functions to save values
   void set_ki(const int cell, const int grp, const int dir, const int stage, Eigen::VectorXd& ki);
   
-  void advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data* time_data);
+  void advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data& time_data);
 private:
   
   /// total number of cells in the problem

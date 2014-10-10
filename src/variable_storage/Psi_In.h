@@ -10,9 +10,9 @@ class Psi_In
  Psi_In(const int n_groups, const int n_dir);
  ~Psi_In(){}
  
- double operator()(int group, int dir) const;
+ double& operator()(int group, int dir);
  
- void set(const int group, const int dir, const double psi_in);
+ // void set(const int group, const int dir, const double psi_in);
  
  private:
   

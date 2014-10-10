@@ -17,7 +17,7 @@ public:
     
   virtual ~Sweep_Fixed_Source_Linearization(){}
 
-  void get_source(Eigen::VectorXd& source_vec,const int dir) override;
+  void get_source(Eigen::VectorXd& source_vec) override;
 protected:
   std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_ptr;
 };

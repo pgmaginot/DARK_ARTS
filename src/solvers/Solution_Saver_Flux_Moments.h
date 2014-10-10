@@ -12,13 +12,19 @@
 class Solution_Saver_Flux_Moments: public V_Solution_Saver 
 {
 public:
-  Solution_Saver_Flux_Moments(const Fem_Quadrature& fem_quadrature);
+  Solution_Saver_Flux_Moments(const Fem_Quadrature& fem_quadrature, const Angular_Quadrature& anggular_quadrature);
     
   virtual ~Solution_Saver_Flux_Moments(){}
 
-  void save_local_solution(Eigen::VectorXd& local_intensity, const int cell, const int grp, const int dir) override;
+  void save_local_solution(Intensity_Moment_Data& phi_new, 
+  const Eigen::VectorXd& local_intensity, 
+  Psi_In& psi_in,
+  const int cell, 
+  const int grp, 
+  const int dir) override;
 protected:
-  
+
+  Eigen::VectorXd m_loc_val;
 };
 
 #endif

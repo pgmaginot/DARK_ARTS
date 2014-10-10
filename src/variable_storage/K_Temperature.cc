@@ -86,9 +86,9 @@ bool K_Temperature::kt_bounds_check(const int loc) const
   return is_bad_loc;
 }
 
-void K_Temperature::advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data* time_data)
+void K_Temperature::advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data& time_data)
 {
-  time_data->get_b_dt_constants(m_rk_b,dt);
+  time_data.get_b_dt_constants(m_rk_b,dt);
   /// loop over all stages in a given cell then advance (based on layout of k_t  
   for(int cell = 0; cell < m_cells ; cell++)
   {

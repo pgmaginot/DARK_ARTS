@@ -7,60 +7,83 @@
 
 #include "V_Sweep_Matrix_Creator.h"
 
-V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-  const int n_stages, const double sn_w, 
-  const Temperature_Data* const t_old, 
-  const Intensity_Data* const i_old,
-  const K_Temperature* const kt, const K_Intensity* const ki)
+V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials& materials,
+  const int n_stages, 
+  const double sn_w, 
+  const int n_l_mom,
+  const Temperature_Data& t_old, 
+  const Intensity_Data& i_old,
+  const K_Temperature& kt, 
+  const K_Intensity& ki,
+  const Temperature_Data& t_star)
 :
   m_matrix_type{fem_quadrature.get_integration_type() },
   m_sn_w{ sn_w },
-  m_np{fem_quadrature.get_number_of_interpolation_points()},  
-  m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_r_sig_s{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_r_sig_t{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_identity_matrix{ Eigen::MatrixXd::Identity(m_np,m_np) },  
-  m_r_cv{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_n_l_mom{ n_l_mom } , 
+  m_np{fem_quadrature.get_number_of_interpolation_points()}, 
   
+  /// matrices/vectors for linearization definitions
+  m_r_sig_t{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_r_sig_s(m_n_l_mom,Eigen::MatrixXd::Zero(m_np,m_np)),
+  m_s_i{ Eigen::VectorXd(m_np,m_np) },
+  
+  /// additional matrices needed to get k_I
+  m_k_i_r_sig_t{Eigen::MatrixXd::Zero(m_np,m_np)},
+  /// just scattering.  No absorption or re-emission or linearization terms
+  m_k_i_r_sig_s_zero{Eigen::MatrixXd::Zero(m_np,m_np)},
+  /// don't need a vector for S_I, m_driving_source was calculated at last call
+  
+  m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_identity_matrix{ Eigen::MatrixXd::Identity(m_np,m_np) },  
+  m_r_cv{ Eigen::MatrixXd::Zero(m_np,m_np) },  
   m_d_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_coefficient{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  
-  m_no_mu_pos_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_no_mu_neg_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_no_mu_pos_f_vector{ Eigen::VectorXd::Zero(m_np) },
-  m_no_mu_neg_f_vector{ Eigen::VectorXd::Zero(m_np) },
+  m_xi_isotropic{ Eigen::VectorXd(m_np) },
+  m_driving_source{ Eigen::VectorXd(m_np) },
   
   m_t_old_vec{ Eigen::VectorXd::Zero(m_np) },
   m_t_star_vec{ Eigen::VectorXd::Zero(m_np) },
   m_k_vec{ Eigen::VectorXd::Zero(m_np) },
   m_planck_vec{ Eigen::VectorXd::Zero(m_np) },
   m_temp_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_xi_isotropic{ Eigen::VectorXd::Zero(m_np) },
-  m_driving_source{ Eigen::VectorXd::Zero(m_np) },
-  m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
   
-  m_materials{materials},
+  m_no_mu_pos_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_no_mu_neg_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_no_mu_pos_f_vector{ Eigen::VectorXd::Zero(m_np) },
+  m_no_mu_neg_f_vector{ Eigen::VectorXd::Zero(m_np) },
   
-  m_c{ materials->get_c() },
+  m_materials(materials),
+  
+  m_c{ materials.get_c() },
   
   m_dt{-1.},  
   m_stage{-1},
   m_time{-1.},
   
-  m_t_old_ptr{t_old},
-  m_t_star_ptr{nullptr}, 
-  m_i_old_ptr{i_old},  
-  m_kt_ptr{kt},  
-  m_ki_ptr{ki},
+  m_t_old_ref(t_old),
+  m_i_old_ref(i_old),  
+  m_kt_ref(kt),  
+  m_ki_ref(ki),
+  
+
   
   m_dx{-1.}  ,
   m_cell_num{-1},
   m_group_num{ -1},
   
-  m_ard_phi_ptr{nullptr}
+  m_t_star_ref(t_star),
+    
+  m_ard_phi_ptr{nullptr},
+  
+  m_rk_a(n_stages,0.)
 {  
-  m_rk_a.resize(n_stages,0.);
+  // m_r_sig_s.resize(m_n_l_mom);
+  // for(int l=0; l<m_n_l_mom ; l++)
+    // m_r_sig_s[l] = Eigen::MatrixXd::Zero(m_np,m_np) ;
+
+  // m_rk_a.resize(n_stages,0.);
+  
   /// initialize matrix constructor
   if(m_matrix_type ==  EXACT)
   {
@@ -126,23 +149,22 @@ void V_Sweep_Matrix_Creator::set_time_data( const double dt, const double time_s
   return;
 }
 
-void V_Sweep_Matrix_Creator::get_r_sig_t(Eigen::MatrixXd& r_sig_t)
+void V_Sweep_Matrix_Creator::get_r_sig_t(Eigen::MatrixXd& r_sig_t) const 
 {
   r_sig_t = m_r_sig_t;
   return;
 }
 
-void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom)
+void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom) const 
 {
-  if(l_mom == 0)
-  {
-    r_sig_s = m_r_sig_s;
-  }
-  else
-  {
-    m_mtrx_builder->construct_r_sigma_s(r_sig_s,m_group_num,l_mom);
-  }
+  r_sig_s = m_r_sig_s[l_mom];
   
+  return;
+}
+
+void V_Sweep_Matrix_Creator::get_s_i(Eigen::VectorXd& s_i) const
+{
+  s_i = m_s_i;
   return;
 }
 
@@ -151,14 +173,40 @@ void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_m
   m_ard_phi_ptr = ard_phi_ptr;
   return;
  }
-
-void V_Sweep_Matrix_Creator::set_t_star_ptr(const Temperature_Data* const t_star_ptr)
+ 
+void V_Sweep_Matrix_Creator::calculate_k_i_quantities(void)
 {
-  m_t_star_ptr = t_star_ptr;
+  m_k_i_r_sig_t = m_r_sig_t - 1./(m_rk_a[m_stage]*m_c*m_dt)*m_dx_div_2_mass;
+  m_k_i_r_sig_s_zero = m_k_i_r_sig_t - m_r_sig_a;
   return;
 }
- 
- void V_Sweep_Matrix_Creator::use_k_i_definitions(const bool use_k_i_defs)
- { 
+
+void V_Sweep_Matrix_Creator::k_i_get_r_sig_a(Eigen::MatrixXd& r_sig_a) const
+{
+  r_sig_a = m_r_sig_a;
   return;
- }
+}
+
+void V_Sweep_Matrix_Creator::k_i_get_r_sig_s_zero(Eigen::MatrixXd& r_sig_s_zero) const
+{
+  r_sig_s_zero = m_k_i_r_sig_s_zero;
+  return;
+}
+
+void V_Sweep_Matrix_Creator::k_i_get_r_sig_t(Eigen::MatrixXd& r_sig_t) const
+{
+  r_sig_t = m_k_i_r_sig_t;
+  return;
+}
+
+void V_Sweep_Matrix_Creator::k_i_get_s_i(Eigen::VectorXd& s_i) const
+{
+  s_i = m_driving_source;
+  return;
+}
+
+void V_Sweep_Matrix_Creator::k_i_get_planck_vec(Eigen::VectorXd& planck) const
+{
+  planck = m_planck_vec;
+  return;
+}

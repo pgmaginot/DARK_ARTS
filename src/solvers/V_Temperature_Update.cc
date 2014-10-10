@@ -1,13 +1,12 @@
 #include "V_Temperature_Update.h"
 
-V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
+V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& material, 
     const Angular_Quadrature& angular_quadrature, const int n_stages)
   :
-  m_material{material},
+  m_material(material),
   m_sn_w{angular_quadrature.get_sum_w() },  
   m_np{fem_quadrature.get_number_of_interpolation_points() } , 
-  m_cell_data{cell_data},
-  m_n_cells{cell_data->get_total_number_of_cells() },
+  m_n_cells{cell_data.get_total_number_of_cells() },
   m_n_source_quad_pts{fem_quadrature.get_number_of_integration_points() },
   m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_r_cv{ Eigen::MatrixXd::Zero(m_np,m_np) },

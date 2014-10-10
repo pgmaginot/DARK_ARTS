@@ -39,6 +39,9 @@ public:
   void get_cell_angle_integrated_intensity(const int cell, const int group, const int l_mom, 
     Eigen::VectorXd&  loc_phi_vec) const;
     
+  void get_all_moments(std::vector<Eigen::VectorXd>& local_phi, 
+    const int cell, const int grp) const;
+    
   /// Public saver functions
     
   void set_angle_integrated_intensity(const int el, const int cell,
@@ -53,6 +56,8 @@ public:
   void clear_angle_integrated_intensity(void);
   
   void normalized_difference(Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const;
+  
+  void add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib);
   
 private:
   std::vector<double> m_phi;

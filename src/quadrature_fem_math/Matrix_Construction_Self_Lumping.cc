@@ -7,8 +7,8 @@
 
 #include "Matrix_Construction_Self_Lumping.h"
 Matrix_Construction_Self_Lumping::Matrix_Construction_Self_Lumping(
-  const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr)
-    : V_Matrix_Construction(fem_quadrature,materials_ptr)
+  const Fem_Quadrature& fem_quadrature, Materials& materials)
+    : V_Matrix_Construction(fem_quadrature,materials)
     {}
 
 void Matrix_Construction_Self_Lumping::construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) 

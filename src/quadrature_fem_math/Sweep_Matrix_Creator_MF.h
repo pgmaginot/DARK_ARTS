@@ -13,11 +13,16 @@ class Sweep_Matrix_Creator_MF : public V_Sweep_Matrix_Creator
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w, 
-    const Temperature_Data* const t_old, 
-    const Intensity_Data* const i_old,
-    const K_Temperature* const kt, const K_Intensity* const ki);
+  Sweep_Matrix_Creator_MF(const Fem_Quadrature& fem_quadrature, 
+    Materials& materials,
+    const int n_stages, 
+    const double sn_w, 
+    const int n_l_mom,
+    const Temperature_Data& t_old, 
+    const Intensity_Data& i_old,
+    const K_Temperature& kt, 
+    const K_Intensity& ki,
+    const Temperature_Data& t_star);
   virtual ~Sweep_Matrix_Creator_MF(){}
   
     /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
@@ -30,7 +35,7 @@ public:
   */  
   void update_group_dependencies(const int grp) override;
    
-  void get_s_i(Eigen::VectorXd& s_i, const int dir) override;
+  void update_direction_dependencies(const int dir) override;
   
 private:
 

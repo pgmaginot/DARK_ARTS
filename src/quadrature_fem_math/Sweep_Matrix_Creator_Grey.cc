@@ -6,13 +6,18 @@
 
 #include "Sweep_Matrix_Creator_Grey.h"
 
-Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials* const materials,
-    const int n_stages, const double sn_w, 
-    const Temperature_Data* const t_old, 
-    const Intensity_Data* const i_old,
-    const K_Temperature* const kt, const K_Intensity* const ki)
+Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, 
+  Materials& materials,
+  const int n_stages, 
+  const double sn_w, 
+  const int n_l_mom,
+  const Temperature_Data& t_old, 
+  const Intensity_Data& i_old,
+  const K_Temperature& kt,
+  const K_Intensity& ki,
+  const Temperature_Data& t_star)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, t_old,  i_old, kt, ki )
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, n_l_mom, t_old,  i_old, kt, ki, t_star )
 {  
 }
 
@@ -24,19 +29,19 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_cell_num = cell;
   
   /// get \f$ \vec{T}^n \f$
-  m_t_old_ptr->get_cell_temperature(m_cell_num,m_t_old_vec) ;
+  m_t_old_ref.get_cell_temperature(m_cell_num,m_t_old_vec) ;
   
   /// get \f$ \vec{T}^* \f$
-  m_t_star_ptr->get_cell_temperature(m_cell_num,m_t_star_vec) ;
+  m_t_star_ref.get_cell_temperature(m_cell_num,m_t_star_vec) ;
   
   /// populate Materials object with local temperature and position to evalaute material properties
-  m_materials->calculate_local_temp_and_position(cell,m_t_star_vec);
+  m_materials.calculate_local_temp_and_position(cell,m_t_star_vec);
   
   /// get Planck vector since it won't change
-  m_materials->get_grey_planck(m_t_star_vec, m_planck_vec);
+  m_materials.get_grey_planck(m_t_star_vec, m_planck_vec);
   
   /// set cell width
-  m_dx = m_materials->get_cell_width();
+  m_dx = m_materials.get_cell_width();
   
   /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
   m_dx_div_2_mass = m_dx/2.*m_mass;
@@ -62,14 +67,15 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   m_group_num = grp;
   
   m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
-  m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,0);
+  for(int l=0; l< m_n_l_mom ; l++)
+    m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
   
-  m_r_sig_t = m_r_sig_a + m_r_sig_s;
+  m_r_sig_t = m_r_sig_a + m_r_sig_s[0];
   /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
   m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass;
   
   /// calculate \f$ \mathbf{D} \f$
-  m_materials->get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
+  m_materials.get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
   
   /** calculate the "coefficient matrix":
     \f[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}
@@ -80,7 +86,7 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   
   /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
   
-  m_r_sig_s += (m_sn_w*m_dt*m_rk_a[m_stage])*
+  m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*
     m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a;
     
   /// start building the isotropic portion of \f$ \bar{\bar{\xi}} \f$
@@ -91,12 +97,12 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   /// \f$ \text{m_xi_isotropic} += \Delta t \sum_{j=1}^{i-1}{a_{ij} \vec{k}_{T,j} } \f$
   for(int s=0; s< m_stage ; s++)
   {
-    m_kt_ptr->get_kt(m_cell_num, m_stage, m_temp_vec);
+    m_kt_ref.get_kt(m_cell_num, m_stage, m_temp_vec);
     m_xi_isotropic += m_dt*m_rk_a[s]*m_temp_vec;
   }
   
   /// calculate planck vector for this cell
-  m_materials->get_grey_planck(m_t_star_vec,m_planck_vec);
+  m_materials.get_grey_planck(m_t_star_vec,m_planck_vec);
   /// get \f$ \vec{S}_T \f$
   m_mtrx_builder->construct_temperature_source_moments(m_driving_source,m_time);
   
@@ -112,26 +118,26 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   return;
 }
 
-void Sweep_Matrix_Creator_Grey::get_s_i(Eigen::VectorXd& s_i, const int dir)
+void Sweep_Matrix_Creator_Grey::update_direction_dependencies(const int dir)
 {
-  s_i = m_xi_isotropic;
+  m_s_i = m_xi_isotropic;
   
-  m_i_old_ptr->get_cell_intensity(m_cell_num, m_group_num, dir, m_temp_vec);
+  m_i_old_ref.get_cell_intensity(m_cell_num, m_group_num, dir, m_temp_vec);
   
-  s_i += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
+  m_s_i += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
   
   m_temp_vec = Eigen::VectorXd::Zero(m_np);
   for(int s=0 ; s< m_stage ; s++)
   {
-    m_ki_ptr->get_ki(m_cell_num,m_group_num,dir,s,m_k_vec);
+    m_ki_ref.get_ki(m_cell_num,m_group_num,dir,s,m_k_vec);
     m_temp_vec += m_rk_a[s]*m_k_vec;
   }
   
-  s_i += 1./(m_c*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
+  m_s_i += 1./(m_c*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
   
   m_mtrx_builder->construct_radiation_source_moments(m_driving_source,m_time,dir,m_group_num);
   
-  s_i += m_driving_source;
+  m_s_i += m_driving_source;
   
   return;
 }

@@ -23,11 +23,16 @@
 class Transport_Sweep
 {
 public:
-  Transport_Sweep(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* material, 
-    Angular_Quadrature& angular_quadrature, const int n_stages, 
-    const Temperature_Data* const t_old, 
-    const Intensity_Data* const i_old,
-    const K_Temperature* const kt, const K_Intensity* const ki);
+  Transport_Sweep(const Fem_Quadrature& fem_quadrature, 
+    const Cell_Data& cell_data, 
+    Materials& material, 
+    const Angular_Quadrature& angular_quadrature, 
+    const int n_stages, 
+    const Temperature_Data& t_old, 
+    const Intensity_Data& i_old,
+    const K_Temperature& kt, 
+    K_Intensity& ki,
+    const Temperature_Data& t_star);
     
   ~Transport_Sweep(){}
 
@@ -43,9 +48,6 @@ public:
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   
-  void set_t_star(const Temperature_Data* const t_star);
-  
-  void sweep_for_k_i();
 private:  
   /// number of cells
   const int m_n_cells;
@@ -62,15 +64,16 @@ private:
   /// number of DFEM points per cell
   const int m_np;    
   
-  const double m_sum_w;
-  
-  Angular_Quadrature* const m_ang_quad;
+  const Angular_Quadrature& m_ang_quad;
     
   /// scratch matrix holder to be passed to matrix creator
   Eigen::MatrixXd m_matrix_scratch;
   
   /// scratch vector holder to be used as necessary
   Eigen::VectorXd m_vector_scratch;
+  
+  /// to hold all the flux moments in a given cell/group
+  std::vector<Eigen::VectorXd> m_local_phi;
   
   /// rhs vector
   Eigen::VectorXd m_rhs_vec;
@@ -83,8 +86,7 @@ private:
   
   double m_time;
   
-  Psi_In m_psi_in;
-    
+  Psi_In m_psi_in;    
   
   /// Creator of the linear boltzmann matrices (and source moment vector) that describe the transport sweep
   std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_creator;
@@ -102,12 +104,9 @@ private:
   /// used to save \f$ k_I \f$ .  Does not change, overrwrite, or save angle integrated intensity.  Calculates k_I ONLY
   std::shared_ptr<V_Solution_Saver> m_k_i_saver;
   /// used during most normal sweeps to save angle integrated moments of the local solution
-  std::shared_ptr<V_Solution_Saver> m_angle_integrated_saver;
+  std::shared_ptr<V_Solution_Saver> m_angle_integrated_saver;  
   
-  
-  
-  void get_boundary_conditions(Psi_In& psi_in,const bool is_krylov);
-
+  void get_boundary_conditions(const bool is_krylov);
 };
 
 #endif

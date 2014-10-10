@@ -7,9 +7,9 @@
 
 #include "V_Matrix_Construction.h"
 
-V_Matrix_Construction::V_Matrix_Construction(const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr)
+V_Matrix_Construction::V_Matrix_Construction(const Fem_Quadrature& fem_quadrature, Materials& materials)
 :
-  m_materials_ptr{materials_ptr},
+  m_materials(materials),
   m_n_quad_pts{ fem_quadrature.get_number_of_interpolation_points() }, 
   m_n_basis_pts{ fem_quadrature.get_number_of_integration_points() } ,
   m_n_source_quad_pts{ fem_quadrature.get_number_of_source_points() }
@@ -30,30 +30,30 @@ V_Matrix_Construction::V_Matrix_Construction(const Fem_Quadrature& fem_quadratur
 
 void V_Matrix_Construction::construct_r_cv(Eigen::MatrixXd& r_cv)
 {
-  m_materials_ptr->get_cv(m_xs_evals);
+  m_materials.get_cv(m_xs_evals);
   construct_reaction_matrix(r_cv,m_xs_evals);
   
- r_cv *= m_materials_ptr->get_cell_width()/2.;
+ r_cv *= m_materials.get_cell_width()/2.;
   
   return;
 }
 
 void V_Matrix_Construction::construct_r_sigma_a(Eigen::MatrixXd& r_sig_a, const int grp)
 {
-  m_materials_ptr->get_sigma_a(grp, m_xs_evals);
+  m_materials.get_sigma_a(grp, m_xs_evals);
   construct_reaction_matrix(r_sig_a,m_xs_evals);
   
-  r_sig_a *= m_materials_ptr->get_cell_width()/2.;
+  r_sig_a *= m_materials.get_cell_width()/2.;
   
   return;
 }
   
-void V_Matrix_Construction::construct_r_sigma_s(Eigen::MatrixXd& r_sig_s, const int grp, const int l_mom)
+void V_Matrix_Construction::construct_r_sigma_s(std::vector<Eigen::MatrixXd>& r_sig_s, const int grp, const int l_mom)
 {
-  m_materials_ptr->get_sigma_s(grp, l_mom, m_xs_evals);
-  construct_reaction_matrix(r_sig_s,m_xs_evals);
+  m_materials.get_sigma_s(grp, l_mom, m_xs_evals);
+  construct_reaction_matrix(r_sig_s[l_mom],m_xs_evals);
   
-  r_sig_s *= m_materials_ptr->get_cell_width()/2.;
+  r_sig_s[l_mom] *= m_materials.get_cell_width()/2.;
   
   return;
 }
@@ -119,14 +119,14 @@ void V_Matrix_Construction::construct_neg_upwind_vector(Eigen::VectorXd& f_neg)
 
 void V_Matrix_Construction::construct_temperature_source_moments(Eigen::VectorXd& s_t, const double time)
 {
-  m_materials_ptr->get_temperature_source(time,m_source_evals);
+  m_materials.get_temperature_source(time,m_source_evals);
   construct_source_moments(s_t,m_source_evals);
   return;
 }
   
 void V_Matrix_Construction::construct_radiation_source_moments(Eigen::VectorXd& s_i, const double time, const int dir, const int grp)
 {
-  m_materials_ptr->get_intensity_source(time, grp, dir, m_source_evals);
+  m_materials.get_intensity_source(time, grp, dir, m_source_evals);
   construct_source_moments(s_i, m_source_evals);
   
   return;
@@ -145,7 +145,7 @@ void V_Matrix_Construction::construct_source_moments(Eigen::VectorXd& source_mom
       source_mom(j) += m_source_weights[q]*m_dfem_at_source_quad[q+j*m_n_source_quad_pts]*source_evals[q];
   }
   
-  source_mom *= m_materials_ptr->get_cell_width()/2.;
+  source_mom *= m_materials.get_cell_width()/2.;
   
   return;
 }

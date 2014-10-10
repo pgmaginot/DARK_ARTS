@@ -1,6 +1,6 @@
 #include "Temperature_Update_MF.h"
 
-Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
+Temperature_Update_MF::Temperature_Update_MF(const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& material, 
     const Angular_Quadrature& angular_quadrature, const int n_stages)
   :
   V_Temperature_Update(fem_quadrature, cell_data, material, angular_quadrature, n_stages),  
@@ -21,7 +21,7 @@ void Temperature_Update_MF::update_temperature(const Intensity_Moment_Data& phi,
     t_n.get_cell_temperature(cell,m_t_old_vec);    
     
     /// Since we are going to evaluate material properties, first we need to populate local data in the Materials object
-    m_material->calculate_local_temp_and_position(cell, m_t_star_vec);
+    m_material.calculate_local_temp_and_position(cell, m_t_star_vec);
     
     /** this routine will calculate 
      1. \f$ \mathbf{R}_{\sigma_a}  \f$ (m_r_sig_a)
@@ -66,7 +66,7 @@ void Temperature_Update_MF::calculate_local_matrices(const int cell, const Inten
   {
     m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,g);
     
-    m_material->get_mf_planck_derivative(m_t_star_vec,g,m_d_matrix);
+    m_material.get_mf_planck_derivative(m_t_star_vec,g,m_d_matrix);
     
     /// \f$ \sum_{g=1}^G{ \mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g} \f$
     m_spectrum += m_r_sig_a*m_d_matrix;
@@ -75,7 +75,7 @@ void Temperature_Update_MF::calculate_local_matrices(const int cell, const Inten
     phi.get_cell_angle_integrated_intensity(cell, g, 0, m_phi_vec);
     
     /// group g Planck integration
-    m_material->get_mf_planck(m_t_star_vec,g,m_planck_vec);
+    m_material.get_mf_planck(m_t_star_vec,g,m_planck_vec);
     
     /// \f$ \sum_{g=1}^G{ \mathbf{R}_{\sigma_{a,g}} \left( \vec{\phi}_g - \text{m_sn_w} \vec{\widehat{B}}_g \right) } \f$
     m_driving_source_vec += m_r_sig_a*( m_phi_vec - m_sn_w*m_planck_vec );

@@ -7,7 +7,7 @@ V_Sweep_Fixed_Source(fem_quadrature)
  
 }
 
-void Sweep_Fixed_Source_None::get_source(Eigen::VectorXd& source_vec, const int dir)
+void Sweep_Fixed_Source_None::get_source(Eigen::VectorXd& source_vec)
 {
   for(int i=0; i< m_n_dfem_pts ; i++)
     source_vec(i) = 0.;

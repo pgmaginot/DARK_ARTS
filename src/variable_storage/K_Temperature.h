@@ -26,7 +26,7 @@ public:
   /// Public functions to save values
   void set_kt(const int cell, const int stage, Eigen::VectorXd& kt);
   
-  void advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data* time_data);
+  void advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data& time_data);
   
 protected:
   

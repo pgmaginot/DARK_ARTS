@@ -19,7 +19,7 @@ public:
     
   virtual ~Sweep_Fixed_Source_None(){}
 
-  void get_source(Eigen::VectorXd& source_vec, const int dir) override;
+  void get_source(Eigen::VectorXd& source_vec) override;
 protected:
   
 };

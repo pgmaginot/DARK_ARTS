@@ -36,11 +36,18 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
   Legendre_Poly_Evaluation leg_poly;
   for(int d=0; d<m_n_dir ; d++)
   {
-    // std::vector<double> temp(m_n_legendre_moments,0.);
-    // leg_poly.get_evaluated_legendre_polynomials( m_mu[d] , m_n_legendre_moments - 1 , 
-      // m_legendre_poly[d*m_n_legendre_moments] );
-    leg_poly.get_evaluated_legendre_polynomials( m_mu[d] , m_n_legendre_moments - 1 , 
-      d*m_n_legendre_moments, m_legendre_poly );
+    leg_poly.get_evaluated_legendre_polynomials( m_mu[d] , m_n_legendre_moments - 1 , d*m_n_legendre_moments, m_legendre_poly );
+  }
+
+  /// add in \f$ \frac{2l + 1}{2} \f$
+  int cnt = 0;
+  for(int d=0; d<m_n_dir ; d++)
+  {
+    for(int l=0;l<m_n_legendre_moments;l++)
+    {
+      m_legendre_poly[cnt] *= (2.*double(l) + 1.)/m_sum_w;
+      cnt++;
+    }
   }
 }
     
@@ -78,8 +85,7 @@ double Angular_Quadrature::get_sum_w(void) const
   return m_sum_w;
 }
 
-double Angular_Quadrature::calculate_boundary_conditions(const int dir, const int grp, const double time)
-{
-  double val = 0.;
-  return val;
+double Angular_Quadrature::calculate_boundary_conditions(const int dir, const int grp, const double time) const
+{  
+  return 1.;
 }

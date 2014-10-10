@@ -11,7 +11,7 @@
 class Matrix_Construction_Trad_Lumping : public V_Matrix_Construction
 {
 public:
-  Matrix_Construction_Trad_Lumping(const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr);
+  Matrix_Construction_Trad_Lumping(const Fem_Quadrature& fem_quadrature, Materials& materials);
   virtual ~Matrix_Construction_Trad_Lumping(){}
     
   void construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) override;

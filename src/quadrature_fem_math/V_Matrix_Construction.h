@@ -20,7 +20,7 @@ class V_Matrix_Construction
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  V_Matrix_Construction(const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr);
+  V_Matrix_Construction(const Fem_Quadrature& fem_quadrature, Materials& materials);
   virtual ~V_Matrix_Construction(){}
   
   
@@ -39,7 +39,7 @@ public:
   
   void construct_r_sigma_a(Eigen::MatrixXd& r_sig_a, const int grp);
   
-  void construct_r_sigma_s(Eigen::MatrixXd& r_sig_s, const int grp, const int l_mom);
+  void construct_r_sigma_s( std::vector<Eigen::MatrixXd>& r_sig_s, const int grp, const int l_mom);
   
   /// Construct driving source moments
   
@@ -68,7 +68,7 @@ protected:
 
   
   /// pointer to the Materials class object where all properties of given materials reside
-  Materials* const m_materials_ptr;  
+  Materials& m_materials;  
   
   /**
     Store the evaluated basis functions and quadrature rules from

@@ -11,7 +11,7 @@
 class Temperature_Update_Grey : public V_Temperature_Update
 {
 public:
-  Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material,
+  Temperature_Update_Grey(const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& material, 
     const Angular_Quadrature& angular_quadrature, const int n_stages);
     
     

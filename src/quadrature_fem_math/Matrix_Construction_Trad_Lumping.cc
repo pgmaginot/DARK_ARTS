@@ -8,8 +8,8 @@
 
 #include "Matrix_Construction_Trad_Lumping.h"
 Matrix_Construction_Trad_Lumping::Matrix_Construction_Trad_Lumping(
-  const Fem_Quadrature& fem_quadrature, Materials* const materials_ptr)
-  : V_Matrix_Construction(fem_quadrature,materials_ptr)
+  const Fem_Quadrature& fem_quadrature, Materials& materials)
+  : V_Matrix_Construction(fem_quadrature,materials)
   {}
 
 

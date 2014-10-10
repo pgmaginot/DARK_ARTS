@@ -13,8 +13,8 @@ class Time_Marcher
 {
 
 public:
-  Time_Marcher(const Input_Reader&  input_reader, Angular_Quadrature& angular_quadrature,
-    const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_data, Materials* const materials,  
+  Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
+    const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
     const Time_Data& time_data);
     
@@ -24,7 +24,7 @@ public:
 private:
   const int m_n_stages;
 
-  const Time_Data* const m_time_data;
+  const Time_Data& m_time_data;
   
   K_Intensity m_k_i;
   K_Temperature m_k_t;

@@ -31,7 +31,7 @@
 class V_Temperature_Update
 {
 public:
-  V_Temperature_Update(const Fem_Quadrature& fem_quadrature, Cell_Data* cell_data, Materials* const material, 
+  V_Temperature_Update(const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& material, 
     const Angular_Quadrature& angular_quadrature, const int n_stages);
     
     
@@ -44,16 +44,13 @@ public:
 
 protected:
   /// need to access material objects, save a ptr to avoid passing it all the time
-  Materials* const m_material;
+  Materials& m_material;
   
   const double m_sn_w;
   
   /// number of DFEM points per cell
   const int m_np;
-  
-    /// need to access cell data, save a ptr to skip passing it all the time
-  Cell_Data* m_cell_data;
-  
+    
     /// number of cells
   const int m_n_cells;
   
