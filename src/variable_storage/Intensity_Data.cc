@@ -22,6 +22,26 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrat
     m_i.resize(m_i_length,0.);
   }
 
+double Intensity_Data::get_intensity(const int el, const int cell, const int group, const int dir) const
+{
+  bool bad_input = intensity_range_check(el,cell,group,dir);
+  if(bad_input)
+  {
+    std::cerr << "Error.  Accessing out of logical range intensity\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  int val_loc = intensity_data_locator(0,cell,group,dir);
+  bool bad_location = intensity_bounds_check(val_loc);
+  
+  if(bad_location)
+  {
+    std::cerr << "Error.  Intensity location out of possible range\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  return m_i[val_loc];
+}
 
 void Intensity_Data::get_cell_intensity(const int cell, const int group, 
   const int dir, Eigen::VectorXd& loc_i_vec) const

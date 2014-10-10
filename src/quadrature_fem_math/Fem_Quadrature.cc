@@ -396,4 +396,8 @@ void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double
   return;
 }
     
-    
+void Fem_Quadrature::get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const
+{
+  dfem_weights = m_dfem_interpolation_weights;
+  return;
+}

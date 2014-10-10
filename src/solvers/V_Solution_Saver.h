@@ -27,12 +27,16 @@ public:
   const int cell, 
   const int grp, 
   const int dir) = 0;
+  
+  void set_stage(const int stage);
+  
 protected:
   const int m_np;
   const int m_n_dir_div_2;
   const int m_n_l_mom;
   
   double m_outflow;
+  int  m_stage;
   
   const Angular_Quadrature& m_quad_ref; 
   

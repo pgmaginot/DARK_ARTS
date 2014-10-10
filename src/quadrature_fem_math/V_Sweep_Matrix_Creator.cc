@@ -39,6 +39,8 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_d_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_coefficient{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
+  m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) }, 
+  m_mass_inv{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_xi_isotropic{ Eigen::VectorXd(m_np) },
   m_driving_source{ Eigen::VectorXd(m_np) },
   
@@ -165,6 +167,12 @@ void V_Sweep_Matrix_Creator::get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_m
 void V_Sweep_Matrix_Creator::get_s_i(Eigen::VectorXd& s_i) const
 {
   s_i = m_s_i;
+  return;
+}
+
+void V_Sweep_Matrix_Creator::get_mass_inverse(Eigen::MatrixXd& mass_inv) const
+{
+  mass_inv = m_mass_inv;
   return;
 }
 

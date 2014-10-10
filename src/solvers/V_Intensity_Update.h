@@ -24,7 +24,8 @@ public:
     const Intensity_Data& i_old,
     const K_Temperature& kt, 
     K_Intensity& ki,
-    const Temperature_Data& t_star );
+    const Temperature_Data& t_star ,
+    std::vector<double>& phi_ref_norm);
     
   virtual ~V_Intensity_Update(){}
 

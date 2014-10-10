@@ -10,14 +10,15 @@ WGRS_FP_Sweeps::WGRS_FP_Sweeps(const Input_Reader& input_reader,
   const Intensity_Data& i_old,
   const K_Temperature& kt, 
   K_Intensity& ki,
-  const Temperature_Data& t_star)
+  const Temperature_Data& t_star,
+  std::vector<double>& phi_ref_norm)
   : 
-  V_WGRS(input_reader, fem_quadrature,cell_data, materials,angular_quadrature, n_stages,t_old, i_old, kt, ki,t_star),
+  V_WGRS(input_reader, fem_quadrature,cell_data, materials,angular_quadrature, n_stages,t_old, i_old, kt, ki,t_star, phi_ref_norm),
   m_n_groups{ angular_quadrature.get_number_of_groups()  },
   m_wg_tolerance{ input_reader.get_within_group_solve_tolerance()  },
   m_max_sweeps{ input_reader.get_max_number_sweeps() },
-   m_phi_old(cell_data.get_total_number_of_cells(), angular_quadrature.get_number_of_groups(),
-    angular_quadrature.get_number_of_leg_moments(), fem_quadrature.get_number_of_interpolation_points() )
+  /// initialize to zero
+  m_phi_old(cell_data, angular_quadrature,fem_quadrature,phi_ref_norm)
 {
  
 }

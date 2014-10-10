@@ -42,7 +42,7 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   m_no_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_None(fem_quadrature) );
   
   /// this guy needs a reference to k_i
-  m_k_i_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_K_I(fem_quadrature,m_sweep_matrix_creator,angular_quadrature,ki) );
+  m_k_i_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_K_I(fem_quadrature,m_sweep_matrix_creator,angular_quadrature,ki, materials.get_c() ) );
   m_angle_integrated_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_Flux_Moments(fem_quadrature,angular_quadrature) );
 }
 
@@ -198,5 +198,6 @@ void Transport_Sweep::set_time_data( const double dt, const double time_stage, c
 {
   m_time = time_stage;
   m_sweep_matrix_creator->set_time_data(dt,time_stage,rk_a_of_stage_i,stage);
+  m_sweep_saver->set_stage(stage);
   return;
 }

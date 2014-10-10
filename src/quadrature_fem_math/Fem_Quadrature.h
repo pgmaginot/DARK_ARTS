@@ -60,6 +60,8 @@ public:
   void get_source_points(std::vector<double>& source_pts) const;
   
   int get_number_of_source_points(void) const;
+  
+  void get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const;
 private:
 
   void evaluate_lagrange_func(const std::vector<double>& interp_points, 

@@ -10,9 +10,10 @@ Intensity_Update_Grey::Intensity_Update_Grey(const Input_Reader& input_reader,
   const Intensity_Data& i_old,
   const K_Temperature& kt, 
   K_Intensity& ki,
-  const Temperature_Data& t_star)
+  const Temperature_Data& t_star,
+  std::vector<double>& phi_ref_norm)
   :
-  V_Intensity_Update(input_reader, fem_quadrature,cell_data,materials,angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star)
+  V_Intensity_Update(input_reader, fem_quadrature,cell_data,materials,angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star, phi_ref_norm)
 {
  
 }

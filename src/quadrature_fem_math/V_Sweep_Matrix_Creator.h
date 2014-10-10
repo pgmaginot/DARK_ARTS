@@ -81,6 +81,8 @@ public:
   void get_r_sig_s(Eigen::MatrixXd& r_sig_s, const int l_mom) const;
   
   void get_s_i(Eigen::VectorXd& s_i) const;
+  
+  void get_mass_inverse(Eigen::MatrixXd& m_inv) const;
       
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   
@@ -134,6 +136,9 @@ protected:
   Eigen::MatrixXd m_mass;
   /// scaled mass matrix
   Eigen::MatrixXd m_dx_div_2_mass;  
+  /// inverse of scaled mass matrix
+  Eigen::MatrixXd m_mass_inv;
+  
    /// isotropic component of xi_i
   Eigen::VectorXd m_xi_isotropic;  
   /// holding source moments (S_T and S_I)

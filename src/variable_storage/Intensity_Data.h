@@ -17,6 +17,8 @@ public:
     const Fem_Quadrature& fem_quad);
   ~Intensity_Data(){}
   
+  double get_intensity(const int el, const int cell, const int group, const int dir) const;
+  
   /// Public accessor functions
   void get_cell_intensity(const int cell, const int group, const int dir, 
     Eigen::VectorXd& loc_i_vec) const;

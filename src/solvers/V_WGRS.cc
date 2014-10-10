@@ -10,7 +10,10 @@ V_WGRS::V_WGRS(const Input_Reader& input_reader,
   const Intensity_Data& i_old,
   const K_Temperature& kt, 
   K_Intensity& ki,
-  const Temperature_Data& t_star)
+  const Temperature_Data& t_star,
+  std::vector<double>& phi_ref_norm)
+  :
+  m_phi_ref_norm(phi_ref_norm)
 {
   m_transport_sweep = std::shared_ptr<Transport_Sweep> ( new Transport_Sweep(fem_quadrature, cell_data, materials,angular_quadrature,n_stages,
     t_old, i_old, kt, ki,t_star) );

@@ -10,14 +10,15 @@ V_Intensity_Update::V_Intensity_Update(const Input_Reader& input_reader,
   const Intensity_Data& i_old,
   const K_Temperature& kt, 
   K_Intensity& ki,
-  const Temperature_Data& t_star)
+  const Temperature_Data& t_star, 
+  std::vector<double>& phi_ref_norm)
 {
   /// declare WGRS
    WG_SOLVE_TYPE solver_type = input_reader.get_within_group_solve_type();
    if(solver_type == FP_SWEEPS)
    {
     m_within_group_radiation_solver = std::shared_ptr<V_WGRS> (new WGRS_FP_Sweeps( input_reader, fem_quadrature, 
-      cell_data, materials, angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star));
+      cell_data, materials, angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star, phi_ref_norm));
    }
    else
    {

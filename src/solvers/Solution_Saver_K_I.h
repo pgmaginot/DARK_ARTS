@@ -15,7 +15,7 @@ class Solution_Saver_K_I: public V_Solution_Saver
 {
 public:
   Solution_Saver_K_I(const Fem_Quadrature& fem_quadrature,std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator_ptr,
-  const Angular_Quadrature& angular_quadrature, K_Intensity& k_i_ref);
+  const Angular_Quadrature& angular_quadrature, K_Intensity& k_i_ref, const double c);
     
   virtual ~Solution_Saver_K_I(){}
   
@@ -35,6 +35,8 @@ protected:
   Eigen::MatrixXd m_scratch_mat;
   
   const int m_zero;
+  const double m_c;
+  int m_stage;
   
 };
 

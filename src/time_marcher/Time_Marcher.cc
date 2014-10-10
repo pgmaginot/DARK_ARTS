@@ -10,17 +10,41 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_k_i( cell_data.get_total_number_of_cells() ,m_n_stages, fem_quadrature, angular_quadrature),
     m_k_t( cell_data.get_total_number_of_cells(), m_n_stages, fem_quadrature),
     m_t_star( cell_data.get_total_number_of_cells(), fem_quadrature),
-    m_ard_phi( cell_data.get_total_number_of_cells(), angular_quadrature.get_number_of_groups() , 
-      angular_quadrature.get_number_of_leg_moments(), fem_quadrature.get_number_of_interpolation_points() ),
+    m_ard_phi( cell_data, angular_quadrature, fem_quadrature, i_old ),
     m_damping{1.},
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() )
 {   
+  std::vector<double> phi_ref_norm;
+  m_ard_phi.get_phi_norm(phi_ref_norm);
   if( angular_quadrature.get_number_of_groups() > 1){
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(input_reader, fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, t_old, i_old, m_k_t, m_k_i, m_t_star) );
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(
+      input_reader, 
+      fem_quadrature, 
+      cell_data, 
+      materials, 
+      angular_quadrature,
+      m_n_stages, 
+      t_old, 
+      i_old,
+      m_k_t, 
+      m_k_i, 
+      m_t_star, 
+      phi_ref_norm ) );
     m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages) );
   }
   else{
-    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(input_reader,fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages,t_old, i_old, m_k_t, m_k_i, m_t_star ) );
+    m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(
+      input_reader,fem_quadrature, 
+      cell_data,
+      materials, 
+      angular_quadrature,
+      m_n_stages,
+      t_old, 
+      i_old,
+      m_k_t, 
+      m_k_i, 
+      m_t_star, 
+      phi_ref_norm ) );
     m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages ) );
   }
 }
@@ -74,7 +98,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
        * this will then imply that the more frequently called update functions are not modifying the 
       */
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
-      // m_intensity_update->calculate_k_i(&m_t_star,m_k_i, m_ard_phi);
+      m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       // m_temperature_update->calculate_k_t(&m_t_star, m_k_t, m_ard_phi);
     }
     /// advance to the next time step, overwrite t_old

@@ -3,7 +3,7 @@
 Solution_Saver_K_I::Solution_Saver_K_I(const Fem_Quadrature& fem_quadrature, 
   std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator_ptr,
   const Angular_Quadrature& angular_quadrature, 
-  K_Intensity& k_i_ref )
+  K_Intensity& k_i_ref, const double c )
 :
   V_Solution_Saver(fem_quadrature,angular_quadrature),
   m_sweep_matrix_ptr{matrix_creator_ptr},
@@ -11,7 +11,8 @@ Solution_Saver_K_I::Solution_Saver_K_I(const Fem_Quadrature& fem_quadrature,
   m_local_ki{Eigen::VectorXd::Zero(m_np)},
   m_scratch_vec{Eigen::VectorXd::Zero(m_np)},
   m_scratch_mat{Eigen::MatrixXd::Zero(m_np,m_np)}  ,
-  m_zero{0}
+  m_zero{0},
+  m_c{c}
 {
  
 }
@@ -32,7 +33,7 @@ void Solution_Saver_K_I::save_local_solution(Intensity_Moment_Data& phi_new,
     -- this means that using the local solution, phi_new, we need to prepare in 
   */
   /// get 0 moment scatter source
-  phi_new.get_cell_angle_integrated_intensity(cell,grp, m_zero , m_scratch_vec);
+  phi_new.get_cell_angle_integrated_intensity(cell,grp, 0 , m_scratch_vec);
   m_sweep_matrix_ptr->k_i_get_r_sig_s_zero(m_scratch_mat);  
   m_local_ki = m_scratch_mat*m_scratch_vec;
   
@@ -65,8 +66,12 @@ void Solution_Saver_K_I::save_local_solution(Intensity_Moment_Data& phi_new,
   m_sweep_matrix_ptr->k_i_get_r_sig_t(m_scratch_mat);
   m_local_ki -= m_scratch_mat*local_intensity;
   
+  /// apply \f$ c\mathbf{M}^{-1} \f$
+  m_sweep_matrix_ptr->get_mass_inverse(m_scratch_mat);
+  m_local_ki *= m_c*m_scratch_mat;
+  
   /// save the local k_i in K_Intensity object
-  // m_k_i_ref.set_k();
+  m_k_i_ref.set_ki(cell,grp,dir,m_stage,m_local_ki);
   
   /// calculate cell outflow (next cell's inflow)
   psi_in(dir,grp) = calculate_outflow(dir,local_intensity);

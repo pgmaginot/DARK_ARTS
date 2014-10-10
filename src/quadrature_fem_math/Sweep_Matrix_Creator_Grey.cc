@@ -45,6 +45,8 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   
   /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
   m_dx_div_2_mass = m_dx/2.*m_mass;
+  
+  m_mass_inv = m_dx_div_2_mass.inverse();
     
   /// load \f$ \mathbf{R}_{C_v} \f$ here
   m_mtrx_builder->construct_r_cv(m_r_cv);

@@ -6,6 +6,7 @@
 #include "Cell_Data.h"
 #include "Err_Phi.h"
 #include "Eigen/Dense"
+#include "Intensity_Data.h"
 
 #include <vector>
 #include <stdlib.h>
@@ -15,11 +16,11 @@ class Intensity_Moment_Data
 public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
   Intensity_Moment_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
-    const Fem_Quadrature& fem_quad);
-  
-  Intensity_Moment_Data(const int n_cells, const int n_grp, 
-  const int n_leg_mom, const int n_el_cell);
-  
+    const Fem_Quadrature& fem_quad, const std::vector<double>& reference_phi_norm);
+    
+  Intensity_Moment_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
+  const Fem_Quadrature& fem_quad, const Intensity_Data& i_old);
+    
   ~Intensity_Moment_Data(){}
   
   /// Copy constructor
@@ -59,9 +60,9 @@ public:
   
   void add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib);
   
-private:
-  std::vector<double> m_phi;
-  
+  void get_phi_norm(std::vector<double>& norm_vec) const;  
+
+private:  
   /// total number of cells in the problem
   const int m_cells;
   /// total number of groups in the problem
@@ -78,12 +79,21 @@ private:
   /// total length of the angle integrated intensity data
   const int m_phi_length;
    
+  std::vector<double> m_norm_for_err;
+  
+  const double m_small_ratio;
+  
+  std::vector<double> m_phi;
   
   bool angle_integrated_range_check(const int el, const int cell, const int grp, const int l_mom) const;
     
   int angle_integrated_data_locator(const int el, const int cell, const int group, const int leg_mom) const;
     
   bool angle_integrated_bounds_check(const int loc) const;
+  
+  void calculate_reference_phi_norms(const Intensity_Data& i_old, 
+    const Angular_Quadrature& ang_quad, 
+    const Fem_Quadrature& fem_quad);
 
 };
 
