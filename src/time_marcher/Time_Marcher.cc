@@ -76,7 +76,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
         
       /// set time (of this stage), dt (of the whole time step), rk_a for this stage
-      // m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
+      m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       
       for(int therm_iter = 0; therm_iter < max_thermal_iter; therm_iter++)
@@ -99,7 +99,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       */
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
       m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
-      // m_temperature_update->calculate_k_t(&m_t_star, m_k_t, m_ard_phi);
+      m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
     }
     /// advance to the next time step, overwrite t_old
     time += dt;

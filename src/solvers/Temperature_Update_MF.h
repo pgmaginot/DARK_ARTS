@@ -19,6 +19,8 @@ public:
 
   void update_temperature(const Intensity_Moment_Data& phi, Temperature_Data& t_star, 
     const Temperature_Data& t_n, const K_Temperature& k_t, const double damping, Err_Temperature& err_temperature) override;    
+    
+  void calculate_k_t(const Temperature_Data& t_star, K_Temperature& k_t, const Intensity_Moment_Data& ard_phi) override;
 private:  
    
   int m_n_groups;

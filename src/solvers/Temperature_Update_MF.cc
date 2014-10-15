@@ -94,3 +94,44 @@ void Temperature_Update_MF::calculate_local_matrices(const int cell, const Inten
   
   return;
 }
+
+void Temperature_Update_MF::calculate_k_t(const Temperature_Data& t_star, K_Temperature& k_t, const Intensity_Moment_Data& ard_phi)
+{
+  /**
+    \f[
+    k_T = \mathbf{R}_{C_v}^{-1} \left[ 
+      \sum_{g=1}^G{ 
+        \mathbf{R}_{\sigma_{a,g}} \left( \vec{\phi}_g - \text{m_sn_w} \vec{\widehat{B}}_g \right)
+        } + \vec{S}_T \right]
+    \f]
+  */
+  
+  for(int cell = 0; cell < m_n_cells ; cell++)
+  {
+    /// get driving source
+    m_mtrx_builder->construct_temperature_source_moments(m_driving_source_vec,m_time);
+      
+    /// calculate \f$ \mathbf{R}_{C_v} \f$
+    m_mtrx_builder->construct_r_cv(m_coeff_matrix); 
+    m_r_cv = m_coeff_matrix.inverse();
+  
+    m_t_old_vec = Eigen::VectorXd::Zero(m_np);
+    for(int grp = 0; grp < m_n_groups; grp ++)
+    {
+      ard_phi.get_cell_angle_integrated_intensity(cell, grp, 0, m_phi_vec);    
+      /// group g Planck integration
+      m_material.get_mf_planck(m_t_star_vec,grp,m_planck_vec);
+      
+      m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,grp);
+      
+      /// just use this as a temporary vector
+      m_t_old_vec += m_r_sig_a*( m_phi_vec - m_sn_w*m_planck_vec);      
+    }    
+    
+    m_k_vec = m_r_cv*( m_t_old_vec + m_driving_source_vec );
+    
+    k_t.set_kt(cell, m_stage, m_k_vec);
+  }
+  
+  return;
+}

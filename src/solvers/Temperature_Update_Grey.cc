@@ -84,3 +84,38 @@ void  Temperature_Update_Grey::calculate_local_matrices(void)
   
   return;
 }
+
+void Temperature_Update_Grey::calculate_k_t(const Temperature_Data& t_star, K_Temperature& k_t, const Intensity_Moment_Data& ard_phi)
+{
+  /**
+    For the grey case:
+    \f[
+      k_T = \mathbf{R}_{C_v}^{-1}\left[ \mathbf{R}_{\sigma_a}\left( \vec{\phi} - \text{m_sn_w} \vec{\widehat{B}} \right) + \vec{S}_T \right]
+    \f]
+  */
+  for(int cell = 0; cell < m_n_cells ; cell ++)
+  {
+    t_star.get_cell_temperature(cell,m_t_star_vec);
+    
+    m_material.calculate_local_temp_and_position(cell, m_t_star_vec);
+    
+    m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,0);
+    
+    /// get \f$ \mathbf{R}_{C_v}^{-1} \f$ 
+    m_mtrx_builder->construct_r_cv(m_coeff_matrix);   
+    m_r_cv = m_coeff_matrix.inverse();
+  
+    /// get temperature driving source
+    m_mtrx_builder->construct_temperature_source_moments(m_driving_source_vec,m_time);
+    
+    /// get planck and angle integrated intensity
+    ard_phi.get_cell_angle_integrated_intensity(cell,0,0,m_phi_vec);
+    m_material.get_grey_planck(m_t_star_vec,m_planck_vec);
+    
+    m_k_vec = m_r_cv*( m_r_sig_a*(m_phi_vec - m_sn_w*m_planck_vec) + m_driving_source_vec );
+    
+    k_t.set_kt(cell, m_stage, m_k_vec);
+  }
+  
+  return;
+}

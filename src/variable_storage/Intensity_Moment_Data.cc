@@ -242,6 +242,11 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
           else
           {
             loc_err = fabs( phi_new_this - phi_compare.get_angle_integrated_intensity(el,cell,grp,l_mom) );
+          }
+          
+          if(loc_err < err_phi.get_worst_err() )
+          {
+            err_phi.set_error(cell, grp, l_mom, loc_err);
           }          
         }
       }
