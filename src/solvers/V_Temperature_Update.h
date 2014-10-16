@@ -42,8 +42,9 @@ public:
     
   void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
 
+  virtual void calculate_k_t(const Temperature_Data& t_star, K_Temperature& k_t, const Intensity_Moment_Data& ard_phi) = 0;
 protected:
-  /// need to access material objects, save a ptr to avoid passing it all the time
+  /// need to access material objects
   Materials& m_material;
   
   const double m_sn_w;

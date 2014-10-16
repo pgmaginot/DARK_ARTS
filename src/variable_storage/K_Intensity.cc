@@ -133,7 +133,7 @@ void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, cons
     if(dir_set ==0)
     {
       /// negative mu
-      start = m_cells;
+      start = m_cells-1;
       end = -1;
       incr = -1;
       offset = 0;

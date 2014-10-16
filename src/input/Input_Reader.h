@@ -83,6 +83,9 @@ public:
   double get_within_group_solve_tolerance(void) const;
   double get_between_group_solve_tolerance(void) const;
   int get_max_number_sweeps(void) const;
+  int get_max_ard_iterations(void) const;
+  ARD_SOLVE_TYPE get_ard_solve_type(void) const;
+  
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -149,6 +152,9 @@ protected:
   double m_bg_tolerance = -1.;
   /// maximum number of sweeps per within group radiation solve
   int m_max_num_sweeps = -1;
+  /** Things only necessary for multi-frequency  */
+  ARD_SOLVE_TYPE m_ard_solve_type = INVALID_ARD_SOLVE_TYPE;
+  int m_max_ard_iterations = -1;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);

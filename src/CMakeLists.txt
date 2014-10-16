@@ -121,6 +121,12 @@ PropagateSG(TIME_MARCHER)
 add_subdirectory(solvers)
 PropagateSG(SOLVERS)
 
+#----------------------------------------
+# Stuff unique to Performing Transport Sweeps
+#----------------------------------------
+
+add_subdirectory(transport_sweep)
+PropagateSG(transport_sweep)
 
 #----------------------------------------
 # Propagate variables to parents scope

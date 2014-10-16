@@ -2,7 +2,9 @@
 #define Intensity_Update_MF_h
 
 #include "V_Intensity_Update.h"
-
+#include "MF_ARD_Solver_FP_No_LMFGA.h"
+// #include "MF_ARD_Solver_FP_LMFGA.h"
+// #include "MF_ARD_Solver_Krylov_LMFGA.h"
 
 /** @file   Intensity_Update_MF.h
   *   @author pmaginot
@@ -29,6 +31,8 @@ public:
 
   void update_intensity(Intensity_Moment_Data& phi) override;
 
+private:
+  std::shared_ptr<V_MF_ARD_Solver> m_ard_solver;
 };
 
 #endif

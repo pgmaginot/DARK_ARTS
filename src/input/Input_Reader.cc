@@ -353,6 +353,16 @@ int Input_Reader::get_max_number_sweeps(void) const
   return m_max_num_sweeps;
 }
 
+int Input_Reader::get_max_ard_iterations(void) const
+{
+  return m_max_ard_iterations;
+}
+  
+ARD_SOLVE_TYPE Input_Reader::get_ard_solve_type(void) const
+{
+  return m_ard_solve_type;
+}
+
 /* ***************************************************
  *
  *  Protected Functions
@@ -1132,7 +1142,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
 {
   TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_Solver_type");
   TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");
-  TiXmlElement* bg_tolerance_elem = solver_element->FirstChildElement( "BG_Tolerance");
+  
   
   if(!solver_type_elem)
   {
@@ -1145,36 +1155,14 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     std::cerr << "Missing WG_Tolerance element\n" ;
     exit(EXIT_FAILURE);  
   }
-  
-  /// only require the between group solver tolerance if number of groups is greater than 1
-  if( (m_number_groups > 1) && !bg_tolerance_elem)
-  {
-    std::cerr << "MF problems require specification of between group tolerance, BG_Tolerance.  Element not found\n";
-    exit(EXIT_FAILURE);
-  }
-  
+   
   m_wg_tolerance = atof( wg_tolerance_elem->GetText() );
   if( (m_wg_tolerance < 1.E-15) || (m_wg_tolerance> 1.E-4))
   {
     std::cerr << "Invalid within group tolerance.  Must be greater 1E-15 and less than 1E-4\n";
     exit(EXIT_FAILURE);
   }
-  
-  if(m_number_groups > 1)
-  {
-    m_bg_tolerance = atof(bg_tolerance_elem->GetText() );
-    if( m_bg_tolerance < m_wg_tolerance)
-    {
-      std::cerr << "Invalid between group tolerance.  Must be greater than the within group scattering tolerance.\n";
-      exit(EXIT_FAILURE);
-    }
-    if( m_bg_tolerance > 1.E-3)
-    {
-      std::cerr << "Invalid between group tolerance.  Must be less than 1E-3.\n";
-      exit(EXIT_FAILURE);
-    }
-  }
-  
+    
   std::string solve_type_str = solver_type_elem->GetText();
   // change to all upper case 
   transform(solve_type_str.begin() , solve_type_str.end() , solve_type_str.begin() , toupper);
@@ -1206,6 +1194,74 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     {
       std::cerr << "Must allow at least one sweep per within group solve\n";
       exit(EXIT_FAILURE);
+    }
+  }
+  
+  /**
+      Things that are only required / neeeded for multi frequency problems
+  */
+  if(m_number_groups > 1)
+  {
+    TiXmlElement* bg_tolerance_elem = solver_element->FirstChildElement( "BG_Tolerance");
+    
+    /// only require the between group solver tolerance if number of groups is greater than 1
+    if(!bg_tolerance_elem)
+    {
+      std::cerr << "MF problems require specification of between group tolerance, BG_Tolerance.  Element not found\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    m_bg_tolerance = atof(bg_tolerance_elem->GetText() );
+    if( m_bg_tolerance < m_wg_tolerance)
+    {
+      std::cerr << "Invalid between group tolerance.  Must be greater than the within group scattering tolerance.\n";
+      exit(EXIT_FAILURE);
+    }
+    if( m_bg_tolerance > 1.E-4)
+    {
+      std::cerr << "Invalid between group tolerance.  Must be less than 1.0E-4.\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    TiXmlElement* mf_ard_solve_elem = solver_element->FirstChildElement( "MF_Solver_Type" );
+    if(!mf_ard_solve_elem)
+    {
+      std::cerr<< "MF_Solver_Type element not found in multi-frequency problem\n";
+      exit(EXIT_FAILURE);
+    } 
+    
+    std::string ard_solve_type_str = mf_ard_solve_elem->GetText();
+    // change to all upper case 
+    transform(ard_solve_type_str.begin() , ard_solve_type_str.end() , ard_solve_type_str.begin() , toupper);
+    if(ard_solve_type_str == "FP_NO_ACCEL")
+      m_ard_solve_type = FP_NO_ACCEL;
+    else if (ard_solve_type_str == "FP_LMFGA")
+      m_ard_solve_type = FP_LMFGA;
+    else if (ard_solve_type_str == "KRYLOV_LMFGA")
+      m_ard_solve_type = KRYLOV_LMFGA;
+    
+    if(m_ard_solve_type == INVALID_ARD_SOLVE_TYPE)
+    {
+      std::cerr << "Invalid ARD_SOLVE_TYPE found\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    if( (m_ard_solve_type == FP_NO_ACCEL) || (m_ard_solve_type == FP_LMFGA) )
+    {
+      TiXmlElement* fp_ard_iter_elem = mf_ard_solve_elem->FirstChildElement("Max_Iterations");
+      
+      if(!fp_ard_iter_elem)
+      {
+        std::cerr << "Fixed point ARD solvers require Max_Iterations element\n";
+        exit(EXIT_FAILURE);
+      }
+      
+      m_max_ard_iterations = atoi( fp_ard_iter_elem->GetText() );
+      if(m_max_ard_iterations < 1)
+      {
+        std::cerr << "Require at least 1 iteration for FP ARD solver schemes\n";
+        exit(EXIT_FAILURE);
+      }
     }
   }
   
