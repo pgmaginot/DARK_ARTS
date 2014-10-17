@@ -70,18 +70,37 @@
 
 using std::vector;
 
-Planck::Planck(double accuracy_parameter)
+Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader)
 {
-	accuracy = accuracy_parameter;
-	h = 4.1356668e-15;     // ev s
-	//h=PLANCK_CONSTANT_KeV_SH;
-	k = 8.6173423e-5;        // ev K^-1
-	//k=BOLTZMANN_CONSTANT_JK_KEV;
-	c = 299792458.0*100;    // cm s^-1
-	//c=SPEED_OF_LIGHT_SH;
-	pi = 3.14159265358979323846;
-	a = (8.0*pow(pi,5)*pow(k,4))/(15.0*pow(h,3)*pow(c,3)); // eV/cm^3-K^4
-	//a=0.00472218;
+  accuracy = accuracy_parameter;
+  pi = 3.14159265358979323846;
+  if(input_reader.use_weird_units() )
+  {
+    if( input_reader.get_units_type() == UNITY )
+    {
+      h = 1.;    
+      k = 1.;      
+      c = 1.;   
+      a = 1.;    
+    }
+    else
+    {
+      std::cerr << "Other unit types not coded\n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  else
+  {
+    h = 4.1356668e-15;     // ev s
+    //h=PLANCK_CONSTANT_KeV_SH;
+    k = 8.6173423e-5;        // ev K^-1
+    //k=BOLTZMANN_CONSTANT_JK_KEV;
+    c = 299792458.0*100;    // cm s^-1
+    //c=SPEED_OF_LIGHT_SH;
+    
+    a = (8.0*pow(pi,5)*pow(k,4))/(15.0*pow(h,3)*pow(c,3)); // eV/cm^3-K^4
+    //a=0.00472218;
+  }
 
 	gauss_quad();
 

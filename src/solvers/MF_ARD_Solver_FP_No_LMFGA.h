@@ -6,12 +6,21 @@
 class MF_ARD_Solver_FP_No_LMFGA : public V_MF_ARD_Solver
 {
 public:
-  MF_ARD_Solver_FP_No_LMFGA(){}
+  MF_ARD_Solver_FP_No_LMFGA(const Input_Reader& input_reader, 
+    const Fem_Quadrature& fem_quadrature, 
+    const Cell_Data& cell_data, 
+    Materials& materials, 
+    const Angular_Quadrature& angular_quadrature, 
+    std::shared_ptr<V_WGRS> wgrs, 
+    std::vector<double>&  phi_ref_norm);
   
   virtual ~MF_ARD_Solver_FP_No_LMFGA(){}
+  
+  void solve_ard_problem(Intensity_Moment_Data& ard_phi_new) override;
 
 protected:
-
+  const int m_max_iterations;
+  Intensity_Moment_Data m_ard_old;
 
 
 };

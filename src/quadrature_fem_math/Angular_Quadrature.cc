@@ -49,6 +49,10 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
       cnt++;
     }
   }
+  
+  /// get energy bounds 
+  input_reader.get_lower_energy_bounds(m_grp_e_min);
+  input_reader.get_upper_energy_bounds(m_grp_e_max);
 }
     
 int Angular_Quadrature::get_number_of_dir(void) const

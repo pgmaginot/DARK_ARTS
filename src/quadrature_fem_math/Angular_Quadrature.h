@@ -55,6 +55,9 @@ protected:
   /// legendre polynomials evaluated at discrete ordinates
   std::vector<double> m_legendre_poly;  
 
+  /// frequency group bounds
+  std::vector<double> m_grp_e_min;
+  std::vector<double> m_grp_e_max;
 };
 
 #endif

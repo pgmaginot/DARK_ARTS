@@ -60,6 +60,8 @@ public:
   int get_number_of_angles(void) const;
   ANGULAR_QUADRATURE_TYPE get_angular_quadrature_type(void) const;
   int get_number_of_legendre_moments(void) const;
+  void get_lower_energy_bounds(std::vector<double>& low_bounds) const;
+  void get_upper_energy_bounds(std::vector<double>& upper_bounds) const;
   
   /// Functions for the Materials class and related objects
   int get_number_of_materials(void) const;
@@ -76,7 +78,9 @@ public:
   int get_scat_int_constant(const int mat_num) const;
   void get_abs_file_str(const int mat_num, std::string& filename) const;
   void get_scat_file_str(const int mat_num, std::string& filename) const;  
-  double get_cv_constant(const int mat_num) const;
+  double get_cv_constant(const int mat_num) const;  
+  bool use_weird_units(void) const;
+  UNITS_TYPE get_units_type(void) const;
   
   /// Functions used by Intensity_Update objects
   WG_SOLVE_TYPE get_within_group_solve_type(void) const;
@@ -116,6 +120,8 @@ protected:
   std::vector<double> m_scat_opacity_double_constants_1;
   std::vector<double> m_scat_opacity_double_constants_2;
   std::vector<double> m_cv_constants;
+  bool m_weird_units = false;
+  UNITS_TYPE m_units_type = INVALID_UNITS_TYPE;
   
   /// spatial discretization input block
   int m_dfem_trial_space_degree = -1;
@@ -130,6 +136,8 @@ protected:
   int m_number_angles = -1;
   int m_number_groups = -1;
   int m_n_leg_moments = -1;
+  std::vector<double> m_group_lower_bounds;
+  std::vector<double> m_group_upper_bounds;
   
   //! time discretization data
   double m_dt_min = -1.;

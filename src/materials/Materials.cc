@@ -15,6 +15,7 @@
 
 Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_ptr)
 :
+    m_planck( 1.0E-15 , input_reader),
   m_num_materials{input_reader.get_number_of_materials()},
   m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
   m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },
@@ -72,6 +73,12 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   /// qet source moment quadrature points and allocate space for source moment evaluations
   fem_quadrature.get_source_points(m_source_quad);
   m_position_at_source_quad.resize(m_n_source_pts,0.);
+  
+  /// get energy bounds 
+  input_reader.get_lower_energy_bounds(m_grp_e_min);
+  input_reader.get_upper_energy_bounds(m_grp_e_max);
+  
+  return;
 }
 
 void Materials::calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)

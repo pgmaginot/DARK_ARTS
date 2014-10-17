@@ -12,11 +12,11 @@
 
 #include <Eigen/Dense>
 
-#include "VAbsorption_Opacity.h"
-#include "VScattering_Opacity.h"
-#include "VCv.h"
-#include "VSource_T.h"
-#include "VSource_I.h"
+// #include "VAbsorption_Opacity.h"
+// #include "VScattering_Opacity.h"
+// #include "VCv.h"
+// #include "VSource_T.h"
+// #include "VSource_I.h"
 #include "Absorption_Opacity_Rational.h"
 #include "Scattering_Opacity_Rational.h"
 #include "Absorption_Opacity_Constant.h"
@@ -26,7 +26,7 @@
 #include "Source_I_Constant.h"
 #include "Source_T_Constant.h"
 #include "Cv_Constant.h"
-#include "V_XS_Treatment.h"
+// #include "V_XS_Treatment.h"
 #include "XS_Treatment_SLXS.h"
 #include "XS_Treatment_Moment_Preserving.h"
 #include "XS_Treatment_Interpolating.h"

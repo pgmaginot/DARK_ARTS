@@ -14,19 +14,21 @@
 class Intensity_Moment_Data
 {
 public:
-  /// Will set n_grp, n_el, n_dir, n_leg as static values
+  /// used only by the phi_ard that is intiialized in Time_Marcher object
   Intensity_Moment_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
-    const Fem_Quadrature& fem_quad, const std::vector<double>& reference_phi_norm);
-    
+    const Fem_Quadrature& fem_quad, const Intensity_Data& i_old);
+
+  /// used by subsequent phi .  Needed so that error comparisons can be made with some knowledge of what physically
+  /// sized quantities are (aka what order of magnitude is really zero since we have unit issues)
   Intensity_Moment_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
-  const Fem_Quadrature& fem_quad, const Intensity_Data& i_old);
-    
-  ~Intensity_Moment_Data(){}
+    const Fem_Quadrature& fem_quad, const std::vector<double>& reference_phi_norm);  
   
   /// Copy constructor
   Intensity_Moment_Data(const Intensity_Moment_Data& intensity_moment);
   
-  /// assignment operator
+  ~Intensity_Moment_Data(){}
+  
+  /// assignment operator used during iteration processes
   Intensity_Moment_Data& operator= (const Intensity_Moment_Data& intensity_moment);
   
   /// Public accessor functions    

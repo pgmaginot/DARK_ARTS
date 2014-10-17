@@ -59,6 +59,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "Input_Reader.h"
+
 // #ifndef math_h
 // #define math_h
 // #include "math.h"
@@ -102,7 +104,7 @@ private:
 
 public:
 
-  Planck(double accuracy_parameter = 1e-15);//  {gauss_quad(accuracy)};
+  Planck(double accuracy_parameter, const Input_Reader& input_reader);//  {gauss_quad(accuracy)};
   ~Planck() {}; // empty destructor
   
   /// to access c constant

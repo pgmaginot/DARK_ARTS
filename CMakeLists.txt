@@ -34,25 +34,21 @@ endif()
 #==============================================================================
 # - Define CMake requirements and override make rules as needed
 #
+
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
     ${CMAKE_SOURCE_DIR}/cmake/Modules/MakeRules_cxx.cmake)
 
-
-
-
-
 #==============================================================================
 # - Project definition
 #
+
 project(DARK_ARTS)
+
 #-------------------------------------------------------
 # Lowercase project name (used for EXE name and scripts)
 set(LC_PROJECT_NAME ${PROJECT_NAME})
 string(TOLOWER ${LC_PROJECT_NAME} LC_PROJECT_NAME)
-
-
-
 
 
 #==============================================================================
@@ -60,17 +56,14 @@ string(TOLOWER ${LC_PROJECT_NAME} LC_PROJECT_NAME)
 # This allows us to customize, add, and factor out functionality
 # NB: if our custom modules include others that we don't supply, those in the
 # base path will be used, so watch for incompatibilities!!
-#
+#  PGM: look for files in in the project and default with cmake
 #-------------------------------------------------------
 set(CMAKE_MODULE_PATH
     ${PROJECT_SOURCE_DIR}/cmake/Modules
     ${CMAKE_MODULE_PATH})
 
-
-
-
-
 #==============================================================================
+# inlcude the Cmake Module that are located in the project
 include(GenericCMakeOptions)
 include(GenericCMakeFunctions)
 include(MacroUtilities)
@@ -108,6 +101,8 @@ INCLUDE_DIRECTORIES ( "${EIGEN_PATH}" )
 option(SORTED "Sort the folder groups into another level of include/ and src/ folders" ON)
 option(VERBOSE "Turn on verbose Makefile" OFF)
 option(USE_OPENGL "Turn of visualization with OpenGL" OFF)
+option(BUILD_TESTS "Make Test executables" OFF)
+
 if(VERBOSE)
     set(CMAKE_VERBOSE_MAKEFILE ON)
 else(VERBOSE)
@@ -122,6 +117,7 @@ ENABLE_OPENMP_SUPPORT(OFF)
 
 
 
+
 #==============================================================================
 # - Provide an 'uninstall' target.
 include(CMakeUninstallTarget)
@@ -132,10 +128,6 @@ include(LibraryBuildOptions)
 # - Provide standard install directories permitting customization.
 include(InstallDirs)
 
-
-
-
-
 #==============================================================================
 #    Configure required components
 include(RequiredComponents)
@@ -143,10 +135,6 @@ include(RequiredComponents)
 #    Configure optional components (specifically the testing components)
 # - currently configures nothing
 include(OptionalComponents)
-
-
-
-
 
 #==============================================================================
 # Add the source and environments subdirectories

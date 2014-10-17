@@ -256,6 +256,18 @@ int Input_Reader::get_number_of_legendre_moments(void) const
   return m_n_leg_moments;
 }
 
+void Input_Reader::get_lower_energy_bounds(std::vector<double>& low_bounds) const
+{
+  low_bounds = m_group_lower_bounds;
+  return;
+}
+
+void Input_Reader::get_upper_energy_bounds(std::vector<double>& upper_bounds) const
+{
+  upper_bounds = m_group_upper_bounds;
+  return;
+}
+
 int Input_Reader::get_number_of_materials(void) const
 {
   return m_number_regions;
@@ -361,6 +373,16 @@ int Input_Reader::get_max_ard_iterations(void) const
 ARD_SOLVE_TYPE Input_Reader::get_ard_solve_type(void) const
 {
   return m_ard_solve_type;
+}
+
+bool Input_Reader::use_weird_units(void) const
+{
+  return m_weird_units;
+}
+
+UNITS_TYPE Input_Reader::get_units_type(void) const
+{
+  return m_units_type;
 }
 
 /* ***************************************************
@@ -527,6 +549,41 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   m_scat_opacity_double_constants_1.resize(m_number_materials);
   m_scat_opacity_double_constants_2.resize(m_number_materials);
   m_cv_constants.resize(m_number_materials);
+  
+  TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
+  if(!units_elem)
+  {
+    std::cerr << "Must give Units block.\n";
+    exit(EXIT_FAILURE);
+  }
+  else
+  {
+    std::string units_str = units_elem->GetText();    
+    transform(units_str.begin() , units_str.end() , units_str.begin() , toupper);
+    
+    if( units_str == "CM_SH_KEV")
+    {
+      m_units_type = CM_SH_KEV;
+      m_weird_units = false;
+      std::cout << "Not using any funny units. \n";
+      std::cout << "Lengths in cm \n";
+      std::cout << "Time in shakes \n";
+      std::cout << "Temperatures / Energies in keV\n"; 
+      
+    }
+    else if( units_str == "UNITY" )
+    {
+      m_units_type = UNITY;
+      m_weird_units = true;
+      std::cout << "Using unity / dimensionless numbers\n";
+      std::cout << "a=c=1" << std::endl;
+    }
+    else
+    {
+      std::cerr << "Invalid units type.\n";
+      exit(EXIT_FAILURE);
+    }
+  }
   
   TiXmlElement* mat_descr = mat_elem->FirstChildElement("Material");
   for(int mat_cnt = 0; mat_cnt < m_number_materials ; mat_cnt++)
@@ -1112,6 +1169,58 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   {
     std::cerr << "Error.  Number of groups must be an integer > 0" << std::endl;
     exit(EXIT_FAILURE);
+  }
+  
+  m_group_lower_bounds.resize(m_number_groups,0.);
+  m_group_upper_bounds.resize(m_number_groups,0.);
+  
+  /// load group bounds
+  if( m_number_groups > 1)
+  {
+    TiXmlElement* grp_bounds = angle_element->FirstChildElement("Group_Boundaries");
+    for(int edge_cnt = 0; edge_cnt <= m_number_groups ; edge_cnt++)
+    {    
+      if(!grp_bounds)
+      {
+        std::cerr << "Error.  Missing Group_Boundaries element in ANGLE block.  Expected: " << m_number_groups + 1 
+                  << "found: " << edge_cnt << std::endl;
+        exit(EXIT_FAILURE);
+      }    
+      int edge_num = atoi( grp_bounds->GetText() );
+      if(edge_num != edge_cnt)
+      {
+        std::cerr << "Error.  Group Bounds not entered in order" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      TiXmlElement* grp_edge_val = grp_bounds->FirstChildElement("Edge_Value");
+      double edge = atof( grp_edge_val->GetText() );
+      
+      /// the lower the group number, the higher the average frequency group energy (by convention)
+      if(edge_cnt < m_number_groups)
+        m_group_upper_bounds[edge_cnt] = edge;
+        
+      if(edge_cnt > 0)
+        m_group_lower_bounds[edge_cnt - 1] = edge;      
+    
+      grp_bounds = grp_bounds->NextSiblingElement("Group_Boundaries");
+    }
+    
+    /// check that these are logical values
+    for(int g = 1; g<m_number_groups ; g++)
+    {
+      if( m_group_lower_bounds[g] > m_group_lower_bounds[g-1] )
+      {
+        std::cerr << "Frequency groups lower energy bounds are not in descending order\n" ;
+        std::cerr << "Problem lies between group: " << g << " and group: " << g-1 << std::endl ;
+        exit(EXIT_FAILURE);
+      }
+      if( m_group_upper_bounds[g] >  m_group_upper_bounds[g-1] )
+      {
+        std::cerr << "Frequency group upper energy bounds are not in descending order\n";
+        std::cerr << "Problem lies between group: " << g << " and group: " << g-1 << std::endl;
+        exit(EXIT_FAILURE);
+      }
+    }
   }
   
   std::string ang_quad_str = quad_type_elem->GetText();
