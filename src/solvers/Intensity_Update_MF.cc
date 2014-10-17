@@ -23,7 +23,9 @@ Intensity_Update_MF::Intensity_Update_MF(const Input_Reader& input_reader,
         input_reader, 
         fem_quadrature, 
         cell_data,         
-        angular_quadrature, m_within_group_radiation_solver, phi_ref_norm) );
+        angular_quadrature, 
+        m_within_group_radiation_solver, 
+        phi_ref_norm) );
       break;
     case FP_LMFGA:
       std::cerr << "FP with LMFGA not coded\n";

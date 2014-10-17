@@ -9,9 +9,10 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
   /// initilaize range members
   : m_cells{ n_cells } ,     
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() },
-    m_t_length{ m_cells*m_el_per_cell} 
+    m_t_length{ m_cells*m_el_per_cell} ,
+    m_t(m_t_length,0.)    
   {
-    m_t.resize(m_t_length,0.);
+    fem_quad.get_dfem_interpolation_point_weights(m_dfem_w);
   }
   
 /// Public accessor functions
@@ -103,3 +104,20 @@ Temperature_Data& Temperature_Data::operator= (const Temperature_Data& t_data)
   
   return *this;
 }
+
+double Temperature_Data::calculate_average(void)
+{
+  double val = 0.;
+  int cnt = 0;
+  for(int c=0; c<m_cells; c++)
+  {
+    for(int el=0;el<m_el_per_cell;el++)
+    {
+      val += m_t[cnt]*m_dfem_w[el];
+      cnt++;
+    }
+  }
+  val /= (2.* double(m_cells));
+  return val;
+}
+

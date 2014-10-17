@@ -26,6 +26,8 @@ private:
 
   const Time_Data& m_time_data;
   
+  const double m_thermal_tolerance;
+  
   K_Intensity m_k_i;
   K_Temperature m_k_t;
   Temperature_Data m_t_star;

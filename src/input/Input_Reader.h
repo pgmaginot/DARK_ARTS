@@ -82,13 +82,14 @@ public:
   bool use_weird_units(void) const;
   UNITS_TYPE get_units_type(void) const;
   
-  /// Functions used by Intensity_Update objects
+  /// Solver tolerances 
   WG_SOLVE_TYPE get_within_group_solve_type(void) const;
   double get_within_group_solve_tolerance(void) const;
   double get_between_group_solve_tolerance(void) const;
   int get_max_number_sweeps(void) const;
   int get_max_ard_iterations(void) const;
   ARD_SOLVE_TYPE get_ard_solve_type(void) const;
+  double get_thermal_tolerance(void) const;
   
 protected:
   /** variables that will be used to store data from input file
@@ -155,14 +156,15 @@ protected:
   /// within group solve type
   WG_SOLVE_TYPE m_wg_solve_type = INVALID_WG_SOLVE_TYPE;
   /// within group scattering tolerance
-  double m_wg_tolerance = 10.;
+  double m_wg_tolerance = 3.;
   /// between group scattering/absorption/re-emission tolerance
-  double m_bg_tolerance = -1.;
+  double m_bg_tolerance = 2.;
   /// maximum number of sweeps per within group radiation solve
   int m_max_num_sweeps = -1;
   /** Things only necessary for multi-frequency  */
   ARD_SOLVE_TYPE m_ard_solve_type = INVALID_ARD_SOLVE_TYPE;
   int m_max_ard_iterations = -1;
+  double m_thermal_tolerance = 1.;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);

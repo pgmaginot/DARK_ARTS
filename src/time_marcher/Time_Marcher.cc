@@ -7,6 +7,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     :
     m_n_stages{time_data.get_number_of_stages()},
     m_time_data( time_data),
+    m_thermal_tolerance{ input_reader.get_thermal_tolerance()  },
     m_k_i( cell_data.get_total_number_of_cells() ,m_n_stages, fem_quadrature, angular_quadrature),
     m_k_t( cell_data.get_total_number_of_cells(), m_n_stages, fem_quadrature),
     m_t_star( cell_data.get_total_number_of_cells(), fem_quadrature),
@@ -62,13 +63,16 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);
   
+  m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
+  
   for(int t_step = 0; t_step < max_step; t_step++)
   {
-    dt = time_data.get_dt(t_step);
+    dt = time_data.get_dt(t_step,time);
     
     /// initial temperature iterate guess is t_old
     m_t_star = t_old;
-    m_damping = 1.;
+    m_damping = 1.;    
+    
     for(int stage = 0; stage < m_n_stages ; stage++)
     {
       double time_stage = time + dt*time_data.get_c(stage);
@@ -91,6 +95,12 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
         m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
 
+        /// check convergence of temperature
+        if( m_err_temperature.get_worst_err() < m_thermal_tolerance)
+        {
+          break;
+        }
+        
       }    
       /** calculate k_I and k_T
        * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
@@ -106,6 +116,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     /// these are the only functions that change I_old and T_old
     m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
+    
+    /// check to see if we are at the end of the time marching scheme
+    if( abs( (time - time_data.get_t_end() )/time) < 1.0E-6)
+      break;
     
   }
 

@@ -26,7 +26,7 @@ public:
   double get_b(const int stage) const;
   double get_c(const int stage) const;
   
-  double get_dt(const int step);
+  double get_dt(const int step, const double time_now);
   
   double get_t_start(void) const;
   double get_t_end(void) const;
@@ -68,8 +68,6 @@ protected:
   *   Protected Functions
   *
   *************************************************** */
-
-  void fill_sdirk_vectors(std::vector<double>& a, std::vector<double>& b, std::vector<double>& c);
   
   std::shared_ptr<V_DT_Calculator> m_calculate_dt;  
 };

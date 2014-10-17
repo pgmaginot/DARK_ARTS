@@ -99,9 +99,13 @@ double Time_Data::get_c(const int stage) const
   return m_c[stage];
 }
 
-double Time_Data::get_dt(const int step)
+double Time_Data::get_dt(const int step, const double time_now)
 {
-  return m_calculate_dt->calculate_dt(step);
+  double dt = m_calculate_dt->calculate_dt(step);
+  if( (time_now + dt ) > m_t_end)
+    dt = m_t_end - time_now;
+    
+  return dt;
 }
 
 double Time_Data::get_t_start(void) const

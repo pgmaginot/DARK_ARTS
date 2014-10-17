@@ -27,6 +27,8 @@ public:
   /// assignment operator
   Temperature_Data& operator= (const Temperature_Data& t_data);
   
+  double calculate_average(void);
+  
 protected:
     /// total number of cells in the problem
   const int m_cells;
@@ -39,6 +41,8 @@ protected:
     
   /// vector to hold temperature unknowns
   std::vector<double> m_t;
+  
+  std::vector<double> m_dfem_w;
   
 /* ***************************************************
   *

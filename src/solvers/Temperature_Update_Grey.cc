@@ -47,6 +47,9 @@ void Temperature_Update_Grey::update_temperature(const Intensity_Moment_Data& ph
         
     /// use all these quantites and calculate \f$ \vec{T}_i \f$
     m_delta = m_coeff_matrix*m_t_old_vec + m_dt*m_rk_a[m_stage]*m_coeff_matrix*m_r_cv*m_phi_vec;
+    
+    /// check convergence of temperature
+    
     m_t_star_vec += damping*m_delta;
     
     /// save the local Eigen::VectorXd T_i in the t_new Temperature_Data object

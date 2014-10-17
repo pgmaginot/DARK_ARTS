@@ -385,6 +385,11 @@ UNITS_TYPE Input_Reader::get_units_type(void) const
   return m_units_type;
 }
 
+double Input_Reader::get_thermal_tolerance(void) const
+{
+  return m_thermal_tolerance;
+}
+
 /* ***************************************************
  *
  *  Protected Functions
@@ -1371,6 +1376,41 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
         std::cerr << "Require at least 1 iteration for FP ARD solver schemes\n";
         exit(EXIT_FAILURE);
       }
+    }
+  }
+  
+  /// get thermal convergence tolerance
+  TiXmlElement* thermal_tolerance_elem = solver_element->FirstChildElement( "Thermal_Tolerance");
+  if(!thermal_tolerance_elem)
+  {
+    std::cerr << "Thermal_Tolerance element required \n";
+    exit(EXIT_FAILURE);
+  }
+  m_thermal_tolerance = atof( thermal_tolerance_elem->GetText() );
+  if(m_thermal_tolerance < 1.E-14)
+  {
+    std::cerr << "Too small of thermal tolerance. \n" ; 
+    exit(EXIT_FAILURE);    
+  }
+  if( m_number_groups > 1)
+  {
+    if( m_bg_tolerance < m_wg_tolerance)
+    {
+      std::cerr << "Between group tolerance must be greater within group tolerance \n";
+      exit(EXIT_FAILURE);
+    }
+    if( m_thermal_tolerance < m_bg_tolerance)
+    {
+      std::cerr << "Thermal tolerance must be less than between group absorption/re-emission tolerance \n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  else
+  {
+    if(m_thermal_tolerance < m_wg_tolerance)
+    {
+      std::cerr << "Grey problem.  Within group tolerance must be smaller than thermal iteration tolerance\n";
+      exit(EXIT_FAILURE);    
     }
   }
   

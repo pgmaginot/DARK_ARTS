@@ -39,8 +39,16 @@ int Err_Temperature::get_cell_with_worst_err(void) const
   return cell;
 }
   
-double Err_Temperature::get_worst_err(Eigen::VectorXd& err_vec) const
+double Err_Temperature::get_worst_err(void) const
 {
-  err_vec = big_delta;
   return error;
 }
+
+void Err_Temperature::set_small_number(const double val)
+{
+  small_number = val;
+  return;
+}
+
+
+
