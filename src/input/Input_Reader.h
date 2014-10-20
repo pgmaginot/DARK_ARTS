@@ -91,6 +91,16 @@ public:
   ARD_SOLVE_TYPE get_ard_solve_type(void) const;
   double get_thermal_tolerance(void) const;
   
+  /// IC_BC block
+  /**
+    Currently assuming one initial condition type for the whole problem.  Could change to region specific
+  */
+  TEMPERATURE_IC_TYPE get_temperature_ic_type(void) const;
+  double get_region_temperature(const int reg_num) const;
+  RADIATION_IC_TYPE get_radiation_ic_type(void) const;
+  RADIATION_BC_TYPE get_radiation_bc_type_left(void) const;
+  RADIATION_BC_TYPE get_radiation_bc_type_right(void) const;
+  
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -165,6 +175,13 @@ protected:
   ARD_SOLVE_TYPE m_ard_solve_type = INVALID_ARD_SOLVE_TYPE;
   int m_max_ard_iterations = -1;
   double m_thermal_tolerance = 1.;
+  
+  /// BC_IC block variables
+  TEMPERATURE_IC_TYPE m_temp_ic_type = INVALID_TEMPERATURE_IC_TYPE;
+  std::vector<double> m_region_temperature;
+  RADIATION_IC_TYPE m_radiation_ic_type  = INVALID_RADIATION_IC_TYPE;
+  RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
+  RADIATION_BC_TYPE m_rad_bc_right = INVALID_RADIATION_BC_TYPE;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);

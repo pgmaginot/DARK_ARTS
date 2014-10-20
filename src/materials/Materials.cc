@@ -239,6 +239,16 @@ void Materials::get_grey_planck(const Eigen::VectorXd& t_eval_vec, Eigen::Vector
   return;
 }
 
+double Materials::get_mf_planck(const double t_eval, const int grp)
+{
+  return m_planck.integrate_B(t_eval, m_grp_e_min[grp], m_grp_e_max[grp] );
+}
+
+double Materials::get_grey_planck(const double t_eval)
+{
+  return m_planck.integrate_B_grey(t_eval);
+}
+
 void Materials::get_mf_planck_derivative(const Eigen::VectorXd& t_eval_vec, const int grp, Eigen::MatrixXd& d_planck)
 {
   for(int i=0 ; i < m_n_el_cell ; i++)

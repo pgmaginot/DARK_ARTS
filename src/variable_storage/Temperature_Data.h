@@ -2,16 +2,21 @@
 #define Temperature_Data_h
 
 #include "Fem_Quadrature.h"
-
+#include "Input_Reader.h"
 #include "Eigen/Dense"
 
-#include <vector>
-#include <stdlib.h>
 
 class Temperature_Data
 {
 public:
-  Temperature_Data(const int n_cells, const Fem_Quadrature& fem_quad);
+  Temperature_Data(const int n_cells, 
+    const Fem_Quadrature& fem_quad);
+  
+  /// Initiali condition constructor
+  Temperature_Data(const int n_cells, 
+    const Fem_Quadrature& fem_quad, 
+    const Input_Reader& input_reader);
+  
   ~Temperature_Data(){}
   
   /// Single element set/get functions

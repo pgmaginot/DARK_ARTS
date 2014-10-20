@@ -5,7 +5,20 @@
 */
 #include "Temperature_Data.h"
 
+
+/// base constructor
 Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_quad)
+  /// initilaize range members
+  : m_cells{ n_cells } ,     
+    m_el_per_cell{fem_quad.get_number_of_interpolation_points() },
+    m_t_length{ m_cells*m_el_per_cell} ,
+    m_t(m_t_length,0.)    
+  {
+    fem_quad.get_dfem_interpolation_point_weights(m_dfem_w);
+  }
+  
+/// initial condition constructor
+Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_quad, const Input_Reader& input_reader)
   /// initilaize range members
   : m_cells{ n_cells } ,     
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() },

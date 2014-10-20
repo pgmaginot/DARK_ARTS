@@ -5,19 +5,28 @@
 #include "Angular_Quadrature.h"
 #include "Cell_Data.h"
 #include "Eigen/Dense"
-
-#include <vector>
-#include <stdlib.h>
+#include "Materials.h"
+#include "Input_Reader.h"
 
 class Intensity_Data
 {
 public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
-  Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
+  Intensity_Data(const Cell_Data& cell_data, 
+    const Angular_Quadrature& ang_quad,
     const Fem_Quadrature& fem_quad);
+  
+  Intensity_Data(const Cell_Data& cell_data, 
+    const Angular_Quadrature& ang_quad,
+    const Fem_Quadrature& fem_quad, 
+    Materials& materials,
+    const Input_Reader& input_reader);
+    
   ~Intensity_Data(){}
   
   double get_intensity(const int el, const int cell, const int group, const int dir) const;
+  
+ 
   
   /// Public accessor functions
   void get_cell_intensity(const int cell, const int group, const int dir, 
@@ -27,9 +36,7 @@ public:
   void set_cell_intensity(const int cell,
     const int group, const int dir, const Eigen::VectorXd& val);
      
-private:
-  std::vector<double> m_i;
-  
+private:  
   /// total number of cells in the problem
   const int m_cells;
   /// total number of groups in the problem
@@ -50,11 +57,17 @@ private:
   /// total length of the intensity data
   const int m_i_length;
   
+  /// actual storage structure to store intensities
+  std::vector<double> m_i;
+  
   /* ***************************************************
   *
   *   Protected Functions
   *
   *************************************************** */
+  void set_cell_intensity(const int cell,
+    const int group, const int dir, const double val);  
+    
   bool intensity_range_check(const int el, const int cell, const int grp, const int dir) const;
   
   int intensity_data_locator(const int el, const int cell, const int group, const int dir) const;

@@ -390,6 +390,39 @@ double Input_Reader::get_thermal_tolerance(void) const
   return m_thermal_tolerance;
 }
 
+
+TEMPERATURE_IC_TYPE Input_Reader::get_temperature_ic_type(void) const
+{
+  return m_temp_ic_type;
+}
+
+double Input_Reader::get_region_temperature(const int reg_num) const
+{
+  if(reg_num > m_number_regions)
+  {
+    std::cerr << "Asking for a region temperature in a region greater than n_regions" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  
+  return m_region_temperature[reg_num];
+}
+
+RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
+{
+  return m_radiation_ic_type;
+}
+
+RADIATION_BC_TYPE Input_Reader::get_radiation_bc_type_left(void) const
+{
+  return m_rad_bc_left;
+}
+
+RADIATION_BC_TYPE Input_Reader::get_radiation_bc_type_right(void) const
+{
+  return m_rad_bc_right;
+}
+  
+
 /* ***************************************************
  *
  *  Protected Functions

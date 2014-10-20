@@ -47,18 +47,18 @@ int main(int argc, char** argv)
   /// will also include evaluations of Legendre polynomials
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
   std::cout << "Angular quadrature object created" << std::endl;
-  
-  /// Initialize intensity and angle integrated intensity of previous time step
-  Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature);
-  std::cout << "Intensity object created" << std::endl;
-  
-  /// Initialize a Temperature_Data structure
-  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature);
-  std::cout << "Temperature object created" << std::endl;
-  
+   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , &cell_data);  
   std::cout << "Materials object created successfully" << std::endl;
+  
+  /// Initialize intensity and angle integrated intensity of previous time step
+  Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature, materials, input_reader);
+  std::cout << "Intensity object created" << std::endl;
+  
+  /// Initialize a Temperature_Data structure
+  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);
+  std::cout << "Temperature object created" << std::endl;
   
   /// Load SDIRK data
   Time_Data time_data( input_reader);  

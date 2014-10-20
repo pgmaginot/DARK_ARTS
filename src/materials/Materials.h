@@ -67,6 +67,9 @@ public:
   void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
   void get_cv_boundary(std::vector<double>& cv);
    
+  double get_mf_planck(const double t_eval, const int grp);
+  double get_grey_planck(const double t_eval);
+   
   void get_mf_planck(const Eigen::VectorXd& t_eval_vec, const int grp, Eigen::VectorXd& planck);
   void get_grey_planck(const Eigen::VectorXd& t_eval_vec, Eigen::VectorXd& planck);
   
