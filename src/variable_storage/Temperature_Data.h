@@ -54,6 +54,7 @@ protected:
   *   Protected Functions
   *
   *************************************************** */
+  void set_cell_temperature(const int cell, const double val);
   
   bool temperature_range_check(const int el, const int cell) const;
   

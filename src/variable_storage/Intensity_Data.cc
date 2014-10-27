@@ -46,24 +46,26 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
       /// loop over regions.  Each region could have a different initial condition
       std::vector<int> cell_per_reg;
       std::vector<double> temp_in_reg;
-      input_reader.get_cells_per_region_vector(cell_per_reg);
-      // input_reader.get_region_temperature(temp_in_reg);
+      
+      input_reader.get_cells_per_region_vector(cell_per_reg);      
+      
       
       int cell_cnt = 0;
       double iso_emission = 0.;
       for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
       {
+        double temp_eval = input_reader.get_region_temperature(reg);
         int n_cell_reg = cell_per_reg[reg];
         for(int grp = 0; grp < m_groups ; grp++)
         {        
           /// assume isotropic planck emission
           if(m_groups > 1)
           {          
-            iso_emission = materials.get_mf_planck(temp_in_reg[reg], grp);
+            iso_emission = materials.get_mf_planck(temp_eval, grp);
           }
           else
           {
-            iso_emission = materials.get_grey_planck(temp_in_reg[reg]);
+            iso_emission = materials.get_grey_planck(temp_eval);
           }          
           iso_emission /= ang_quad.get_sum_w();
           

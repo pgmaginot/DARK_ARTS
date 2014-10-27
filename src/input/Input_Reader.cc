@@ -38,6 +38,7 @@ bool Input_Reader::read_xml(std::string xmlFile)
   TiXmlElement* discr_elem = inp_block->FirstChildElement( "SPATIAL_DISCRETIZATION" );
   TiXmlElement* angle_elem = inp_block->FirstChildElement( "ANGULAR_DISCRETIZATION" );
   TiXmlElement* solver_elem = inp_block->FirstChildElement( "SOLVER" );
+  TiXmlElement* bc_ic_elem = inp_block->FirstChildElement( "BC_IC" );
   
   if(!reg_elem)
   {
@@ -75,12 +76,19 @@ bool Input_Reader::read_xml(std::string xmlFile)
     exit(EXIT_FAILURE);
   }
   
+  if(!bc_ic_elem)
+  {
+    std::cerr << "BC_IC block not found.  Error \n";
+    exit(EXIT_FAILURE);
+  }
+  
   int region_return = -1;
   int material_return = -1;
   int time_return = -1;
   int spatial_return = -1;
   int angle_return = -1;
   int solver_return = -1;
+  int bc_ic_return = -1;
   
   //! Load Data Appropriately from each input block
   region_return = load_region_data(reg_elem);
@@ -101,9 +109,12 @@ bool Input_Reader::read_xml(std::string xmlFile)
   solver_return = load_solver_data(solver_elem);
   std::cout << "Solver block read \n\n";
   
+  bc_ic_return = load_bc_ic_data(bc_ic_elem);
+  std::cout << "BC_IC block read \n\n";
   
   if( (region_return < 0) || (material_return < 0) || (time_return < 0) || 
-      (spatial_return < 0) || (angle_return < 0) || (solver_return < 0) )
+      (spatial_return < 0) || (angle_return < 0) || (solver_return < 0) ||
+      (bc_ic_return < 0) )
   {
     good_exit = false;
   }  
@@ -390,10 +401,9 @@ double Input_Reader::get_thermal_tolerance(void) const
   return m_thermal_tolerance;
 }
 
-
 TEMPERATURE_IC_TYPE Input_Reader::get_temperature_ic_type(void) const
 {
-  return m_temp_ic_type;
+  return m_temperature_ic_type;
 }
 
 double Input_Reader::get_region_temperature(const int reg_num) const
@@ -1445,6 +1455,157 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       std::cerr << "Grey problem.  Within group tolerance must be smaller than thermal iteration tolerance\n";
       exit(EXIT_FAILURE);    
     }
+  }
+  
+  return 0;
+}
+
+int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
+{
+    // TEMPERATURE_IC_TYPE m_temp_ic_type = INVALID_TEMPERATURE_IC_TYPE;
+  // std::vector<double> m_region_temperature;
+  // RADIATION_IC_TYPE m_radiation_ic_type  = INVALID_RADIATION_IC_TYPE;
+  // RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
+  // RADIATION_BC_TYPE m_rad_bc_right = INVALID_RADIATION_BC_TYPE;
+  TiXmlElement* temp_ic_type_elem = bc_ic_element->FirstChildElement( "Temperature_IC_Type");
+  TiXmlElement* rad_ic_type_elem = bc_ic_element->FirstChildElement( "Radiation_IC_Type");
+  TiXmlElement* rad_left_bc_type_elem = bc_ic_element->FirstChildElement( "Left_Radiation_BC_Type");
+  TiXmlElement* rad_right_bc_type_elem = bc_ic_element->FirstChildElement( "Right_Radiation_BC_Type");
+  
+  if(!temp_ic_type_elem)
+  {
+    std::cerr << "Missing Temperature_IC_Type element\n" ;
+    exit(EXIT_FAILURE);
+  }
+  
+  if(!rad_ic_type_elem)
+  {
+    std::cerr << "Missing Radiation_IC_Type element\n" ;
+    exit(EXIT_FAILURE);
+  }
+  
+  if(!rad_left_bc_type_elem)
+  {
+    std::cerr << "Missing Left_Radiation_BC_Type element\n" ;
+    exit(EXIT_FAILURE);
+  }
+  
+  if(!rad_right_bc_type_elem)
+  {
+    std::cerr << "Missing _Right_Radiation_BC_Type element\n" ;
+    exit(EXIT_FAILURE);
+  }
+  
+  /// Get IC strings
+  std::string temp_ic_str = temp_ic_type_elem->GetText();
+  transform(temp_ic_str.begin() , temp_ic_str.end() , temp_ic_str.begin() , toupper);
+  std::string rad_ic_str = rad_ic_type_elem->GetText();
+  transform(rad_ic_str.begin() , rad_ic_str.end() , rad_ic_str.begin() , toupper);
+  
+  if(temp_ic_str == "FIXED_TEMPERATURE")
+  {
+    m_temperature_ic_type = FIXED_TEMPERATURE;
+  }
+  
+  if(temp_ic_str == "PLANCKIAN_IC")
+  {
+    m_radiation_ic_type = PLANCKIAN_IC;
+  }  
+  
+  /// Get BC strings
+  std::string rad_bc_left_str = rad_left_bc_type_elem->GetText();
+  transform(rad_bc_left_str.begin() , rad_bc_left_str.end() , rad_bc_left_str.begin() , toupper);
+  std::string rad_bc_right_str = rad_right_bc_type_elem->GetText();
+  transform(rad_bc_right_str.begin() , rad_bc_right_str.end() , rad_bc_right_str.begin() , toupper);
+  
+  if(rad_bc_left_str == "VACUUM")
+  {
+    m_rad_bc_left = VACUUM;
+  }
+  else if(rad_bc_left_str == "PLANCKIAN_BC")
+  {
+    m_rad_bc_left = PLANCKIAN_BC;
+  }
+  
+  if(rad_bc_right_str == "VACUUM")
+  {
+    m_rad_bc_right = VACUUM;
+  }
+  else if(rad_bc_right_str == "PLANCKIAN_BC")
+  {
+    m_rad_bc_right = PLANCKIAN_BC;
+  }
+  
+  /// error check / do important things
+  if( m_rad_bc_left == INVALID_RADIATION_BC_TYPE)
+  {
+    std::cerr << "Left radiation BC type not recognized\n";
+    exit(EXIT_FAILURE);
+  }
+  else if( m_rad_bc_left == VACUUM)
+  {
+    m_left_bc_value = 0.; 
+  }
+  else if( m_rad_bc_left == PLANCKIAN_BC )
+  {
+    TiXmlElement* rad_left_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Temperature");
+    if(!rad_left_bc_value_elem)
+    {
+      std::cerr << "Missing BC_Temperature element in Left Radiation Planckian BC Specification\n";
+      exit(EXIT_FAILURE);
+    }
+    m_left_bc_value = atof( rad_left_bc_value_elem->GetText() ); 
+    if(m_left_bc_value < 0.)
+    {
+      std::cerr << "Invalid value for Left BC temperature.  Must be >= 0\n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  /// error check / do important things
+  if( m_rad_bc_right == INVALID_RADIATION_BC_TYPE)
+  {
+    std::cerr << "Right radiation BC type not recognized\n";
+    exit(EXIT_FAILURE);
+  }
+  else if( m_rad_bc_right == VACUUM)
+  {
+    m_right_bc_value = 0.; 
+  }
+  else if( m_rad_bc_right == PLANCKIAN_BC )
+  {
+    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Temperature");
+    if(!rad_right_bc_value_elem)
+    {
+      std::cerr << "Missing BC_Temperature element in Right Radiation Planckian BC Specification\n";
+      exit(EXIT_FAILURE);
+    }
+    m_right_bc_value = atof( rad_right_bc_value_elem->GetText() ); 
+    if(m_right_bc_value < 0.)
+    {
+      std::cerr << "Invalid value for Right BC temperature.  Must be >= 0\n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  if( m_radiation_ic_type == INVALID_RADIATION_IC_TYPE)
+  {
+    std::cerr << "Radiation IC type not recognized\n";
+    exit(EXIT_FAILURE);
+  }
+  else if( m_radiation_ic_type == PLANCKIAN_IC )
+  {
+  
+  }
+  
+  if( m_temperature_ic_type == INVALID_TEMPERATURE_IC_TYPE)
+  {
+    std::cerr << "Temperature IC type not recognized\n";
+    exit(EXIT_FAILURE);
+  }
+  else if( m_temperature_ic_type == FIXED_TEMPERATURE )
+  {
+  
   }
   
   return 0;

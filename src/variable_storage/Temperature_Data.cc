@@ -24,9 +24,28 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() },
     m_t_length{ m_cells*m_el_per_cell} ,
     m_t(m_t_length,0.)    
+{
+  fem_quad.get_dfem_interpolation_point_weights(m_dfem_w);
+  
+  /// initialize first time step temperature data
+  /// loop over regions.  Each region could have a different initial condition
+  std::vector<int> cell_per_reg;
+  std::vector<double> temp_in_reg;
+  input_reader.get_cells_per_region_vector(cell_per_reg);
+    
+  int cell_cnt = 0;
+  for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
   {
-    fem_quad.get_dfem_interpolation_point_weights(m_dfem_w);
-  }
+    double temp_eval = input_reader.get_region_temperature(reg);
+    int n_cell_reg = cell_per_reg[reg];     
+    /// assume isotropic planck emission         
+    for(int cell = 0; cell < n_cell_reg ; cell++)
+    {
+      set_cell_temperature( (cell+cell_cnt) , temp_eval );
+    }
+    cell_cnt += n_cell_reg;          
+  }   
+}
   
 /// Public accessor functions
 double Temperature_Data::get_temperature(const int el, const int cell) const
@@ -54,6 +73,15 @@ void Temperature_Data::set_cell_temperature(const int cell, const Eigen::VectorX
   int loc = temperature_data_locator(0,cell);
   for(int i=0; i< m_el_per_cell ; i++)
     m_t[loc+i] = vec(i);
+    
+  return ;
+}
+
+void Temperature_Data::set_cell_temperature(const int cell, const double val)
+{
+  int loc = temperature_data_locator(0,cell);
+  for(int i=0; i< m_el_per_cell ; i++)
+    m_t[loc+i] = val;
     
   return ;
 }

@@ -177,11 +177,13 @@ protected:
   double m_thermal_tolerance = 1.;
   
   /// BC_IC block variables
-  TEMPERATURE_IC_TYPE m_temp_ic_type = INVALID_TEMPERATURE_IC_TYPE;
+  TEMPERATURE_IC_TYPE m_temperature_ic_type = INVALID_TEMPERATURE_IC_TYPE;
   std::vector<double> m_region_temperature;
   RADIATION_IC_TYPE m_radiation_ic_type  = INVALID_RADIATION_IC_TYPE;
   RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
   RADIATION_BC_TYPE m_rad_bc_right = INVALID_RADIATION_BC_TYPE;
+  double m_left_bc_value = -1.;
+  double m_right_bc_value = -1.;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);
@@ -190,6 +192,7 @@ protected:
   int load_spatial_discretization_data(TiXmlElement* spatial_element);
   int load_angular_discretization_data(TiXmlElement* angle_element);
   int load_solver_data(TiXmlElement* solver_element);
+  int load_bc_ic_data(TiXmlElement* bc_ic_element);
 
 };
 
