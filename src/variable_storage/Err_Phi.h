@@ -7,7 +7,7 @@
 class Err_Phi{
 public:
   Err_Phi(void);
-  ~Err_Phi(){}
+  virtual ~Err_Phi(){}
   void set_error(int c, int g, int l, double err);
   void clear(void);
   int get_cell_with_worst_err(void) const;

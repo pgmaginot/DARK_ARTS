@@ -22,7 +22,7 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   Angular_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun );
-  ~Angular_Quadrature(){}
+  virtual ~Angular_Quadrature(){}
     
   int get_number_of_dir(void) const;
   int get_number_of_groups(void) const;

@@ -10,7 +10,7 @@
 class Err_Temperature{
 public:
   Err_Temperature(const int n_el);
-  ~Err_Temperature(){}
+  virtual ~Err_Temperature(){}
   void set_error(const int c, const int el, const double err, Eigen::VectorXd& delta);
   void clear(void);
   int get_cell_with_worst_err(void) const;

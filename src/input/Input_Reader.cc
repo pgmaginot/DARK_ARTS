@@ -639,7 +639,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
   if(!units_elem)
   {
-    std::cerr << "Must give Units block.\n";
+    std::cerr << "Missing required Units block in MATERIALS.\n";
     exit(EXIT_FAILURE);
   }
   else
@@ -1268,8 +1268,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     {    
       if(!grp_bounds)
       {
-        std::cerr << "Error.  Missing Group_Boundaries element in ANGLE block.  Expected: " << m_number_groups + 1 
-                  << "found: " << edge_cnt << std::endl;
+        std::cerr << "Error.  Missing Group_Boundaries element in ANGULAR_DISCRETIZATION block.  Expected: " << m_number_groups + 1 
+                  << " found: " << edge_cnt << std::endl;
         exit(EXIT_FAILURE);
       }    
       int edge_num = atoi( grp_bounds->GetText() );
@@ -1336,8 +1336,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
 int Input_Reader::load_solver_data(TiXmlElement* solver_element)
 {
   TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_Solver_type");
-  TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");
-  
+  TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");  
   
   if(!solver_type_elem)
   {
@@ -1378,7 +1377,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   
   if( (m_wg_solve_type == FP_SWEEPS) || (m_wg_solve_type == FP_DSA))
   {
-    TiXmlElement* num_sweep_elem = solver_element->FirstChildElement( "Max_Within_Group_Sweeps");
+    TiXmlElement* num_sweep_elem = solver_type_elem->FirstChildElement( "Max_Within_Group_Sweeps");
     if(!num_sweep_elem)
     {
       std::cerr << "Missing Max_Within_Group_Sweeps element.\n" ;
@@ -1482,7 +1481,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     }
     if( m_thermal_tolerance < m_bg_tolerance)
     {
-      std::cerr << "Thermal tolerance must be less than between group absorption/re-emission tolerance \n";
+      std::cerr << "Thermal tolerance must be greater than between group absorption/re-emission tolerance \n";
       exit(EXIT_FAILURE);
     }
   }
@@ -1534,23 +1533,25 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     exit(EXIT_FAILURE);
   }
   
-  /// Get IC strings
+
+  
+  /// Get IC strings and set IC types
   std::string temp_ic_str = temp_ic_type_elem->GetText();
   transform(temp_ic_str.begin() , temp_ic_str.end() , temp_ic_str.begin() , toupper);
   std::string rad_ic_str = rad_ic_type_elem->GetText();
   transform(rad_ic_str.begin() , rad_ic_str.end() , rad_ic_str.begin() , toupper);
   
-  if(temp_ic_str == "FIXED_TEMPERATURE")
+  if(temp_ic_str == "CONSTANT_TEMPERATURE_IC")
   {
-    m_temperature_ic_type = FIXED_TEMPERATURE;
+    m_temperature_ic_type = CONSTANT_TEMPERATURE_IC;
   }
   
-  if(temp_ic_str == "PLANCKIAN_IC")
+  if(rad_ic_str == "PLANCKIAN_IC")
   {
     m_radiation_ic_type = PLANCKIAN_IC;
   }  
   
-  /// Get BC strings
+  /// Get BC strings and set BC types
   std::string rad_bc_left_str = rad_left_bc_type_elem->GetText();
   transform(rad_bc_left_str.begin() , rad_bc_left_str.end() , rad_bc_left_str.begin() , toupper);
   std::string rad_bc_right_str = rad_right_bc_type_elem->GetText();
@@ -1582,7 +1583,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     m_rad_bc_right = REFLECTIVE;
   }
   
-  /// error check / do important things
+  
+  /// Handle left radiation boundary condition
   if( m_rad_bc_left == INVALID_RADIATION_BC_TYPE)
   {
     std::cerr << "Left radiation BC type not recognized\n";
@@ -1594,7 +1596,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   }
   else if( m_rad_bc_left == PLANCKIAN_BC )
   {
-    TiXmlElement* rad_left_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Temperature");
+    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Temperature");
     if(!rad_left_bc_value_elem)
     {
       std::cerr << "Missing BC_Temperature element in Left Radiation Planckian BC Specification\n";
@@ -1612,7 +1614,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     /// don't need any additional data
   }
   
-  /// error check / do important things
+  /// Right radiation boundary condition
   if( m_rad_bc_right == INVALID_RADIATION_BC_TYPE)
   {
     std::cerr << "Right radiation BC type not recognized\n";
@@ -1642,7 +1644,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     std::cerr << "Cannot use reflective boundary condition on right edge.  Only left edge\n";
     exit(EXIT_FAILURE);
   }
-  
+    
+  /// get radiation initial conditions
   if( m_radiation_ic_type == INVALID_RADIATION_IC_TYPE)
   {
     std::cerr << "Radiation IC type not recognized\n";
@@ -1681,14 +1684,14 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       
       rad_ic_reg_elem->NextSiblingElement("Region");
     }
-  }
-  
+  }  
+  /// Get temperature initial conditions
   if( m_temperature_ic_type == INVALID_TEMPERATURE_IC_TYPE)
   {
     std::cerr << "Temperature IC type not recognized\n";
     exit(EXIT_FAILURE);
   }
-  else if( m_temperature_ic_type == FIXED_TEMPERATURE )
+  else if( m_temperature_ic_type == CONSTANT_TEMPERATURE_IC )
   {
     m_region_temperature.resize(m_number_regions,0.);
     TiXmlElement* temp_ic_reg_elem = temp_ic_type_elem->FirstChildElement( "Region");
@@ -1749,9 +1752,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     {
       std::cerr << "Invalid Planckian BC time dependence\n";
       exit(EXIT_FAILURE);
-    }
-    
-    if(m_bc_time_dependence == BC_CONSTANT)
+    }    
+    else if(m_bc_time_dependence == BC_CONSTANT)
     {
       /// assume dirichlet conditions last forever
       m_bc_start_time = m_t_start - 0.01*(m_t_end - m_t_start);
@@ -1775,8 +1777,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       {
         std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
         exit(EXIT_FAILURE);
-      }
-      
+      }      
     }
   }
   /// get angular dependence for dirichlet angular BC

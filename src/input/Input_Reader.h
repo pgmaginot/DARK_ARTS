@@ -18,7 +18,7 @@ class Input_Reader
 {
 public:
   Input_Reader(){}
-  ~Input_Reader(){}
+  virtual ~Input_Reader(){}
   
   //! read the supplied input file, start populating data objects
   bool read_xml(std::string xmlFile);

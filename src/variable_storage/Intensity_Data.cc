@@ -14,7 +14,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data, const Angular_Quadrat
   m_dir{ang_quad.get_number_of_dir() } , 
   m_el_per_cell{fem_quad.get_number_of_interpolation_points() }  ,
   m_dir_div_2{m_dir/2},    
-  m_offset{ m_dir_div_2*m_el_per_cell*m_dir*m_groups*m_cells },
+  m_offset{ m_dir_div_2*m_el_per_cell*m_groups*m_cells },
   m_el_times_dir_div_2{ m_dir_div_2*m_el_per_cell }, 
   m_el_times_dir_div_2_times_grp{m_el_times_dir_div_2 * m_groups}, 
   m_i_length{m_cells*m_groups*m_dir*m_el_per_cell},
@@ -34,7 +34,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
   m_dir{ang_quad.get_number_of_dir() } , 
   m_el_per_cell{fem_quad.get_number_of_interpolation_points() }  ,
   m_dir_div_2{m_dir/2},    
-  m_offset{ m_dir_div_2*m_el_per_cell*m_dir*m_groups*m_cells },
+  m_offset{ m_dir_div_2*m_el_per_cell*m_groups*m_cells },
   m_el_times_dir_div_2{ m_dir_div_2*m_el_per_cell }, 
   m_el_times_dir_div_2_times_grp{m_el_times_dir_div_2 * m_groups}, 
   m_i_length{m_cells*m_groups*m_dir*m_el_per_cell},
@@ -56,6 +56,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
       {
         double temp_eval = input_reader.get_region_temperature(reg);
         int n_cell_reg = cell_per_reg[reg];
+        
         for(int grp = 0; grp < m_groups ; grp++)
         {        
           /// assume isotropic planck emission
@@ -69,11 +70,11 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
           }          
           iso_emission /= ang_quad.get_sum_w();
           
-          for(int dir=0; dir < m_dir ; dir++)
+          for(int cell = 0; cell < n_cell_reg ; cell++)
           {
-            for(int cell = 0; cell < n_cell_reg ; cell++)
+            for(int dir=0; dir < m_dir ; dir++)
             {
-              set_cell_intensity( (cell+cell_cnt) , grp, dir, iso_emission);
+              set_cell_intensity( cell+cell_cnt , grp, dir, iso_emission);
             }
           }
         }
@@ -137,13 +138,6 @@ void Intensity_Data::set_cell_intensity(const int cell,
   const int group, const int dir, const double val) 
 {  
   int loc = intensity_data_locator(0,cell,group,dir);
-  bool bad_location = intensity_bounds_check(loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Trying to write to an intensity location out of range\n";
-    exit(EXIT_FAILURE);
-  }
   
   for(int i=0; i<m_el_per_cell ; i++)
     m_i[loc+i] = val;
@@ -175,26 +169,6 @@ void Intensity_Data::set_cell_intensity(const int cell,
   *
   *************************************************** */
 
-bool Intensity_Data::intensity_range_check(const int el, const int cell, 
-  const int grp, const int dir) const
-{
-  bool is_bad = false;
-  
-  if( (el >= m_el_per_cell ) || (el < 0) )
-    is_bad = true;
-    
-  if( (grp < 0) || (grp >= m_groups) )
-    is_bad = true;
-    
-  if( (cell < 0) || (cell >= m_cells) )
-    is_bad = true;
-    
-  if( (dir < 0) || (dir >= m_dir) )
-    is_bad = true;
-  
-  return is_bad;
-}
-
 /// This function controls the layout of intensity in memory!!
 int Intensity_Data::intensity_data_locator(const int el, const int cell, const int group, const int dir) const
 {
@@ -215,6 +189,13 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
     This will hopefully minizmize data movement
     
   */
+  if( intensity_range_check(el, cell, group, dir) )
+  {
+    std::cerr << " Attemping to access out of logical bounds. \n" ;
+    std::cerr << "Requested Element: " << el << " of cell: " << cell << " group: " << group << " direction: " << dir << std::endl;
+    std::cerr << "Max Element: " << m_el_per_cell << "Max Cell: " << m_cells << " Max Dir: " << m_dir << " Max group: " << m_groups << std::endl;
+  }
+  
   if(dir < m_dir_div_2)
   {
     /// mu < 0
@@ -231,12 +212,33 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
   if(bad_location)
   {
     std::cerr << "Error.  Intensity location out of possible range\n";
+    std::cerr << "Requesting element: " << loc << " . Length of intensity is: " << m_i_length << std::endl;
+    std::cerr << "Requested Element: " << el << " of cell: " << cell << " group: " << group << " direction: " << dir << std::endl;
     exit(EXIT_FAILURE);
   }
   
   return loc;
 }
 
+bool Intensity_Data::intensity_range_check(const int el, const int cell, 
+  const int grp, const int dir) const
+{
+  bool is_bad = false;
+  
+  if( (el >= m_el_per_cell ) || (el < 0) )
+    is_bad = true;
+    
+  if( (grp < 0) || (grp >= m_groups) )
+    is_bad = true;
+    
+  if( (cell < 0) || (cell >= m_cells) )
+    is_bad = true;
+    
+  if( (dir < 0) || (dir >= m_dir) )
+    is_bad = true;
+  
+  return is_bad;
+}
 
 bool Intensity_Data::intensity_bounds_check(const int loc) const
 {

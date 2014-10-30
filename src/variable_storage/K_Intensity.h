@@ -18,7 +18,7 @@ public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
   K_Intensity(const int n_cells, const int n_stages, 
     const Fem_Quadrature& fem_quadrature, const Angular_Quadrature& angular_quadrature);
-  ~K_Intensity(){}
+  virtual ~K_Intensity(){}
   
   /// Public accessor functions
   void get_ki(const int cell, const int grp, const int dir, const int stage, Eigen::VectorXd& ki) const;

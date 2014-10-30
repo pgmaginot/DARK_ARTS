@@ -49,7 +49,7 @@ int main(int argc, char** argv)
   std::cout << "Angular quadrature object created" << std::endl;
    
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-  Materials materials( input_reader, fem_quadrature , &cell_data);  
+  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() );  
   std::cout << "Materials object created successfully" << std::endl;
   
   /// Initialize intensity and angle integrated intensity of previous time step
@@ -68,8 +68,9 @@ int main(int argc, char** argv)
   Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
     cell_data, materials, temperature_old, intensity_old, time_data);
     
+  std::cout << "Out of the Time_Marcher constructor " << std::endl;
   /// this is the entire time loop !
-  time_marcher.solve(intensity_old, temperature_old, time_data);
+  // time_marcher.solve(intensity_old, temperature_old, time_data);
   
   
   

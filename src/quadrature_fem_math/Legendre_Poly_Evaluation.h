@@ -23,7 +23,7 @@ class Legendre_Poly_Evaluation
 public:
   Legendre_Poly_Evaluation(){}
   
-  ~Legendre_Poly_Evaluation(){} 
+  virtual ~Legendre_Poly_Evaluation(){} 
    
    void get_evaluated_legendre_polynomials(const double x, const int n, const int start, std::vector<double>& evals);
    

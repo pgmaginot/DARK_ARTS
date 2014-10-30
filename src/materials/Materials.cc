@@ -13,16 +13,20 @@
 *   Public Member functions
 *  ****************************************************************/
 
-Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* const cell_ptr)
+Materials::Materials( const Input_Reader& input_reader, 
+  const Fem_Quadrature& fem_quadrature, 
+  const Cell_Data& cell_data,
+  const int n_groups)
 :
     m_planck( 1.0E-15 , input_reader),
   m_num_materials{input_reader.get_number_of_materials()},
   m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
   m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },
   m_dx{-1.},
-  m_cell_data_ptr{ cell_ptr },
+  m_cell_data( cell_data),
   m_n_source_pts{ fem_quadrature.get_number_of_source_points() }
 { 
+  
   /// resize material property objects
   m_abs_opacities.resize(m_num_materials);
   m_scat_opacities.resize(m_num_materials);
@@ -32,7 +36,7 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   
   /// load material property objects for each different material
   load_materials(input_reader);
-  
+    
   /// create smart pointers that look at input once, then select cross section treatment type
   switch( input_reader.get_opacity_treatment() )
   {
@@ -62,7 +66,7 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   /// get cross section evaluation quadrature points, dfem evaluations at integration points and cell edges
   fem_quadrature.get_xs_eval_points(m_xs_eval_quad);  
   fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);    
-  fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);
+  fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);  
   
   /// allocate space for physical position and temperature at material property evaluation points
   m_xs_position.resize(m_n_xs_quad,0.);  
@@ -75,20 +79,22 @@ Materials::Materials( const Input_Reader& input_reader, const Fem_Quadrature& fe
   m_position_at_source_quad.resize(m_n_source_pts,0.);
   
   /// get energy bounds 
-  input_reader.get_lower_energy_bounds(m_grp_e_min);
-  input_reader.get_upper_energy_bounds(m_grp_e_max);
-  
-  return;
+  if(n_groups > 1)
+  {
+    /// having energy group bounds only makes sense if this is a grey problem
+    input_reader.get_lower_energy_bounds(m_grp_e_min);
+    input_reader.get_upper_energy_bounds(m_grp_e_max);
+  }
 }
 
 void Materials::calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)
 {
   /// determine what material we are in
-  m_current_material = m_cell_data_ptr->get_cell_material_number(cell_num);
+  m_current_material = m_cell_data.get_cell_material_number(cell_num);
   
   /// calculate the local position at the xs evalaution points
-  m_dx = m_cell_data_ptr->get_cell_width(cell_num);
-  double xL = m_cell_data_ptr->get_cell_left_edge(cell_num);
+  m_dx = m_cell_data.get_cell_width(cell_num);
+  double xL = m_cell_data.get_cell_left_edge(cell_num);
   
   /// for evaluating material properties
   for(int i=0; i< m_n_xs_quad; i++)

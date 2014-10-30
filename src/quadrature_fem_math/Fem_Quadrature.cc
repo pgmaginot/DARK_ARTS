@@ -44,56 +44,61 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
   /** Get the points where we will evaluate material properties at
       These points are different than the points which will be integrated
   */
-  int n_opacity_eval_points = 0;
   const OPACITY_TREATMENT xs_treatment = input_reader.get_opacity_treatment();
   switch( xs_treatment)
   {
     case MOMENT_PRESERVING:
     {
-      n_opacity_eval_points = m_xs_extra_points + input_reader.get_opacity_degree();
+      m_n_xs_evaluation_points = m_xs_extra_points + input_reader.get_opacity_degree();
       break;
     }
     case INTERPOLATING:
     {
-      n_opacity_eval_points = 1 + input_reader.get_opacity_degree();
+      m_n_xs_evaluation_points = 1 + input_reader.get_opacity_degree();
       break;
     }
     case SLXS:
     {
-      n_opacity_eval_points = m_n_interpolation_points;
+      m_n_xs_evaluation_points = m_n_interpolation_points;
       break;
     }
     case INVALID_OPACITY_TREATMENT:
     {
-      std::cout << "Invalid Opacity treatement in quadrature" << std::endl;
+      std::cerr << "Invalid Opacity treatement in quadrature" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   
-  m_xs_eval_points.resize(n_opacity_eval_points,0.);
-  m_xs_eval_weights.resize(n_opacity_eval_points,0.);
+  if(m_n_xs_evaluation_points < 1)
+  {
+    std::cerr << "Requesting to evalaute material properties at less than 1 point \n";
+    exit(EXIT_FAILURE);
+  }
+  
+  m_xs_eval_points.resize(m_n_xs_evaluation_points,0.);
+  m_xs_eval_weights.resize(m_n_xs_evaluation_points,0.);
   if(xs_treatment == INTERPOLATING)
   {
     switch(input_reader.get_opacity_interpolation_point_type())
     {
       case GAUSS:
       {
-        quad_fun.legendre_dr_compute( n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
         break;
       }
       case LOBATTO:
       {
-        quad_fun.lobatto_compute(n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
         break;
       }
       case EQUAL_SPACED:
       {
-        quad_fun.ncc_compute(n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
         break;
       }
       case INVALID_QUADRATURE_TYPE:
       {
-        std::cout << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
+        std::cerr << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
         exit(EXIT_FAILURE);
       }
     }
@@ -107,29 +112,29 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
     {
       case GAUSS:
       {
-        quad_fun.legendre_dr_compute( n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
         break;
       }
       case LOBATTO:
       {
-        quad_fun.lobatto_compute(n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
         break;
       }
       case EQUAL_SPACED:
       {
-        quad_fun.ncc_compute(n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+        quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
         break;
       }
       case INVALID_QUADRATURE_TYPE:
       {
-        std::cout << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
+        std::cerr << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
         exit(EXIT_FAILURE);
       }
     }
   }
   else{
     /// moment preserving, use Gauss quad to maximize accuracy
-    quad_fun.legendre_dr_compute( n_opacity_eval_points , m_xs_eval_points, m_xs_eval_weights);
+    quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
   }
   
   /// Get the quadrature points we are going to use to form the matrices
@@ -156,7 +161,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
     }
     case INVALID_MATRIX_INTEGRATION:
     {
-      std::cout << "Error.  Invalid matrix integration strategy in Fem_Quadrature" << std::endl;
+      std::cerr << "Error.  Invalid matrix integration strategy in Fem_Quadrature" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -185,7 +190,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       }
       case INVALID_QUADRATURE_TYPE:
       {
-        std::cout << "Invalid integration points in Fem_Quadrature.cc " << std::endl;
+        std::cerr << "Invalid integration points in Fem_Quadrature.cc " << std::endl;
         exit(EXIT_FAILURE);
       }
     }

@@ -21,7 +21,7 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun);
-  ~Fem_Quadrature(){}
+  virtual ~Fem_Quadrature(){}
   
   int get_number_of_integration_points(void) const;
   

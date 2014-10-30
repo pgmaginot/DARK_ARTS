@@ -35,7 +35,7 @@ public:
     const Angular_Quadrature& angular_quadrature, const int n_stages);
     
     
-  ~V_Temperature_Update(){}
+  virtual ~V_Temperature_Update(){}
 
   virtual void update_temperature(const Intensity_Moment_Data& phi, Temperature_Data& t_star, 
     const Temperature_Data& t_n, const K_Temperature& k_t, const double damping, Err_Temperature& err_temperature) = 0;

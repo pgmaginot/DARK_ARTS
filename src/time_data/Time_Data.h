@@ -18,7 +18,7 @@ public:
   *
   *************************************************** */
   Time_Data(const Input_Reader&  input_reader);
-  ~Time_Data(){}
+  virtual ~Time_Data(){}
   
   int get_number_of_stages(void) const;
   

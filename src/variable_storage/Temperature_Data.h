@@ -17,7 +17,7 @@ public:
     const Fem_Quadrature& fem_quad, 
     const Input_Reader& input_reader);
   
-  ~Temperature_Data(){}
+  virtual ~Temperature_Data(){}
   
   /// Single element set/get functions
   double get_temperature(const int el, const int cell) const;

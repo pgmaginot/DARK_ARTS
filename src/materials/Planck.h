@@ -105,7 +105,7 @@ private:
 public:
 
   Planck(double accuracy_parameter, const Input_Reader& input_reader);//  {gauss_quad(accuracy)};
-  ~Planck() {}; // empty destructor
+  virtual ~Planck() {}; // empty destructor
   
   /// to access c constant
   double get_c(void);

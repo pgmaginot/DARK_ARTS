@@ -28,7 +28,7 @@ class Quadrule_New
 public:
   Quadrule_New(){}
   
-  ~Quadrule_New(){}
+  virtual ~Quadrule_New(){}
   
   void legendre_dr_compute ( const int order, std::vector<double>& xtab, std::vector<double> weight ) const;
   void legendre_ek_compute ( const int n, std::vector<double>& x, std::vector<double>& w ) const;

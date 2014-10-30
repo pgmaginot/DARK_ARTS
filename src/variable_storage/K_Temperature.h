@@ -18,7 +18,7 @@ public:
   /// Will set n_grp, n_el, n_dir, n_leg as static values
   K_Temperature(const int n_cells, const int n_stages, 
     const Fem_Quadrature& fem_quadrature);
-  ~K_Temperature(){}
+  virtual ~K_Temperature(){}
   
   /// Public accessor functions
   void get_kt(const int cell, const int stage, Eigen::VectorXd& kt) const;

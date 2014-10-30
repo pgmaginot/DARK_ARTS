@@ -42,7 +42,7 @@ public:
     const Temperature_Data& t_star,
     const Input_Reader& input_reader);
     
-  ~Transport_Sweep(){}
+  virtual ~Transport_Sweep(){}
 
   /** set all of the first time data that the sweep will need
     * this includes: time stepping data (current stage number, rk_a, dt), 

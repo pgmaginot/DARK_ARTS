@@ -25,7 +25,7 @@ public:
   const Temperature_Data& t_star,
   std::vector<double>& phi_ref_norm);
     
-  ~Intensity_Update_Grey(){}
+  virtual ~Intensity_Update_Grey(){}
 
   void update_intensity(Intensity_Moment_Data& phi) override;
 

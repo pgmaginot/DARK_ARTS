@@ -32,7 +32,7 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
   TEMPERATURE_IC_TYPE ic_type = input_reader.get_temperature_ic_type();
   switch( ic_type )
   {
-    case FIXED_TEMPERATURE:
+    case CONSTANT_TEMPERATURE_IC:
     {
       std::vector<int> cell_per_reg;
       std::vector<double> temp_in_reg;

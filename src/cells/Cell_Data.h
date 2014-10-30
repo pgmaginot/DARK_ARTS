@@ -14,7 +14,7 @@ class Cell_Data
 public:
   /// Only able to initialize if given input object and quadrature object
   Cell_Data(Input_Reader&  input_reader);
-  ~Cell_Data(){}
+  virtual ~Cell_Data(){}
   
   /// Public accesor functions
   double get_cell_width(int cell_num) const;

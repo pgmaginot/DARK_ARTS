@@ -37,8 +37,11 @@ class Materials
 {
 
 public:
-  Materials(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, Cell_Data* cell_ptr);
-  ~Materials(){}
+  Materials(const Input_Reader& input_reader, 
+    const Fem_Quadrature& fem_quadrature, 
+    const Cell_Data& cell_data,
+    const int n_groups);
+  virtual ~Materials(){}
 
   /** The update_sigma_a, update_sigma_s, and update_cv functions interact with the 
         VAbsorption_Opacity, VScattering_Opacity, and VCv objects, respectively.
@@ -111,7 +114,7 @@ private:
   double m_dx;
   
   /// pointer to Cell_Data
-  Cell_Data* const m_cell_data_ptr;
+  const Cell_Data& m_cell_data;
   
   /// number of quadrature points used to evaluate driving source moments
   const int m_n_source_pts;

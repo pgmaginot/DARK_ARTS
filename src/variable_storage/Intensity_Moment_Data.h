@@ -26,7 +26,7 @@ public:
   /// Copy constructor
   Intensity_Moment_Data(const Intensity_Moment_Data& intensity_moment);
   
-  ~Intensity_Moment_Data(){}
+  virtual ~Intensity_Moment_Data(){}
   
   /// assignment operator used during iteration processes
   Intensity_Moment_Data& operator= (const Intensity_Moment_Data& intensity_moment);

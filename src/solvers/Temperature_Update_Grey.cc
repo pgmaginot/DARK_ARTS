@@ -5,7 +5,7 @@ Temperature_Update_Grey::Temperature_Update_Grey(const Fem_Quadrature& fem_quadr
   :
   V_Temperature_Update(fem_quadrature, cell_data, material,angular_quadrature,n_stages)
 {
-
+  std::cout << "Made it to grey Temperature update constrcutor body" << std::endl;
 }
 
 void Temperature_Update_Grey::update_temperature(const Intensity_Moment_Data& phi, Temperature_Data& t_star, 

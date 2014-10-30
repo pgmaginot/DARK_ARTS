@@ -22,7 +22,7 @@ public:
     Materials& materials,
     const Input_Reader& input_reader);
     
-  ~Intensity_Data(){}
+  virtual ~Intensity_Data(){}
   
   double get_intensity(const int el, const int cell, const int group, const int dir) const;
   

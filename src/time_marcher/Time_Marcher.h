@@ -18,7 +18,7 @@ public:
     Temperature_Data& t_old, Intensity_Data& i_old,
     const Time_Data& time_data);
     
-  ~Time_Marcher(){}
+  virtual ~Time_Marcher(){}
   
   void solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Data& time_data);
 private:

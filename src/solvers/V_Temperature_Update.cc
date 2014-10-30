@@ -19,10 +19,10 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   m_t_star_vec{Eigen::VectorXd::Zero(m_np)},
   m_driving_source_vec{ Eigen::VectorXd::Zero(m_np)},
   m_k_vec{ Eigen::VectorXd::Zero(m_np)},
-  m_delta{ Eigen::VectorXd::Zero(m_np)},
-    
+  m_delta{ Eigen::VectorXd::Zero(m_np)},    
   m_matrix_type{fem_quadrature.get_integration_type() }    
 {
+  std::cout << "Made it past V_Temperature_Update initialization list" << std::endl;
   /// initialize matrix constructor
   if(m_matrix_type ==  EXACT)
   {
@@ -41,9 +41,10 @@ V_Temperature_Update::V_Temperature_Update(const Fem_Quadrature& fem_quadrature,
   }
   
   /// resize STL vectors that we use for data storage
-  m_temp_mat_vec.resize(m_n_source_quad_pts,0.);
+  // m_temp_mat_vec.resize(m_n_source_quad_pts,0.);
 
   m_rk_a.resize(n_stages,0.);
+  std::cout << "Cleared V_Temperature_Update cosntructor body" << std::endl;
 }
 
 void V_Temperature_Update::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )

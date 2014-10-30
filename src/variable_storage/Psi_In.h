@@ -8,7 +8,7 @@ class Psi_In
  public:
  
  Psi_In(const int n_groups, const int n_dir);
- ~Psi_In(){}
+ virtual ~Psi_In(){}
  
  double& operator()(int group, int dir);
  
