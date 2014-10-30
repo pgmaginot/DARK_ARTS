@@ -15,6 +15,13 @@
 #include "Solution_Saver_K_I.h"
 #include "Solution_Saver_Flux_Moments.h"
 
+#include "Transport_BC_Reflective.h"
+#include "Transport_BC_Vacuum.h"
+#include "Transport_BC_MF_Planckian.h"
+#include "Transport_BC_Grey_Planckian.h"
+
+#include "Input_Reader.h"
+
 /** @file   Transport_Sweep.h
   *   @author pmaginot
   *   @brief Declare the Transport sweep operator
@@ -32,7 +39,8 @@ public:
     const Intensity_Data& i_old,
     const K_Temperature& kt, 
     K_Intensity& ki,
-    const Temperature_Data& t_star);
+    const Temperature_Data& t_star,
+    const Input_Reader& input_reader);
     
   ~Transport_Sweep(){}
 
@@ -86,7 +94,12 @@ private:
   
   double m_time;
   
-  Psi_In m_psi_in;    
+  Psi_In m_psi_in; 
+
+  bool const m_left_reflecting;  
+  
+  void get_neg_mu_boundary_conditions(const bool is_krylov);
+  void get_pos_mu_boundary_conditions(const bool is_krylov);
   
   /// Creator of the linear boltzmann matrices (and source moment vector) that describe the transport sweep
   std::shared_ptr<V_Sweep_Matrix_Creator> m_sweep_matrix_creator;
@@ -106,7 +119,9 @@ private:
   /// used during most normal sweeps to save angle integrated moments of the local solution
   std::shared_ptr<V_Solution_Saver> m_angle_integrated_saver;  
   
-  void get_boundary_conditions(const bool is_krylov);
+  /// objects/pointers for determining various boundary conditions
+  std::shared_ptr<V_Transport_BC> m_sweep_bc_left;
+  std::shared_ptr<V_Transport_BC> m_sweep_bc_right;
 };
 
 #endif

@@ -417,6 +417,34 @@ double Input_Reader::get_region_temperature(const int reg_num) const
   return m_region_temperature[reg_num];
 }
 
+BC_ANGLE_DEPENDENCE Input_Reader::get_left_bc_angle_dependence(void) const
+{
+  return m_left_bc_angle_dependence;
+}
+
+BC_ANGLE_DEPENDENCE Input_Reader::get_right_bc_angle_dependence(void) const
+{
+  return m_right_bc_angle_dependence;
+}
+
+double Input_Reader::get_bc_start_time(void) const
+{
+  return m_bc_start_time;
+}
+
+double Input_Reader::get_bc_end_time(void) const
+{
+  return m_bc_end_time;
+}
+
+double Input_Reader::get_region_radiation_temperature(const int reg_num) const
+{
+  std::cerr << "Asking for a region radiation temperature in a region greater than n_regions" << std::endl;
+  exit(EXIT_FAILURE);
+  
+  return m_region_radiation_temperature[reg_num];
+}
+
 RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
 {
   return m_radiation_ic_type;
@@ -431,6 +459,16 @@ RADIATION_BC_TYPE Input_Reader::get_radiation_bc_type_right(void) const
 {
   return m_rad_bc_right;
 }
+
+  double Input_Reader::get_left_bc_constant(void) const
+  {
+    return m_left_bc_value;
+  }
+  
+  double Input_Reader::get_right_bc_constant(void) const
+  {
+    return m_right_bc_value;
+  } 
   
 
 /* ***************************************************
@@ -1526,6 +1564,10 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   {
     m_rad_bc_left = PLANCKIAN_BC;
   }
+  else if(rad_bc_left_str == "REFLECTIVE")
+  {
+    m_rad_bc_left = REFLECTIVE;
+  }
   
   if(rad_bc_right_str == "VACUUM")
   {
@@ -1534,6 +1576,10 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   else if(rad_bc_right_str == "PLANCKIAN_BC")
   {
     m_rad_bc_right = PLANCKIAN_BC;
+  }
+  else if(rad_bc_right_str == "REFLECTIVE")
+  {
+    m_rad_bc_right = REFLECTIVE;
   }
   
   /// error check / do important things
@@ -1561,6 +1607,10 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       exit(EXIT_FAILURE);
     }
   }
+  else if( m_rad_bc_left== REFLECTIVE)
+  {
+    /// don't need any additional data
+  }
   
   /// error check / do important things
   if( m_rad_bc_right == INVALID_RADIATION_BC_TYPE)
@@ -1587,6 +1637,11 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       exit(EXIT_FAILURE);
     }
   }
+  else if( m_rad_bc_right == REFLECTIVE)
+  {
+    std::cerr << "Cannot use reflective boundary condition on right edge.  Only left edge\n";
+    exit(EXIT_FAILURE);
+  }
   
   if( m_radiation_ic_type == INVALID_RADIATION_IC_TYPE)
   {
@@ -1595,7 +1650,37 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   }
   else if( m_radiation_ic_type == PLANCKIAN_IC )
   {
-  
+    m_region_radiation_temperature.resize(m_number_regions,0.);
+    TiXmlElement* rad_ic_reg_elem = rad_ic_type_elem->FirstChildElement( "Region");
+    for(int reg = 0; reg < m_number_regions; reg++)
+    {
+      if(!rad_ic_reg_elem)
+      {
+        std::cerr << "Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      if( atoi(rad_ic_reg_elem->GetText()) != reg)
+      {
+        std::cerr << "Temperature IC for regions not in order\n";
+        exit(EXIT_FAILURE);
+      }
+      
+      
+      TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_Temperature");
+      if(!rad_temp_value)
+      {
+        std::cerr << "Missing required Radiation_Temperature element for region: " << reg << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      m_region_radiation_temperature[reg] = atof( rad_temp_value->GetText() );
+      if(m_region_radiation_temperature[reg] < 0.)
+      {
+        std::cerr << "Invalid radiation temperature in region: " << reg << " , must be >= 0. \n";
+        exit(EXIT_FAILURE);
+      }
+      
+      rad_ic_reg_elem->NextSiblingElement("Region");
+    }
   }
   
   if( m_temperature_ic_type == INVALID_TEMPERATURE_IC_TYPE)
@@ -1605,7 +1690,161 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   }
   else if( m_temperature_ic_type == FIXED_TEMPERATURE )
   {
+    m_region_temperature.resize(m_number_regions,0.);
+    TiXmlElement* temp_ic_reg_elem = temp_ic_type_elem->FirstChildElement( "Region");
+    for(int reg = 0; reg < m_number_regions; reg++)
+    {
+      if(!temp_ic_reg_elem)
+      {
+        std::cerr << "Missing a region material temperature for every region.  Found: " << reg << " Need: " << m_number_regions << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      if( atoi(temp_ic_reg_elem->GetText()) != reg)
+      {
+        std::cerr << "Temperature IC for regions not in order\n";
+        exit(EXIT_FAILURE);
+      }
+      
+      
+      TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_Temperature");
+      if(!temp_value)
+      {
+        std::cerr << "Missing required Material_Temperature element for region: " << reg << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      m_region_temperature[reg] = atof( temp_value->GetText() );
+      if(m_region_temperature[reg] < 0.)
+      {
+        std::cerr << "Invalid material temperature in region: " << reg << " , must be >= 0. \n";
+        exit(EXIT_FAILURE);
+      }
+      
+      temp_ic_reg_elem->NextSiblingElement("Region");
+    }
+  }
   
+  // m_bc_start_time; m_bc_end_time;
+  /// check and see if dirichlet boundary conditions are only for part of time
+  if( (m_rad_bc_left == PLANCKIAN_BC ) || (m_rad_bc_right == PLANCKIAN_BC) )
+  {
+    TiXmlElement* bc_time_dependent_elem = bc_ic_element->FirstChildElement( "BC_Time_Dependent");
+    if(!bc_time_dependent_elem )
+    {
+      std::cerr << "Missing BC_Time_Dependence block, required\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    std::string bc_time_str = bc_time_dependent_elem->GetText();
+    transform(bc_time_str.begin() , bc_time_str.end() , bc_time_str.begin() , toupper);
+    if(bc_time_str == "BC_CONSTANT")
+    {
+      m_bc_time_dependence = BC_CONSTANT;
+    }
+    else if(bc_time_str == "BC_BURST")
+    {
+      m_bc_time_dependence = BC_BURST;
+    }
+    
+    if(m_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
+    {
+      std::cerr << "Invalid Planckian BC time dependence\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    if(m_bc_time_dependence == BC_CONSTANT)
+    {
+      /// assume dirichlet conditions last forever
+      m_bc_start_time = m_t_start - 0.01*(m_t_end - m_t_start);
+      m_bc_end_time = m_t_end + 0.01*(m_t_end - m_t_start);  
+    }
+    else if(m_bc_time_dependence == BC_BURST)
+    {
+      TiXmlElement* bc_start_elem = bc_time_dependent_elem->FirstChildElement( "BC_Turn_On" );
+      TiXmlElement* bc_end_elem = bc_time_dependent_elem->FirstChildElement( "BC_Turn_Off" );
+      
+      if(!bc_start_elem || !bc_end_elem)
+      {
+        std::cerr << "BC_Time_Dependent block requires BC_Turn_On and BC_Turn_Off elements\n";
+        exit(EXIT_FAILURE);
+      }
+      
+      m_bc_start_time = atof( bc_start_elem->GetText() );
+      m_bc_end_time = atof( bc_end_elem->GetText() );
+      
+      if(m_bc_end_time < m_bc_start_time)
+      {
+        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
+        exit(EXIT_FAILURE);
+      }
+      
+    }
+  }
+  /// get angular dependence for dirichlet angular BC
+  if( m_rad_bc_left == PLANCKIAN_BC )
+  {
+    TiXmlElement* bc_left_incidence_type = rad_left_bc_type_elem->FirstChildElement("BC_Incidence");
+    if(!bc_left_incidence_type)
+    {
+      std::cerr << "Missing Angular incidence type for Planckian BC on left edge\n";
+      exit(EXIT_FAILURE);
+    }
+    std::string left_bc_incidence_str = bc_left_incidence_type->GetText();
+    transform(left_bc_incidence_str.begin() , left_bc_incidence_str.end() , left_bc_incidence_str.begin() , toupper);
+    if(left_bc_incidence_str == "BC_ISOTROPIC")
+    {
+      m_left_bc_angle_dependence = BC_ISOTROPIC;
+    }
+    else if(left_bc_incidence_str == "BC_GLANCE")
+    {
+      m_left_bc_angle_dependence = BC_GLANCE;
+    }
+    else if(left_bc_incidence_str == "BC_NORMAL")
+    {
+      m_left_bc_angle_dependence = BC_NORMAL;
+    }
+    if(m_left_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
+    {
+      std::cerr << "Must specify angular dependence of Planckian BC on left edge\n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  if(m_rad_bc_right == PLANCKIAN_BC)
+  {
+    TiXmlElement* bc_right_incidence_type = rad_right_bc_type_elem->FirstChildElement("BC_Incidence");
+    if(!bc_right_incidence_type)
+    {
+      std::cerr << "Missing Angular incidence type for Planckian BC on right edge\n";
+      exit(EXIT_FAILURE);
+    }
+    std::string right_bc_incidence_str = bc_right_incidence_type->GetText();
+    transform(right_bc_incidence_str.begin() , right_bc_incidence_str.end() , right_bc_incidence_str.begin() , toupper);
+    if(right_bc_incidence_str == "BC_ISOTROPIC")
+    {
+      m_right_bc_angle_dependence = BC_ISOTROPIC;
+    }
+    else if(right_bc_incidence_str == "BC_GLANCE")
+    {
+      m_right_bc_angle_dependence = BC_GLANCE;
+    }
+    else if(right_bc_incidence_str == "BC_NORMAL")
+    {
+      m_right_bc_angle_dependence = BC_NORMAL;
+    }
+    if(m_right_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
+    {
+      std::cerr << "Must specify angular dependence of Planckian BC on right edge\n";
+      exit(EXIT_FAILURE);
+    }
+  }
+  
+  
+  /// do not allow refelective condition and krylov solving
+  if( (m_rad_bc_left == REFLECTIVE) 
+    && ( (m_wg_solve_type == KRYLOV_SWEEPS) || (m_wg_solve_type == KRYLOV_DSA) ) )
+  {
+    std::cerr << "A refelective radiation boundary condition is not allowed with Krylov WGRS\n";
+    exit(EXIT_FAILURE);  
   }
   
   return 0;

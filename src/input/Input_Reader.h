@@ -97,9 +97,17 @@ public:
   */
   TEMPERATURE_IC_TYPE get_temperature_ic_type(void) const;
   double get_region_temperature(const int reg_num) const;
+  double get_region_radiation_temperature(const int reg_num) const;
   RADIATION_IC_TYPE get_radiation_ic_type(void) const;
   RADIATION_BC_TYPE get_radiation_bc_type_left(void) const;
   RADIATION_BC_TYPE get_radiation_bc_type_right(void) const;
+  
+  BC_ANGLE_DEPENDENCE get_left_bc_angle_dependence(void) const;
+  BC_ANGLE_DEPENDENCE get_right_bc_angle_dependence(void) const;
+  double get_bc_start_time(void) const; 
+  double get_bc_end_time(void) const;
+  double get_left_bc_constant(void) const;
+  double get_right_bc_constant(void) const;
   
 protected:
   /** variables that will be used to store data from input file
@@ -179,11 +187,18 @@ protected:
   /// BC_IC block variables
   TEMPERATURE_IC_TYPE m_temperature_ic_type = INVALID_TEMPERATURE_IC_TYPE;
   std::vector<double> m_region_temperature;
+  std::vector<double> m_region_radiation_temperature;
   RADIATION_IC_TYPE m_radiation_ic_type  = INVALID_RADIATION_IC_TYPE;
   RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
   RADIATION_BC_TYPE m_rad_bc_right = INVALID_RADIATION_BC_TYPE;
   double m_left_bc_value = -1.;
   double m_right_bc_value = -1.;
+  
+  BC_TIME_DEPENDENCE m_bc_time_dependence = INVALID_BC_TIME_DEPENDENCE;
+  BC_ANGLE_DEPENDENCE m_left_bc_angle_dependence = INVALID_BC_ANGLE_DEPENDENCE;
+  BC_ANGLE_DEPENDENCE m_right_bc_angle_dependence  = INVALID_BC_ANGLE_DEPENDENCE;
+  double m_bc_start_time = -1.;
+  double m_bc_end_time = -2.;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);

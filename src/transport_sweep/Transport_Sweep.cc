@@ -9,7 +9,8 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   const Intensity_Data& i_old,
   const K_Temperature& kt, 
   K_Intensity& ki,
-  const Temperature_Data& t_star)
+  const Temperature_Data& t_star,
+  const Input_Reader& input_reader)
   :
   m_n_cells{ cell_data.get_total_number_of_cells() },
   m_n_groups{ angular_quadrature.get_number_of_groups()  },
@@ -24,7 +25,8 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   m_lhs_mat{ Eigen::MatrixXd(m_np,m_np) },
   m_local_soln{ Eigen::VectorXd::Zero(m_np)  },
   m_time{-1.},
-  m_psi_in(m_n_groups,m_n_dir)
+  m_psi_in(m_n_groups,m_n_dir),
+  m_left_reflecting{ angular_quadrature.has_left_reflection() }
 {
   if(m_n_groups > 1)
   {
@@ -44,6 +46,99 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   /// this guy needs a reference to k_i
   m_k_i_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_K_I(fem_quadrature,m_sweep_matrix_creator,angular_quadrature,ki, materials.get_c() ) );
   m_angle_integrated_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_Flux_Moments(fem_quadrature,angular_quadrature) );
+  
+  /// initialize boundary condition objects
+  switch( input_reader.get_radiation_bc_type_left() )
+  {
+    case VACUUM:
+    {
+      m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Vacuum() );
+      break;
+    }
+    case REFLECTIVE:
+    {
+      m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Reflective() );
+      break;
+    }
+    case PLANCKIAN_BC:
+    {
+      if(m_n_groups>1)
+      {      
+        m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Planckian(
+          materials,
+          angular_quadrature,
+          input_reader.get_left_bc_angle_dependence() ,
+          input_reader.get_bc_start_time() , 
+          input_reader.get_bc_end_time() ,
+          input_reader.get_left_bc_constant() 
+            ) );
+      }
+      else
+      {
+        m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Planckian(
+          materials,
+          angular_quadrature,
+          input_reader.get_left_bc_angle_dependence() ,
+          input_reader.get_bc_start_time() , 
+          input_reader.get_bc_end_time()  ,
+          input_reader.get_left_bc_constant()           
+            ) );
+      }
+      break;
+    }
+    case INVALID_RADIATION_BC_TYPE:
+    {
+      std::cerr << "Made it into Transport_Sweep constructor with invalid left bc\n";
+      exit(EXIT_FAILURE);
+      break;
+    }
+  }
+  
+  switch( input_reader.get_radiation_bc_type_right() )
+  {
+    case VACUUM:
+    {
+      m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Vacuum() );
+      break;
+    }
+    case REFLECTIVE:
+    {
+      std::cerr << "Reflective boundary condition on right face of slab caught in Transport_Sweep constructor\n";
+      exit(EXIT_FAILURE);      
+      break;
+    }
+    case PLANCKIAN_BC:
+    {
+      if(m_n_groups>1)
+      {      
+        m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_MF_Planckian(
+          materials,
+          angular_quadrature,
+          input_reader.get_right_bc_angle_dependence() ,
+          input_reader.get_bc_start_time() , 
+          input_reader.get_bc_end_time(),
+          input_reader.get_right_bc_constant() 
+            ) );
+      }
+      else
+      {
+        m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Grey_Planckian(
+          materials,
+          angular_quadrature,
+          input_reader.get_right_bc_angle_dependence() ,
+          input_reader.get_bc_start_time() , 
+          input_reader.get_bc_end_time()  ,      
+          input_reader.get_right_bc_constant()  ) );
+      }
+      break;
+    }
+    case INVALID_RADIATION_BC_TYPE:
+    {
+      std::cerr << "Made it into Transport_Sweep constructor with invalid right bc\n";
+      exit(EXIT_FAILURE);
+      break;
+    }
+  }
 }
 
 void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
@@ -108,6 +203,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       cell_end = 0;
       incr = -1;
       d_offset = 0;      
+      get_neg_mu_boundary_conditions(is_krylov);
     }
     else
     {
@@ -115,11 +211,9 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       cell_end = m_n_cells - 1;
       incr = 1;
       d_offset = m_n_dir/2;
+      get_pos_mu_boundary_conditions(is_krylov);
     }
-    
-    /// load boundary conditions / inflow intensities
-    get_boundary_conditions(is_krylov);
-    
+        
     for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
     {
       m_sweep_matrix_creator->update_cell_dependencies(cell);
@@ -174,22 +268,51 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
   return;
 }
 
-void Transport_Sweep::get_boundary_conditions(const bool is_krylov)
+void Transport_Sweep::get_neg_mu_boundary_conditions(const bool is_krylov)
 {
   double val = -1.;
-  for(int d=0 ; d< m_n_dir ; d++)
+  for(int d=0 ; d< m_n_dir/2 ; d++)
   {
     for(int g=0; g< m_n_groups ; g++)
     {
       if(is_krylov)
       {
-        val = m_ang_quad.calculate_boundary_conditions(d, g, m_time);
+        val = 0.;
       }
       else
       {
-        val = 0.;
+        val = m_sweep_bc_right->get_boundary_condition(m_ang_quad.get_mu(d), g, m_time );
       }
       m_psi_in(g,d) = val;
+    }
+  }
+}
+
+void Transport_Sweep::get_pos_mu_boundary_conditions(const bool is_krylov)
+{
+  double val = -1.;
+  
+  for(int d=0 ; d < m_n_dir/2 ; d++)
+  {
+    for(int g=0; g< m_n_groups ; g++)
+    {
+      if(is_krylov)
+      {
+        val = 0.;
+      }
+      else
+      {
+        if(m_left_reflecting)
+        {
+          /// enforce reflection.  Assumes quadrature set is arranged from most negative mu to most positive mu.
+          val = m_psi_in(g , m_n_dir/2 - d -1);
+        }
+        else
+        {
+          val = m_sweep_bc_left->get_boundary_condition(m_ang_quad.get_mu(d+m_n_dir/2), g , m_time);
+        }
+      }
+      m_psi_in(g,d+m_n_dir/2) = val;
     }
   }
 }

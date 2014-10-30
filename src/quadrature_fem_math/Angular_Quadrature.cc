@@ -9,7 +9,11 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
 :   
   m_n_dir{input_reader.get_number_of_angles() },
   m_n_groups{input_reader.get_number_of_groups() },   
-  m_n_legendre_moments{input_reader.get_number_of_legendre_moments() }
+  m_n_legendre_moments{input_reader.get_number_of_legendre_moments() },
+  m_left_reflecting_boundary{ ( input_reader.get_radiation_bc_type_left() == REFLECTIVE) ? true : false },
+  m_sum_w{0.},
+  m_mu_most_glancing{1.},
+  m_mu_most_normal{0.}
 {
   ANGULAR_QUADRATURE_TYPE quad_type = input_reader.get_angular_quadrature_type();
  
@@ -53,6 +57,15 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
   /// get energy bounds 
   input_reader.get_lower_energy_bounds(m_grp_e_min);
   input_reader.get_upper_energy_bounds(m_grp_e_max);
+  
+  m_mu_most_glancing = m_mu[m_n_dir/2];
+  m_mu_most_normal = m_mu[0];
+  
+  if(abs(m_mu_most_normal) < abs(m_mu_most_glancing) )
+  {
+    std::cerr << "Most glancing angle found to be more directly incident than most normal angle\n";
+    exit(EXIT_FAILURE);    
+  }
 }
     
 int Angular_Quadrature::get_number_of_dir(void) const
@@ -89,7 +102,27 @@ double Angular_Quadrature::get_sum_w(void) const
   return m_sum_w;
 }
 
-double Angular_Quadrature::calculate_boundary_conditions(const int dir, const int grp, const double time) const
-{  
-  return 1.;
+double Angular_Quadrature::get_group_low_bound(const int grp) const
+{
+  return m_grp_e_min[grp];
+}
+
+double Angular_Quadrature::get_group_upper_bound(const int grp) const
+{
+  return m_grp_e_max[grp];
+}
+
+bool Angular_Quadrature::has_left_reflection(void) const
+{
+  return m_left_reflecting_boundary;
+}
+
+double Angular_Quadrature::most_glance_mu(void) const
+{
+  return m_mu_most_glancing;
+}
+
+double Angular_Quadrature::most_normal_mu(void) const
+{
+  return m_mu_most_normal;
 }

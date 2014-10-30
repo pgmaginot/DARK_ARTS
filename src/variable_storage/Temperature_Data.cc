@@ -29,22 +29,36 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
   
   /// initialize first time step temperature data
   /// loop over regions.  Each region could have a different initial condition
-  std::vector<int> cell_per_reg;
-  std::vector<double> temp_in_reg;
-  input_reader.get_cells_per_region_vector(cell_per_reg);
-    
-  int cell_cnt = 0;
-  for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+  TEMPERATURE_IC_TYPE ic_type = input_reader.get_temperature_ic_type();
+  switch( ic_type )
   {
-    double temp_eval = input_reader.get_region_temperature(reg);
-    int n_cell_reg = cell_per_reg[reg];     
-    /// assume isotropic planck emission         
-    for(int cell = 0; cell < n_cell_reg ; cell++)
+    case FIXED_TEMPERATURE:
     {
-      set_cell_temperature( (cell+cell_cnt) , temp_eval );
+      std::vector<int> cell_per_reg;
+      std::vector<double> temp_in_reg;
+      input_reader.get_cells_per_region_vector(cell_per_reg);
+        
+      int cell_cnt = 0;
+      for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+      {
+        double temp_eval = input_reader.get_region_temperature(reg);
+        int n_cell_reg = cell_per_reg[reg];     
+        /// assume isotropic planck emission         
+        for(int cell = 0; cell < n_cell_reg ; cell++)
+        {
+          set_cell_temperature( (cell+cell_cnt) , temp_eval );
+        }
+        cell_cnt += n_cell_reg;          
+      }   
+      break;
     }
-    cell_cnt += n_cell_reg;          
-  }   
+    case INVALID_TEMPERATURE_IC_TYPE:
+    {
+      std::cerr << "Must have a valid Temperature IC initializtion\n";
+      exit(EXIT_FAILURE);
+      break;
+    }
+  }  
 }
   
 /// Public accessor functions

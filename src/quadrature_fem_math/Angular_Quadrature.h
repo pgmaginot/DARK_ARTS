@@ -33,8 +33,13 @@ public:
   double get_w(const int dir) const;
   double get_sum_w(void) const;
   
-  double calculate_boundary_conditions(const int dir, const int grp, const double time) const;
+  double get_group_low_bound(const int grp) const;
+  double get_group_upper_bound(const int grp) const;
   
+  bool has_left_reflection(void) const;  
+  
+  double most_glance_mu(void) const;
+  double most_normal_mu(void) const;  
 protected:  
   /// number of directions
   const int m_n_dir;
@@ -43,6 +48,12 @@ protected:
   /// number of angle integrated legendre moments to keep
   const int m_n_legendre_moments;
   
+  const bool m_left_reflecting_boundary;
+  
+  double m_sum_w;
+  
+  double m_mu_most_glancing;
+  double m_mu_most_normal;
 
   /// discrete ordinates values
   std::vector<double> m_mu;
@@ -50,7 +61,7 @@ protected:
   /// quadrature weights
   std::vector<double> m_w;
   
-  double m_sum_w;
+
   
   /// legendre polynomials evaluated at discrete ordinates
   std::vector<double> m_legendre_poly;  

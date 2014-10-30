@@ -16,7 +16,7 @@ V_WGRS::V_WGRS(const Input_Reader& input_reader,
   m_phi_ref_norm(phi_ref_norm)
 {
   m_transport_sweep = std::shared_ptr<Transport_Sweep> ( new Transport_Sweep(fem_quadrature, cell_data, materials,angular_quadrature,n_stages,
-    t_old, i_old, kt, ki,t_star) );
+    t_old, i_old, kt, ki,t_star,input_reader) );
 }
 
 void V_WGRS::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
