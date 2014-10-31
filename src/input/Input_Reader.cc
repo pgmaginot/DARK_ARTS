@@ -427,14 +427,24 @@ BC_ANGLE_DEPENDENCE Input_Reader::get_right_bc_angle_dependence(void) const
   return m_right_bc_angle_dependence;
 }
 
-double Input_Reader::get_bc_start_time(void) const
+double Input_Reader::get_left_bc_start_time(void) const
 {
-  return m_bc_start_time;
+  return m_bc_left_start_time;
 }
 
-double Input_Reader::get_bc_end_time(void) const
+double Input_Reader::get_left_bc_end_time(void) const
 {
-  return m_bc_end_time;
+  return m_bc_left_end_time;
+}
+
+double Input_Reader::get_right_bc_start_time(void) const
+{
+  return m_bc_right_start_time;
+}
+
+double Input_Reader::get_right_bc_end_time(void) const
+{
+  return m_bc_right_end_time;
 }
 
 double Input_Reader::get_region_radiation_temperature(const int reg_num) const
@@ -461,14 +471,34 @@ RADIATION_BC_TYPE Input_Reader::get_radiation_bc_type_right(void) const
 }
 
   double Input_Reader::get_left_bc_constant(void) const
-  {
-    return m_left_bc_value;
-  }
+{
+  return m_left_bc_value;
+}
   
-  double Input_Reader::get_right_bc_constant(void) const
-  {
-    return m_right_bc_value;
-  } 
+double Input_Reader::get_right_bc_constant(void) const
+{
+  return m_right_bc_value;
+} 
+  
+INCIDENT_BC_VALUE_TYPE Input_Reader::get_left_bc_value_type(void) const
+{
+  return m_rad_bc_left_value_type;
+} 
+
+INCIDENT_BC_VALUE_TYPE Input_Reader::get_right_bc_value_type(void) const
+{
+  return m_rad_bc_right_value_type;
+} 
+
+BC_ENERGY_DEPENDENCE Input_Reader::get_left_bc_energy_dependence(void) const
+{
+  return m_left_bc_energy_dependence;
+}
+
+BC_ENERGY_DEPENDENCE Input_Reader::get_right_bc_energy_dependence(void) const
+{
+  return m_right_bc_energy_dependence;
+}
   
 
 /* ***************************************************
@@ -1557,30 +1587,30 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   std::string rad_bc_right_str = rad_right_bc_type_elem->GetText();
   transform(rad_bc_right_str.begin() , rad_bc_right_str.end() , rad_bc_right_str.begin() , toupper);
   
-  if(rad_bc_left_str == "VACUUM")
+  if(rad_bc_left_str == "VACUUM_BC")
   {
-    m_rad_bc_left = VACUUM;
+    m_rad_bc_left = VACUUM_BC;
   }
-  else if(rad_bc_left_str == "PLANCKIAN_BC")
+  else if(rad_bc_left_str == "INCIDENT_BC")
   {
-    m_rad_bc_left = PLANCKIAN_BC;
+    m_rad_bc_left = INCIDENT_BC;
   }
-  else if(rad_bc_left_str == "REFLECTIVE")
+  else if(rad_bc_left_str == "REFLECTIVE_BC")
   {
-    m_rad_bc_left = REFLECTIVE;
+    m_rad_bc_left = REFLECTIVE_BC;
   }
   
-  if(rad_bc_right_str == "VACUUM")
+  if(rad_bc_right_str == "VACUUM_BC")
   {
-    m_rad_bc_right = VACUUM;
+    m_rad_bc_right = VACUUM_BC;
   }
-  else if(rad_bc_right_str == "PLANCKIAN_BC")
+  else if(rad_bc_right_str == "INCIDENT_BC")
   {
-    m_rad_bc_right = PLANCKIAN_BC;
+    m_rad_bc_right = INCIDENT_BC;
   }
-  else if(rad_bc_right_str == "REFLECTIVE")
+  else if(rad_bc_right_str == "REFLECTIVE_BC")
   {
-    m_rad_bc_right = REFLECTIVE;
+    m_rad_bc_right = REFLECTIVE_BC;
   }
   
   
@@ -1590,26 +1620,26 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     std::cerr << "Left radiation BC type not recognized\n";
     exit(EXIT_FAILURE);
   }
-  else if( m_rad_bc_left == VACUUM)
+  else if( m_rad_bc_left == VACUUM_BC)
   {
     m_left_bc_value = 0.; 
   }
-  else if( m_rad_bc_left == PLANCKIAN_BC )
+  else if( m_rad_bc_left == INCIDENT_BC )
   {
-    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Temperature");
+    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_Energy");
     if(!rad_left_bc_value_elem)
     {
-      std::cerr << "Missing BC_Temperature element in Left Radiation Planckian BC Specification\n";
+      std::cerr << "Missing Incident_Energy element in Left Radiation Incident_BC Specification\n";
       exit(EXIT_FAILURE);
     }
     m_left_bc_value = atof( rad_left_bc_value_elem->GetText() ); 
     if(m_left_bc_value < 0.)
     {
-      std::cerr << "Invalid value for Left BC temperature.  Must be >= 0\n";
+      std::cerr << "Invalid value for Left BC Incident_Energy.  Must be > 0\n";
       exit(EXIT_FAILURE);
     }
   }
-  else if( m_rad_bc_left== REFLECTIVE)
+  else if( m_rad_bc_left== REFLECTIVE_BC)
   {
     /// don't need any additional data
   }
@@ -1620,30 +1650,267 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     std::cerr << "Right radiation BC type not recognized\n";
     exit(EXIT_FAILURE);
   }
-  else if( m_rad_bc_right == VACUUM)
+  else if( m_rad_bc_right == VACUUM_BC)
   {
     m_right_bc_value = 0.; 
   }
-  else if( m_rad_bc_right == PLANCKIAN_BC )
+  else if( m_rad_bc_right == INCIDENT_BC )
   {
-    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Temperature");
+    /// get all required elements
+    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "Incident_Energy");
+    TiXmlElement* rad_right_bc_angle_incidence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Angle_Dependence");
+    TiXmlElement* rad_right_bc_energy_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
+    TiXmlElement* rad_right_bc_time_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Time_Dependence");
+    
     if(!rad_right_bc_value_elem)
     {
-      std::cerr << "Missing BC_Temperature element in Right Radiation Planckian BC Specification\n";
+      std::cerr << "Missing Incident_Energy element in Right Incident_BC block\n";
       exit(EXIT_FAILURE);
     }
+    if(!rad_right_bc_angle_incidence_elem)
+    {
+      std::cerr << "Missing BC_Angle_Dependence element in Right Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!rad_right_bc_energy_dependence_elem)
+    {
+      std::cerr << "Missing BC_Energy_Dependence element in Right Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    }if(!rad_right_bc_time_dependence_elem)
+    {
+      std::cerr << "Missing BC_Time_Dependence element in Right Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    } 
+    
+    /// get value for and error check incident energy value
     m_right_bc_value = atof( rad_right_bc_value_elem->GetText() ); 
     if(m_right_bc_value < 0.)
     {
-      std::cerr << "Invalid value for Right BC temperature.  Must be >= 0\n";
+      std::cerr << "Invalid value for Right Incident_Energy.  Must be > 0\n";
       exit(EXIT_FAILURE);
     }
+
+    /// get angular dependence, and check for validity
+    std::string right_bc_incidence_str = rad_right_bc_angle_incidence_elem->GetText();
+    transform(right_bc_incidence_str.begin() , right_bc_incidence_str.end() , right_bc_incidence_str.begin() , toupper);
+    if(right_bc_incidence_str == "BC_ISOTROPIC")
+    {
+      m_right_bc_angle_dependence = BC_ISOTROPIC;
+    }
+    else if(right_bc_incidence_str == "BC_GLANCE")
+    {
+      m_right_bc_angle_dependence = BC_GLANCE;
+    }
+    else if(right_bc_incidence_str == "BC_NORMAL")
+    {
+      m_right_bc_angle_dependence = BC_NORMAL;
+    }
+    
+    if(m_right_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
+    {
+      std::cerr << "Must specify angular dependence of Planckian BC on right edge\n";
+      exit(EXIT_FAILURE);
+    }
+
+    /// get energy/frequency distribution dependence, check for valid input
+    std::string right_energy_dep_str = rad_right_bc_energy_dependence_elem->GetText();
+    transform(right_energy_dep_str.begin() , right_energy_dep_str.end() , right_energy_dep_str.begin() , toupper);
+    if(right_energy_dep_str == "PLANCKIAN")
+    {
+      m_right_bc_energy_dependence = PLANCKIAN;
+    }
+    
+    if(m_right_bc_energy_dependence == INVALID_BC_ENERGY_DEPENDENCE)
+    {
+      std::cerr << "Invalid BC_ENERGY_DEPENDENCE for right BC\n";
+      exit(EXIT_FAILURE);
+    }  
+    
+    /// get right BC time dependence
+    std::string right_time_dependence_str = rad_right_bc_time_dependence_elem->GetText();
+    transform(right_time_dependence_str.begin() , right_time_dependence_str.end() , right_time_dependence_str.begin() , toupper);
+    if(right_time_dependence_str == "BC_BURST")
+    {
+      m_right_bc_time_dependence = BC_BURST;
+    }
+    else if(right_time_dependence_str == "BC_CONSTANT")
+    {
+      m_right_bc_time_dependence = BC_CONSTANT;
+    }
+    
+    if(m_right_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
+    {
+      std::cerr << "Invalid right BC time dependence\n";
+      exit(EXIT_FAILURE);
+    }
+    else if(m_right_bc_time_dependence == BC_CONSTANT)
+    {
+      /// assume dirichlet conditions last forever
+      m_bc_right_start_time = m_t_start - 0.01*(m_t_end - m_t_start);
+      m_bc_right_end_time = m_t_end + 0.01*(m_t_end - m_t_start);  
+    }
+    else if(m_right_bc_time_dependence == BC_BURST)
+    {
+      TiXmlElement* bc_right_start_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_Turn_On" );
+      TiXmlElement* bc_right_end_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_Turn_Off" );
+      
+      if(!bc_right_start_elem || !bc_right_end_elem)
+      {
+        std::cerr << "BC_Burst in right BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements\n";
+        exit(EXIT_FAILURE);
+      }
+      
+      m_bc_right_start_time = atof( bc_right_start_elem->GetText() );
+      m_bc_right_end_time = atof( bc_right_end_elem->GetText() );
+      
+      if(m_bc_right_end_time < m_bc_right_start_time)
+      {
+        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
+        exit(EXIT_FAILURE);
+      }
+      if( (m_bc_right_start_time < m_t_start) || (m_bc_right_end_time > m_t_end) )
+      {
+        std::cerr << "BC Turn_On / Turn_Off time must be within total problem times \n";
+        exit(EXIT_FAILURE);
+      }
+    }    
   }
-  else if( m_rad_bc_right == REFLECTIVE)
+  else if( m_rad_bc_right == REFLECTIVE_BC)
   {
     std::cerr << "Cannot use reflective boundary condition on right edge.  Only left edge\n";
     exit(EXIT_FAILURE);
+  } 
+ 
+  /// get input info for left boundary
+  if( m_rad_bc_left == INCIDENT_BC )
+  {
+        /// get all required elements
+    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_Energy");
+    TiXmlElement* rad_left_bc_angle_incidence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Angle_Dependence");
+    TiXmlElement* rad_left_bc_energy_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
+    TiXmlElement* rad_left_bc_time_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Time_Dependence");
+    
+    if(!rad_left_bc_value_elem)
+    {
+      std::cerr << "Missing Incident_Energy element in Left Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!rad_left_bc_angle_incidence_elem)
+    {
+      std::cerr << "Missing BC_Angle_Dependence element in Left Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    }
+    if(!rad_left_bc_energy_dependence_elem)
+    {
+      std::cerr << "Missing BC_Energy_Dependence element in Left Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    }if(!rad_left_bc_time_dependence_elem)
+    {
+      std::cerr << "Missing BC_Time_Dependence element in Left Incident_BC block\n";
+      exit(EXIT_FAILURE);
+    } 
+    
+    /// get value for and error check incident energy value
+    m_left_bc_value = atof( rad_left_bc_value_elem->GetText() ); 
+    if(m_right_bc_value < 0.)
+    {
+      std::cerr << "Invalid value for Right Incident_Energy.  Must be > 0\n";
+      exit(EXIT_FAILURE);
+    }
+
+    /// get angular dependence, and check for validity
+    std::string left_bc_incidence_str = rad_left_bc_angle_incidence_elem->GetText();
+    transform(left_bc_incidence_str.begin() , left_bc_incidence_str.end() , left_bc_incidence_str.begin() , toupper);
+    if(left_bc_incidence_str == "BC_ISOTROPIC")
+    {
+      m_left_bc_angle_dependence = BC_ISOTROPIC;
+    }
+    else if(left_bc_incidence_str == "BC_GLANCE")
+    {
+      m_left_bc_angle_dependence = BC_GLANCE;
+    }
+    else if(left_bc_incidence_str == "BC_NORMAL")
+    {
+      m_left_bc_angle_dependence = BC_NORMAL;
+    }
+    
+    if(m_left_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
+    {
+      std::cerr << "Must specify angular dependence of Planckian BC on left edge\n";
+      exit(EXIT_FAILURE);
+    }
+
+    /// get energy/frequency distribution dependence, check for valid input
+    std::string left_energy_dep_str = rad_left_bc_energy_dependence_elem->GetText();
+    transform(left_energy_dep_str.begin() , left_energy_dep_str.end() , left_energy_dep_str.begin() , toupper);
+    if(left_energy_dep_str == "PLANCKIAN")
+    {
+      m_left_bc_energy_dependence = PLANCKIAN;
+    }
+    
+    if(m_left_bc_energy_dependence == INVALID_BC_ENERGY_DEPENDENCE)
+    {
+      std::cerr << "Invalid BC_ENERGY_DEPENDENCE for left BC\n";
+      exit(EXIT_FAILURE);
+    }  
+    
+    /// get left BC time dependence
+    std::string left_time_dependence_str = rad_left_bc_time_dependence_elem->GetText();
+    transform(left_time_dependence_str.begin() , left_time_dependence_str.end() , left_time_dependence_str.begin() , toupper);
+    if(left_time_dependence_str == "BC_BURST")
+    {
+      m_left_bc_time_dependence = BC_BURST;
+    }
+    else if(left_time_dependence_str == "BC_CONSTANT")
+    {
+      m_left_bc_time_dependence = BC_CONSTANT;
+    }
+    
+    if(m_left_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
+    {
+      std::cerr << "Invalid left BC time dependence\n";
+      exit(EXIT_FAILURE);
+    }
+    else if(m_left_bc_time_dependence == BC_CONSTANT)
+    {
+      /// assume dirichlet conditions last forever
+      m_bc_left_start_time = m_t_start - 0.01*(m_t_end - m_t_start);
+      m_bc_left_end_time = m_t_end + 0.01*(m_t_end - m_t_start);  
+    }
+    else if(m_left_bc_time_dependence == BC_BURST)
+    {
+      TiXmlElement* bc_left_start_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_Turn_On" );
+      TiXmlElement* bc_left_end_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_Turn_Off" );
+      
+      if(!bc_left_start_elem || !bc_left_end_elem)
+      {
+        std::cerr << "BC_Burst in left BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements\n";
+        exit(EXIT_FAILURE);
+      }
+      
+      m_bc_left_start_time = atof( bc_left_start_elem->GetText() );
+      m_bc_left_end_time = atof( bc_left_end_elem->GetText() );
+      
+      if(m_bc_left_end_time < m_bc_left_start_time)
+      {
+        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
+        exit(EXIT_FAILURE);
+      }
+      if( (m_bc_left_start_time < m_t_start) || (m_bc_left_end_time > m_t_end) )
+      {
+        std::cerr << "BC Turn_On / Turn_Off time must be within total problem times in left BC \n";
+        exit(EXIT_FAILURE);
+      }
+    }
   }
+   
+  /// do not allow refelective condition and krylov solving
+  if( (m_rad_bc_left == REFLECTIVE_BC) 
+    && ( (m_wg_solve_type == KRYLOV_SWEEPS) || (m_wg_solve_type == KRYLOV_DSA) ) )
+  {
+    std::cerr << "A refelective radiation boundary condition is not allowed with Krylov WGRS\n";
+    exit(EXIT_FAILURE);  
+  } 
     
   /// get radiation initial conditions
   if( m_radiation_ic_type == INVALID_RADIATION_IC_TYPE)
@@ -1726,127 +1993,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
   }
   
-  // m_bc_start_time; m_bc_end_time;
-  /// check and see if dirichlet boundary conditions are only for part of time
-  if( (m_rad_bc_left == PLANCKIAN_BC ) || (m_rad_bc_right == PLANCKIAN_BC) )
-  {
-    TiXmlElement* bc_time_dependent_elem = bc_ic_element->FirstChildElement( "BC_Time_Dependent");
-    if(!bc_time_dependent_elem )
-    {
-      std::cerr << "Missing BC_Time_Dependence block, required\n";
-      exit(EXIT_FAILURE);
-    }
-    
-    std::string bc_time_str = bc_time_dependent_elem->GetText();
-    transform(bc_time_str.begin() , bc_time_str.end() , bc_time_str.begin() , toupper);
-    if(bc_time_str == "BC_CONSTANT")
-    {
-      m_bc_time_dependence = BC_CONSTANT;
-    }
-    else if(bc_time_str == "BC_BURST")
-    {
-      m_bc_time_dependence = BC_BURST;
-    }
-    
-    if(m_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
-    {
-      std::cerr << "Invalid Planckian BC time dependence\n";
-      exit(EXIT_FAILURE);
-    }    
-    else if(m_bc_time_dependence == BC_CONSTANT)
-    {
-      /// assume dirichlet conditions last forever
-      m_bc_start_time = m_t_start - 0.01*(m_t_end - m_t_start);
-      m_bc_end_time = m_t_end + 0.01*(m_t_end - m_t_start);  
-    }
-    else if(m_bc_time_dependence == BC_BURST)
-    {
-      TiXmlElement* bc_start_elem = bc_time_dependent_elem->FirstChildElement( "BC_Turn_On" );
-      TiXmlElement* bc_end_elem = bc_time_dependent_elem->FirstChildElement( "BC_Turn_Off" );
-      
-      if(!bc_start_elem || !bc_end_elem)
-      {
-        std::cerr << "BC_Time_Dependent block requires BC_Turn_On and BC_Turn_Off elements\n";
-        exit(EXIT_FAILURE);
-      }
-      
-      m_bc_start_time = atof( bc_start_elem->GetText() );
-      m_bc_end_time = atof( bc_end_elem->GetText() );
-      
-      if(m_bc_end_time < m_bc_start_time)
-      {
-        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
-        exit(EXIT_FAILURE);
-      }      
-    }
-  }
-  /// get angular dependence for dirichlet angular BC
-  if( m_rad_bc_left == PLANCKIAN_BC )
-  {
-    TiXmlElement* bc_left_incidence_type = rad_left_bc_type_elem->FirstChildElement("BC_Incidence");
-    if(!bc_left_incidence_type)
-    {
-      std::cerr << "Missing Angular incidence type for Planckian BC on left edge\n";
-      exit(EXIT_FAILURE);
-    }
-    std::string left_bc_incidence_str = bc_left_incidence_type->GetText();
-    transform(left_bc_incidence_str.begin() , left_bc_incidence_str.end() , left_bc_incidence_str.begin() , toupper);
-    if(left_bc_incidence_str == "BC_ISOTROPIC")
-    {
-      m_left_bc_angle_dependence = BC_ISOTROPIC;
-    }
-    else if(left_bc_incidence_str == "BC_GLANCE")
-    {
-      m_left_bc_angle_dependence = BC_GLANCE;
-    }
-    else if(left_bc_incidence_str == "BC_NORMAL")
-    {
-      m_left_bc_angle_dependence = BC_NORMAL;
-    }
-    if(m_left_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
-    {
-      std::cerr << "Must specify angular dependence of Planckian BC on left edge\n";
-      exit(EXIT_FAILURE);
-    }
-  }
   
-  if(m_rad_bc_right == PLANCKIAN_BC)
-  {
-    TiXmlElement* bc_right_incidence_type = rad_right_bc_type_elem->FirstChildElement("BC_Incidence");
-    if(!bc_right_incidence_type)
-    {
-      std::cerr << "Missing Angular incidence type for Planckian BC on right edge\n";
-      exit(EXIT_FAILURE);
-    }
-    std::string right_bc_incidence_str = bc_right_incidence_type->GetText();
-    transform(right_bc_incidence_str.begin() , right_bc_incidence_str.end() , right_bc_incidence_str.begin() , toupper);
-    if(right_bc_incidence_str == "BC_ISOTROPIC")
-    {
-      m_right_bc_angle_dependence = BC_ISOTROPIC;
-    }
-    else if(right_bc_incidence_str == "BC_GLANCE")
-    {
-      m_right_bc_angle_dependence = BC_GLANCE;
-    }
-    else if(right_bc_incidence_str == "BC_NORMAL")
-    {
-      m_right_bc_angle_dependence = BC_NORMAL;
-    }
-    if(m_right_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
-    {
-      std::cerr << "Must specify angular dependence of Planckian BC on right edge\n";
-      exit(EXIT_FAILURE);
-    }
-  }
-  
-  
-  /// do not allow refelective condition and krylov solving
-  if( (m_rad_bc_left == REFLECTIVE) 
-    && ( (m_wg_solve_type == KRYLOV_SWEEPS) || (m_wg_solve_type == KRYLOV_DSA) ) )
-  {
-    std::cerr << "A refelective radiation boundary condition is not allowed with Krylov WGRS\n";
-    exit(EXIT_FAILURE);  
-  }
   
   return 0;
 }

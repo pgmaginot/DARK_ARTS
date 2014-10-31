@@ -33,7 +33,7 @@ void WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
   for(int n_sweep = 0; n_sweep < m_max_sweeps ; n_sweep++)
   {
     /// perform a transport sweep, updating phi_new
-    m_transport_sweep->sweep_mesh(m_phi_old , phi_new, false,false);
+    m_transport_sweep.sweep_mesh(m_phi_old , phi_new, false,false);
     
     /// clear out the error object
     m_err.clear();
@@ -56,7 +56,7 @@ void WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
 
 void WGRS_FP_Sweeps::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )
 {
-  m_transport_sweep->set_time_data(dt,time_stage,rk_a_of_stage_i, stage);
+  m_transport_sweep.set_time_data(dt,time_stage,rk_a_of_stage_i, stage);
   
   return;
 }

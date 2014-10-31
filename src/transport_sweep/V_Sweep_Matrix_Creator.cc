@@ -25,35 +25,35 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   /// matrices/vectors for linearization definitions
   m_r_sig_t{ Eigen::MatrixXd::Zero(m_np,m_np) },
   m_r_sig_s(m_n_l_mom,Eigen::MatrixXd::Zero(m_np,m_np)),
-  m_s_i{ Eigen::VectorXd(m_np,m_np) },
+  m_s_i( Eigen::VectorXd(m_np,m_np) ),
   
   /// additional matrices needed to get k_I
-  m_k_i_r_sig_t{Eigen::MatrixXd::Zero(m_np,m_np)},
+  m_k_i_r_sig_t(Eigen::MatrixXd::Zero(m_np,m_np)),
   /// just scattering.  No absorption or re-emission or linearization terms
-  m_k_i_r_sig_s_zero{Eigen::MatrixXd::Zero(m_np,m_np)},
+  m_k_i_r_sig_s_zero(Eigen::MatrixXd::Zero(m_np,m_np)),
   /// don't need a vector for S_I, m_driving_source was calculated at last call
   
-  m_r_sig_a{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_identity_matrix{ Eigen::MatrixXd::Identity(m_np,m_np) },  
-  m_r_cv{ Eigen::MatrixXd::Zero(m_np,m_np) },  
-  m_d_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_coefficient{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_mass{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_dx_div_2_mass{ Eigen::MatrixXd::Zero(m_np,m_np) }, 
-  m_mass_inv{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_xi_isotropic{ Eigen::VectorXd(m_np) },
-  m_driving_source{ Eigen::VectorXd(m_np) },
+  m_r_sig_a(Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_identity_matrix( Eigen::MatrixXd::Identity(m_np,m_np) ),  
+  m_r_cv( Eigen::MatrixXd::Zero(m_np,m_np) ),  
+  m_d_matrix( Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_coefficient( Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_mass( Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_dx_div_2_mass( Eigen::MatrixXd::Zero(m_np,m_np) ), 
+  m_mass_inv( Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_xi_isotropic( Eigen::VectorXd(m_np) ),
+  m_driving_source( Eigen::VectorXd(m_np) ),
   
-  m_t_old_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_t_star_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_k_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_planck_vec{ Eigen::VectorXd::Zero(m_np) },
-  m_temp_vec{ Eigen::VectorXd::Zero(m_np) },
+  m_t_old_vec( Eigen::VectorXd::Zero(m_np) ),
+  m_t_star_vec( Eigen::VectorXd::Zero(m_np) ),
+  m_k_vec( Eigen::VectorXd::Zero(m_np) ),
+  m_planck_vec( Eigen::VectorXd::Zero(m_np) ),
+  m_temp_vec( Eigen::VectorXd::Zero(m_np) ),
   
-  m_no_mu_pos_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_no_mu_neg_l_matrix{ Eigen::MatrixXd::Zero(m_np,m_np) },
-  m_no_mu_pos_f_vector{ Eigen::VectorXd::Zero(m_np) },
-  m_no_mu_neg_f_vector{ Eigen::VectorXd::Zero(m_np) },
+  m_no_mu_pos_l_matrix( Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_no_mu_neg_l_matrix(Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_no_mu_pos_f_vector( Eigen::VectorXd::Zero(m_np) ),
+  m_no_mu_neg_f_vector( Eigen::VectorXd::Zero(m_np) ),
   
   m_materials(materials),
   
@@ -79,13 +79,7 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_ard_phi_ptr{nullptr},
   
   m_rk_a(n_stages,0.)
-{  
-  // m_r_sig_s.resize(m_n_l_mom);
-  // for(int l=0; l<m_n_l_mom ; l++)
-    // m_r_sig_s[l] = Eigen::MatrixXd::Zero(m_np,m_np) ;
-
-  // m_rk_a.resize(n_stages,0.);
-  
+{    
   /// initialize matrix constructor
   if(m_matrix_type ==  EXACT)
   {

@@ -39,7 +39,7 @@ public:
   
   void sweep_for_k_i(K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
 protected:
-  std::shared_ptr<Transport_Sweep> m_transport_sweep;
+  Transport_Sweep m_transport_sweep;
   
   std::vector<double>& m_phi_ref_norm;
 };

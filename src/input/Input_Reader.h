@@ -104,10 +104,21 @@ public:
   
   BC_ANGLE_DEPENDENCE get_left_bc_angle_dependence(void) const;
   BC_ANGLE_DEPENDENCE get_right_bc_angle_dependence(void) const;
-  double get_bc_start_time(void) const; 
-  double get_bc_end_time(void) const;
+  
+  double get_left_bc_start_time(void) const;
+  double get_left_bc_end_time(void) const;
+  double get_right_bc_start_time(void) const;
+  double get_right_bc_end_time(void) const;
+
   double get_left_bc_constant(void) const;
   double get_right_bc_constant(void) const;
+  
+  INCIDENT_BC_VALUE_TYPE get_left_bc_value_type(void) const;
+  INCIDENT_BC_VALUE_TYPE get_right_bc_value_type(void) const;
+
+  BC_ENERGY_DEPENDENCE get_left_bc_energy_dependence(void) const;
+  BC_ENERGY_DEPENDENCE get_right_bc_energy_dependence(void) const;
+  
   
 protected:
   /** variables that will be used to store data from input file
@@ -189,16 +200,24 @@ protected:
   std::vector<double> m_region_temperature;
   std::vector<double> m_region_radiation_temperature;
   RADIATION_IC_TYPE m_radiation_ic_type  = INVALID_RADIATION_IC_TYPE;
-  RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
+
   RADIATION_BC_TYPE m_rad_bc_right = INVALID_RADIATION_BC_TYPE;
-  double m_left_bc_value = -1.;
   double m_right_bc_value = -1.;
-  
-  BC_TIME_DEPENDENCE m_bc_time_dependence = INVALID_BC_TIME_DEPENDENCE;
-  BC_ANGLE_DEPENDENCE m_left_bc_angle_dependence = INVALID_BC_ANGLE_DEPENDENCE;
+  INCIDENT_BC_VALUE_TYPE m_rad_bc_right_value_type = INVALID_INCIDENT_BC_VALUE_TYPE;
   BC_ANGLE_DEPENDENCE m_right_bc_angle_dependence  = INVALID_BC_ANGLE_DEPENDENCE;
-  double m_bc_start_time = -1.;
-  double m_bc_end_time = -2.;
+  BC_ENERGY_DEPENDENCE m_right_bc_energy_dependence = INVALID_BC_ENERGY_DEPENDENCE;
+  BC_TIME_DEPENDENCE m_right_bc_time_dependence = INVALID_BC_TIME_DEPENDENCE;
+  double m_bc_right_start_time = -1.;
+  double m_bc_right_end_time = -2.;
+  
+  RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
+  double m_left_bc_value = -1.;
+  INCIDENT_BC_VALUE_TYPE m_rad_bc_left_value_type = INVALID_INCIDENT_BC_VALUE_TYPE;
+  BC_ANGLE_DEPENDENCE m_left_bc_angle_dependence = INVALID_BC_ANGLE_DEPENDENCE;
+  BC_ENERGY_DEPENDENCE m_left_bc_energy_dependence = INVALID_BC_ENERGY_DEPENDENCE;
+  BC_TIME_DEPENDENCE m_left_bc_time_dependence = INVALID_BC_TIME_DEPENDENCE;
+  double m_bc_left_start_time = -1.;
+  double m_bc_left_end_time = -2.;
 
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);

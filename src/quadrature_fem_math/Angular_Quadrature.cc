@@ -10,7 +10,7 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
   m_n_dir{input_reader.get_number_of_angles() },
   m_n_groups{input_reader.get_number_of_groups() },   
   m_n_legendre_moments{input_reader.get_number_of_legendre_moments() },
-  m_left_reflecting_boundary{ ( input_reader.get_radiation_bc_type_left() == REFLECTIVE) ? true : false },
+  m_left_reflecting_boundary{ ( input_reader.get_radiation_bc_type_left() == REFLECTIVE_BC) ? true : false },
   m_sum_w{0.},
   m_mu_most_glancing{1.},
   m_mu_most_normal{0.}

@@ -13,15 +13,15 @@ V_WGRS::V_WGRS(const Input_Reader& input_reader,
   const Temperature_Data& t_star,
   std::vector<double>& phi_ref_norm)
   :
+  m_transport_sweep(fem_quadrature, cell_data, materials,angular_quadrature,n_stages, t_old, i_old, kt, ki,t_star,input_reader) ,
   m_phi_ref_norm(phi_ref_norm)
 {
-  m_transport_sweep = std::shared_ptr<Transport_Sweep> ( new Transport_Sweep(fem_quadrature, cell_data, materials,angular_quadrature,n_stages,
-    t_old, i_old, kt, ki,t_star,input_reader) );
+
 }
 
 void V_WGRS::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
 {
-  m_transport_sweep->set_ard_phi_ptr(ard_phi_ptr);
+  m_transport_sweep.set_ard_phi_ptr(ard_phi_ptr);
   return;
 }
 
@@ -32,7 +32,7 @@ void V_WGRS::sweep_for_k_i(K_Intensity& k_i, Intensity_Moment_Data& ard_phi)
   
   /// sweep the mesh and form k_I on the fly
   /// since we only have accees to one phi at this point (ard_phi, transport sweep needs to be modified have non co
-  m_transport_sweep->sweep_mesh(ard_phi, ard_phi , false, true);
+  m_transport_sweep.sweep_mesh(ard_phi, ard_phi , false, true);
   
   return;
 }
