@@ -7,7 +7,8 @@ Transport_BC_MF_Planckian::Transport_BC_MF_Planckian(Materials& materials,
   BC_ANGLE_DEPENDENCE incident_dependence,
   const double t_start,
   const double t_end,
-  const double boundary_temp)
+  const double boundary_temp,
+  const BC_ENERGY_DEPENDENCE e_dependence)
 :
   V_Transport_BC(),
   m_sn_w{ angular_quadrature.get_sum_w() },

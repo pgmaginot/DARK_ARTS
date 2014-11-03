@@ -17,7 +17,8 @@ public:
     Materials& materials,
     const int n_stages, 
     const double sn_w, 
-    const int n_l_mom,
+    const int n_l_mom,    
+    const int n_groups,
     const Temperature_Data& t_old, 
     const Intensity_Data& i_old,
     const K_Temperature& kt, 
@@ -38,8 +39,14 @@ public:
   void update_direction_dependencies(const int dir) override;
   
 private:
-
+  const int m_n_groups;
+  int m_group_num;
   Eigen::MatrixXd m_spectrum;
+  Eigen::VectorXd m_phi_vec;
+  Eigen::VectorXd m_sigma_planck;
+  Eigen::VectorXd m_local_ard;
+  Eigen::VectorXd m_group_independent_xi;
+  
 };
 
 #endif

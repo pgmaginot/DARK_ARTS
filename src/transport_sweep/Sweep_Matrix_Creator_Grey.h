@@ -39,7 +39,7 @@ public:
   void update_direction_dependencies(const int dir) override;
   
 private:
-  
+  const int m_group_num;
 };
 
 #endif

@@ -31,7 +31,7 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   if(m_n_groups > 1)
   {
     m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> 
-    (new Sweep_Matrix_Creator_MF(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() , m_n_l_mom,
+    (new Sweep_Matrix_Creator_MF(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() , m_n_l_mom, m_n_groups,
       t_old, i_old, kt, ki,t_star) );
   }
   else
@@ -50,17 +50,17 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   /// initialize boundary condition objects
   switch( input_reader.get_radiation_bc_type_left() )
   {
-    case VACUUM:
+    case VACUUM_BC:
     {
       m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Vacuum() );
       break;
     }
-    case REFLECTIVE:
+    case REFLECTIVE_BC:
     {
       m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Reflective() );
       break;
     }
-    case PLANCKIAN_BC:
+    case INCIDENT_BC:
     {
       if(m_n_groups>1)
       {      
@@ -68,9 +68,10 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
           materials,
           angular_quadrature,
           input_reader.get_left_bc_angle_dependence() ,
-          input_reader.get_bc_start_time() , 
-          input_reader.get_bc_end_time() ,
-          input_reader.get_left_bc_constant() 
+          input_reader.get_left_bc_start_time() , 
+          input_reader.get_left_bc_end_time() ,
+          input_reader.get_left_bc_constant() ,
+          input_reader.get_left_bc_energy_dependence()
             ) );
       }
       else
@@ -79,9 +80,9 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
           materials,
           angular_quadrature,
           input_reader.get_left_bc_angle_dependence() ,
-          input_reader.get_bc_start_time() , 
-          input_reader.get_bc_end_time()  ,
-          input_reader.get_left_bc_constant()           
+          input_reader.get_left_bc_start_time() , 
+          input_reader.get_left_bc_end_time()  ,
+          input_reader.get_left_bc_constant()         
             ) );
       }
       break;
@@ -96,18 +97,18 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   
   switch( input_reader.get_radiation_bc_type_right() )
   {
-    case VACUUM:
+    case VACUUM_BC:
     {
       m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Vacuum() );
       break;
     }
-    case REFLECTIVE:
+    case REFLECTIVE_BC:
     {
       std::cerr << "Reflective boundary condition on right face of slab caught in Transport_Sweep constructor\n";
       exit(EXIT_FAILURE);      
       break;
     }
-    case PLANCKIAN_BC:
+    case INCIDENT_BC:
     {
       if(m_n_groups>1)
       {      
@@ -115,9 +116,10 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
           materials,
           angular_quadrature,
           input_reader.get_right_bc_angle_dependence() ,
-          input_reader.get_bc_start_time() , 
-          input_reader.get_bc_end_time(),
-          input_reader.get_right_bc_constant() 
+          input_reader.get_right_bc_start_time() , 
+          input_reader.get_right_bc_end_time(),
+          input_reader.get_right_bc_constant() ,
+          input_reader.get_right_bc_energy_dependence()
             ) );
       }
       else
@@ -126,8 +128,8 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
           materials,
           angular_quadrature,
           input_reader.get_right_bc_angle_dependence() ,
-          input_reader.get_bc_start_time() , 
-          input_reader.get_bc_end_time()  ,      
+          input_reader.get_right_bc_start_time() , 
+          input_reader.get_right_bc_end_time()  ,      
           input_reader.get_right_bc_constant()  ) );
       }
       break;

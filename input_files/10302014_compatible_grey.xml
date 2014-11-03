@@ -42,16 +42,17 @@
     <Increase_factor> 1.25 </Increase_factor>
     -->
     
-    <Starting_method> Vector </Starting_method>
-    <N_vector_stages> 2 </N_vector_stages>
-    <Vector_stage> 0 
-      <Stage_steps> 8 </Stage_steps>
-      <Stage_size> 0.001> </Stage_size>
-    </Vector_stage>
-    <Vector_stage> 1 
-      <Stage_steps> 5 </Stage_steps>
-      <Stage_size> 0.01> </Stage_size>
-    </Vector_stage>
+    <Starting_method> Vector 
+      <N_vector_stages> 2 </N_vector_stages>
+      <Vector_stage> 0 
+        <Stage_steps> 8 </Stage_steps>
+        <Stage_size> 0.001> </Stage_size>
+      </Vector_stage>
+      <Vector_stage> 1 
+        <Stage_steps> 5 </Stage_steps>
+        <Stage_size> 0.01> </Stage_size>
+      </Vector_stage>
+    </Starting_method>
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
@@ -91,18 +92,18 @@
     </Region>
    </Radiation_IC_Type>
    
-   <!-- Valid options are PLANCKIAN_BC, VACUUM, REFLECTIVE   -->
-   <Left_Radiation_BC_Type> PLANCKIAN_BC 
+   <!-- Valid options are INCIDENT_BC, VACUUM_BC, REFLECTIVE_BC   -->
+   <Left_Radiation_BC_Type> INCIDENT_BC 
     <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
-    <BC_Incidence> BC_GLANCE </BC_Incidence>   
-    <BC_Temperature> 10 </BC_Temperature>
+    <BC_Angle_Dependence> BC_GLANCE </BC_Angle_Dependence>   
+    <Incident_Energy> 10 </Incident_Energy>    
+    <BC_Time_Dependence> BC_CONSTANT </BC_Time_Dependence>
    </Left_Radiation_BC_Type>
    
    <!-- Valid options are PLANCKIAN_BC, VACUUM   -->
-   <Right_Radiation_BC_Type> VACUUM </Right_Radiation_BC_Type>
+   <Right_Radiation_BC_Type> VACUUM_BC </Right_Radiation_BC_Type>
    
-   <!-- Valid options are BC_CONSTANT, BC_BURST  -->
-   <BC_Time_Dependent> BC_CONSTANT </BC_Time_Dependent>
+   
   </BC_IC>
 
 

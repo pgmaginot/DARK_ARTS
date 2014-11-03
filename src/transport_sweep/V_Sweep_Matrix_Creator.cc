@@ -68,11 +68,8 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_kt_ref(kt),  
   m_ki_ref(ki),
   
-
-  
   m_dx{-1.}  ,
   m_cell_num{-1},
-  m_group_num{ -1},
   
   m_t_star_ref(t_star),
     

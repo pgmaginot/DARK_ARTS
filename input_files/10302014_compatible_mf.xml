@@ -15,7 +15,7 @@
   
   <MATERIALS>
     <!-- CM_SH_KEV or  UNITY-->
-    <Units> CM_SH_KEV </Units>
+    <Units> UNITY </Units>
     <Material> 0
       <Scattering_Opacity_type> Constant_xs 
         <Constant_value> 1.0 </Constant_value>
@@ -37,12 +37,14 @@
     <T_start> 0.0 </T_start>
     <T_end> 1.0 </T_end>
     <Time_solver> Implicit_euler </Time_solver>
-    <!--
-      <Starting_method> Exponential </Starting_method>
-    <Increase_factor> 1.25 </Increase_factor>
-    -->
     
-    <Starting_method> Vector </Starting_method>
+    <Starting_method> Exponential 
+      <Increase_factor> 1.25 </Increase_factor>
+    </Starting_method>
+    
+   
+    
+   <!-- <Starting_method> Vector </Starting_method>
     <N_vector_stages> 2 </N_vector_stages>
     <Vector_stage> 0 
       <Stage_steps> 8 </Stage_steps>
@@ -51,7 +53,7 @@
     <Vector_stage> 1 
       <Stage_steps> 5 </Stage_steps>
       <Stage_size> 0.01> </Stage_size>
-    </Vector_stage>
+    </Vector_stage>  -->
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
@@ -112,17 +114,23 @@
    </Radiation_IC_Type>
    
    <!-- Valid options are PLANCKIAN_BC, VACUUM, REFLECTIVE   -->
-   <Left_Radiation_BC_Type> PLANCKIAN_BC 
+   <Left_Radiation_BC_Type> INCIDENT_BC 
     <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
-    <BC_Incidence> BC_GLANCE </BC_Incidence>   
-    <BC_Temperature> 10 </BC_Temperature>
+    <BC_Angle_Dependence> BC_NORMAL </BC_Angle_Dependence>   
+    <Incident_Energy> 10 </Incident_Energy>
+    <BC_Energy_Dependence> PLANCKIAN </BC_Energy_Dependence>
+    <!-- Valid options are BC_CONSTANT, BC_BURST  -->
+    <BC_Time_Dependence> BC_BURST 
+      <BC_Turn_On>  0.1 </BC_Turn_On>
+      <BC_Turn_Off> 0.5 </BC_Turn_Off>
+      
+    </BC_Time_Dependence>
    </Left_Radiation_BC_Type>
    
    <!-- Valid options are PLANCKIAN_BC, VACUUM   -->
-   <Right_Radiation_BC_Type> VACUUM </Right_Radiation_BC_Type>
+   <Right_Radiation_BC_Type> VACUUM_BC </Right_Radiation_BC_Type>
    
-   <!-- Valid options are BC_CONSTANT, BC_BURST  -->
-   <BC_Time_Dependent> BC_CONSTANT </BC_Time_Dependent>
+
   </BC_IC>
 
 

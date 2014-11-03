@@ -17,7 +17,8 @@ Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_q
   const K_Intensity& ki,
   const Temperature_Data& t_star)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, n_l_mom, t_old,  i_old, kt, ki, t_star )
+  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, n_l_mom, t_old,  i_old, kt, ki, t_star ),
+  m_group_num{0}
 {  
 }
 
@@ -65,9 +66,7 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
     if grey \f$ \mathbf{R}_{\sigma_{s,0}} + \bar{\bar{\nu}}\mathbf{R}_{\sigma_a} \f$ 
   */  
 void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
-{
-  m_group_num = grp;
-  
+{  
   m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
   for(int l=0; l< m_n_l_mom ; l++)
     m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
@@ -99,7 +98,7 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   /// \f$ \text{m_xi_isotropic} += \Delta t \sum_{j=1}^{i-1}{a_{ij} \vec{k}_{T,j} } \f$
   for(int s=0; s< m_stage ; s++)
   {
-    m_kt_ref.get_kt(m_cell_num, m_stage, m_temp_vec);
+    m_kt_ref.get_kt(m_cell_num, s, m_temp_vec);
     m_xi_isotropic += m_dt*m_rk_a[s]*m_temp_vec;
   }
   

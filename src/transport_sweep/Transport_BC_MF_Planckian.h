@@ -22,7 +22,8 @@ public:
   BC_ANGLE_DEPENDENCE incident_dependence,
   const double t_start,
   const double t_end,
-  const double boundary_t);
+  const double boundary_t,
+  const BC_ENERGY_DEPENDENCE e_dependence);
     
   virtual ~Transport_BC_MF_Planckian(){}
 

@@ -179,7 +179,6 @@ protected:
   /// cell data that is used repeatedly (set in V_Sweep_Matrix_Creator::update_cell_dependencies() )
   double m_dx;
   int m_cell_num;
-  int m_group_num;
   
   /// could potentially change, though unlikely...
   const Temperature_Data& m_t_star_ref;
