@@ -79,8 +79,10 @@ void Sweep_Matrix_Creator_MF::update_cell_dependencies(const int cell)
     m_sigma_planck += m_r_sig_a*m_planck_vec;
   }
   
-  /// calculate \f$ \left[ \mathbf{I} + \text{m_sn_w}a_{ii} \Delta \mathbf{R}_{C_v}^{-1} \text{m_spectrum}  \right]
+  /// calculate \f$ \left[ \mathbf{I} + \text{m_sn_w}a_{ii} \Delta \mathbf{R}_{C_v}^{-1} \text{m_spectrum}  \right]^{-1}
   m_coefficient = m_identity_matrix + m_sn_w*m_rk_a[m_stage]*m_dt*m_r_cv*m_spectrum;
+  m_r_sig_a = m_coefficient.inverse();
+  m_coefficient = m_r_sig_a;
   
   /** calculate the isotropic, group independent portions of xi:
     \f[
@@ -124,7 +126,7 @@ void Sweep_Matrix_Creator_MF::update_cell_dependencies(const int cell)
   /// initalize/reset
   m_xi_isotropic = m_r_sig_a*m_d_matrix*m_coefficient*m_group_independent_xi;
   
-    /// m_xi_isotropic can contain the ARD terms, \f$ \bar{\bar{\chi}}_g \bar{\bar{\nu}} \bar{\bar{\Sigma \Pih}} \f$ 
+    /// m_xi_isotropic contains the ARD terms, \f$ \bar{\bar{\chi}}_g \bar{\bar{\nu}} \bar{\bar{\Sigma \Pih}} \f$ 
   m_xi_isotropic += m_sn_w*m_rk_a[m_stage]*m_dt*m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_local_ard;
   
   /// add in planck term
@@ -156,6 +158,7 @@ void Sweep_Matrix_Creator_MF::update_direction_dependencies(const int dir)
     m_ki_ref.get_ki(m_cell_num,m_group_num,dir,s,m_k_vec);
     m_temp_vec += m_rk_a[s]*m_k_vec;
   }
+  m_s_i += 1./(m_c*m_rk_a[m_stage])*m_temp_vec;
   
   return;
 }

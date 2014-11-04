@@ -94,6 +94,15 @@ IF( NOT EIGEN_PATH )
 ENDIF()
 INCLUDE_DIRECTORIES ( "${EIGEN_PATH}" )
 
+###########################################
+# Including the PETSc library header files
+###########################################
+SET( PETSC_DIR "$ENV{PETSC_DIR}" )
+IF( NOT PETSC_DIR )
+    MESSAGE( FATAL_ERROR "Please point the environment variable PETSC_DIR to the include directory of your PETSc installation.")
+ENDIF()
+INCLUDE_DIRECTORIES ( "${PETSC_DIR}/include" )
+
 
 ############################################
 #   OPTIONS (ON/OFF)

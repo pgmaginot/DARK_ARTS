@@ -29,13 +29,12 @@ public:
 
   double get_boundary_condition(const double mu, const int grp, const double time) override;
 protected:
-  const double m_sn_w;
   const BC_ANGLE_DEPENDENCE m_incident_dependence;
   const double m_bc_time_start;
   const double m_bc_time_end;
   const double m_abs_glance_angle;
   const double m_abs_normal_angle;  
-  const double m_planck;
+  double m_non_zero_outflow_value;
 };
 
 #endif

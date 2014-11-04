@@ -1,3 +1,5 @@
+static char help[] = "A character array that PETSc might be expecting";
+
 #include "Input_Reader.h"
 #include "Fem_Quadrature.h"
 #include "Cell_Data.h"
@@ -8,6 +10,7 @@
 #include "Temperature_Data.h"
 #include "Materials.h"
 
+#include <petscksp.h>
 
 int main(int argc, char** argv)
 {
@@ -15,6 +18,16 @@ int main(int argc, char** argv)
   for(int i = 0; i < argc; i++) 
     std::cout << "argv[" << i << "] = " << argv[i] << '\n'; 
   
+  /**
+    Initialize PETSc
+  */
+  PetscErrorCode ierr;  
+  PetscInitialize(&argc,&args,(char * )0,help );
+  PetscMPIInt size;
+  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
+  if (size != 1) SETERRQ(PETSC_COMM_WORLD,1,"DARK_ARTS is written to be serial only!");
+  
+  /// DARK_ARTS objects follow
   Input_Reader input_reader;
   bool input_parsed = false;
     
@@ -49,7 +62,7 @@ int main(int argc, char** argv)
   std::cout << "Angular quadrature object created" << std::endl;
    
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() );  
+  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
   std::cout << "Materials object created" << std::endl;
   
   /// Initialize intensity and angle integrated intensity of previous time step
@@ -72,8 +85,10 @@ int main(int argc, char** argv)
   /// this is the entire time loop !
   // time_marcher.solve(intensity_old, temperature_old, time_data);
   
-  
-  
+  /**
+    End PETSc
+  */
+  ierr = PetscFinalize();
  
   return 0;
 }

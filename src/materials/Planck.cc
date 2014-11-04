@@ -1,76 +1,27 @@
-// Copyright (c) 2000-2008, Texas Engineering Experiment Station (TEES), a
-// component of the Texas A&M University System.
-// All rights reserved.
-
-// Redistribution and use in source and binary forms, with or without
-// modification, are not permitted without specific prior written permission
-// from TEES.
-
-// If written permission is obtained for redistribution or further use, the
-// following conditions must be met:
-
-// 1) Redistributions of source code must retain the above copyright notice,
-// this list of conditions and the disclaimer below.
-
-// 2) Redistributions in binary form must reproduce the above copyright notice,
-// this list of conditions, and the disclaimer below in the documentation and/or
-// other materials provided with the distribution.
-
-// 3) Neither the name of TEES, the name of the Texas A&M University System, nor
-// the names of its contributors may be used to endorse or promote products
-// derived from this software without specific prior written permission.
-
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-
-
-//==============================================================================
-//
 // Planck.cc
+//
+// 11/4/2014 PGM- Changed to return answers in per steradians 
 //
 // 10/13/2010 WDH
 //
 // Modifed integrate_B and integrate_dBdT to return values that are NOT per
 // steradian (just like the integrate_B_grey and integrate_dBdT_grey).
 //
-// 06/17/2009 WDH
 //
-// Added integrate_B_grey() and integrate_dBdT_grey() methods to correctly
-// return acT^4 and 4acT^3 respectfully if the problem is grey.  In the future,
-// we need to modify integrate_B() and integrate_dBdT() to return the correct
-// values for a grey problem.
-//
-// 10/22/2008 MPA
-//
-// Planck class methods.
 //
 //Fri, Dec-17, 2010
 //Using this class obtained from PDT.
 //Has done some modifications to be compatible to my code.
 //==============================================================================
 
-// #ifndef Constants_h
-// #define Constants_h
-// #include "Constants.h"
-// #endif
 #include "Planck.h"
 
-// #include <cmath>
-// #include <vector>
-// #include <iostream>
 
 using std::vector;
 
-Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader)
+Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader, const double sn_weights)
+:
+  m_sn_weight{sn_weights}
 {
   accuracy = accuracy_parameter;
   pi = 3.14159265358979323846;
@@ -130,7 +81,7 @@ double Planck::integrate_B_grey(double T)
 		str << "Planckian integration requires temperature to be positive.";
 		//throw CommonException(str, CET_INTERNAL_ERROR);
 	}
-	return a*c*pow(T,4); // Note that this is NOT a per steradian quantity
+	return a*c*pow(T,4)/m_sn_weight; /// Note this is a per steradian quantity
 }
 
 double Planck::integrate_B(double T, double E_min, double E_max)
@@ -232,14 +183,14 @@ double Planck::integrate_B(double T, double E_min, double E_max)
 
 	}
 
-	return Bg*4.0*pi; // Note that this is NOT a per steradian quantity
+	return Bg*4.0*pi/m_sn_weight; // Note that this is a per steradian quantity
 
 } // Planck::integrate_B()
 
 
 double Planck::integrate_dBdT_grey(double T)
 {
-	return 4.0*a*c*pow(T,3); // Note that this is NOT a per steradian quantity
+	return 4.0*a*c*pow(T,3)/m_sn_weight; // Note that this is a per steradian quantity
 }
 
 
@@ -343,7 +294,7 @@ double Planck::integrate_dBdT(double T, double E_min, double E_max)
 
 	}
 
-	return dBgdT*4.0*pi; // Note that this is NOT a per steradian quantity
+	return dBgdT*4.0*pi/m_sn_weight; // Note that this is a per steradian quantity
 
 } // Planck::integrate_dBdT() remake
 void Planck::gauss_quad()

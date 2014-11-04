@@ -1623,6 +1623,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_Energy");
     TiXmlElement* rad_left_bc_angle_incidence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Angle_Dependence");
     TiXmlElement* rad_left_bc_time_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Time_Dependence");
+    TiXmlElement* rad_left_bc_value_type_elem = rad_left_bc_type_elem->FirstChildElement("BC_Value_Type");
     
     if( m_number_groups > 1 )
     {
@@ -1652,6 +1653,13 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       std::cerr << "Missing Incident_Energy element in Left Incident_BC block\n";
       exit(EXIT_FAILURE);
     }
+    
+    if(!rad_left_bc_value_type_elem)
+    {
+      std::cerr << "Missing BC_Value_Type element for Incident_BC type\n";
+      exit(EXIT_FAILURE);
+    }
+    
     if(!rad_left_bc_angle_incidence_elem)
     {
       std::cerr << "Missing BC_Angle_Dependence element in Left Incident_BC block\n";
@@ -1669,6 +1677,23 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     if(m_left_bc_value < 0.)
     {
       std::cerr << "Invalid value for Left Incident_Energy.  Must be > 0\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    std::string left_value_type_str = rad_left_bc_value_type_elem->GetText();
+    transform(left_value_type_str.begin() , left_value_type_str.end() , left_value_type_str.begin() , toupper);
+    if(left_value_type_str == "INCIDENT_CURRENT")
+    {
+      m_rad_bc_left_value_type = INCIDENT_CURRENT;
+    }
+    else if(left_value_type_str == "INCIDENT_TEMPERATURE")
+    {
+      m_rad_bc_left_value_type = INCIDENT_TEMPERATURE;
+    }
+    
+    if(m_rad_bc_left_value_type == INVALID_INCIDENT_BC_VALUE_TYPE)
+    {
+      std::cerr << "Invalid BC_Value_Type element value\n" ;
       exit(EXIT_FAILURE);
     }
 
@@ -1764,6 +1789,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "Incident_Energy");
     TiXmlElement* rad_right_bc_angle_incidence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Angle_Dependence");
     TiXmlElement* rad_right_bc_time_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Time_Dependence");
+    TiXmlElement* rad_right_bc_value_type_elem = rad_right_bc_type_elem->FirstChildElement("BC_Value_Type");
     
     if(!rad_right_bc_value_elem)
     {
@@ -1775,6 +1801,13 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       std::cerr << "Missing BC_Angle_Dependence element in Right Incident_BC block\n";
       exit(EXIT_FAILURE);
     }
+    
+    if(!rad_right_bc_value_type_elem)
+    {
+      std::cerr << "Missing BC_Value_Type for left INCIDENT_BC\n";
+      exit(EXIT_FAILURE);
+    }
+    
     if( m_number_groups > 1)
     {
       TiXmlElement* rad_right_bc_energy_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
@@ -1810,6 +1843,24 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     if(m_right_bc_value < 0.)
     {
       std::cerr << "Invalid value for Right Incident_Energy.  Must be > 0\n";
+      exit(EXIT_FAILURE);
+    }   
+    
+    std::string right_value_type_str = rad_right_bc_value_type_elem->GetText();
+    transform(right_value_type_str.begin() , right_value_type_str.end() , right_value_type_str.begin() , toupper);
+    if(right_value_type_str == "INCIDENT_CURRENT")
+    {
+      m_rad_bc_right_value_type = INCIDENT_CURRENT;
+      
+    }
+    else if(right_value_type_str == "INCIDENT_TEMPERATURE")
+    {
+      m_rad_bc_right_value_type = INCIDENT_TEMPERATURE;
+    }
+    
+    if(m_rad_bc_right_value_type == INVALID_INCIDENT_BC_VALUE_TYPE)
+    {
+      std::cerr << "Invalid BC_Value_Type element value for right boundary\n" ;
       exit(EXIT_FAILURE);
     }
 

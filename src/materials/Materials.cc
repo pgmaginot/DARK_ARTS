@@ -16,9 +16,10 @@
 Materials::Materials( const Input_Reader& input_reader, 
   const Fem_Quadrature& fem_quadrature, 
   const Cell_Data& cell_data,
-  const int n_groups)
+  const int n_groups,
+  const double sum_sn_weights)
 :
-    m_planck( 1.0E-15 , input_reader),
+  m_planck( 1.0E-15 , input_reader, sum_sn_weights),
   m_num_materials{input_reader.get_number_of_materials()},
   m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
   m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },

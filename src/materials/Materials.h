@@ -12,11 +12,6 @@
 
 #include <Eigen/Dense>
 
-// #include "VAbsorption_Opacity.h"
-// #include "VScattering_Opacity.h"
-// #include "VCv.h"
-// #include "VSource_T.h"
-// #include "VSource_I.h"
 #include "Absorption_Opacity_Rational.h"
 #include "Scattering_Opacity_Rational.h"
 #include "Absorption_Opacity_Constant.h"
@@ -26,7 +21,7 @@
 #include "Source_I_Constant.h"
 #include "Source_T_Constant.h"
 #include "Cv_Constant.h"
-// #include "V_XS_Treatment.h"
+
 #include "XS_Treatment_SLXS.h"
 #include "XS_Treatment_Moment_Preserving.h"
 #include "XS_Treatment_Interpolating.h"
@@ -40,7 +35,9 @@ public:
   Materials(const Input_Reader& input_reader, 
     const Fem_Quadrature& fem_quadrature, 
     const Cell_Data& cell_data,
-    const int n_groups);
+    const int n_groups,
+    const double sum_sn_weights);
+    
   virtual ~Materials(){}
 
   /** The update_sigma_a, update_sigma_s, and update_cv functions interact with the 

@@ -19,6 +19,8 @@
 #include "Transport_BC_Vacuum.h"
 #include "Transport_BC_MF_Planckian.h"
 #include "Transport_BC_Grey_Planckian.h"
+#include "Transport_BC_MF_Current.h"
+#include "Transport_BC_Grey_Current.h"
 
 #include "Input_Reader.h"
 

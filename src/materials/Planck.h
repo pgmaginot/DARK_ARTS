@@ -94,6 +94,7 @@ private:
   double a;   // radiation constant a
   double pi;  // Pi
 
+  const double m_sn_weight;
 
   // points and weights are for integration by gaussian quadrature
   vector<long double> points;
@@ -104,7 +105,7 @@ private:
 
 public:
 
-  Planck(double accuracy_parameter, const Input_Reader& input_reader);//  {gauss_quad(accuracy)};
+  Planck(double accuracy_parameter, const Input_Reader& input_reader, const double sum_sn_weights);//  {gauss_quad(accuracy)};
   virtual ~Planck() {}; // empty destructor
   
   /// to access c constant

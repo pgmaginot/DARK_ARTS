@@ -1,9 +1,9 @@
-#ifndef Transport_BC_MF_Planckian_h
-#define Transport_BC_MF_Planckian_h
+#ifndef Transport_BC_Grey_Current_h
+#define Transport_BC_Grey_Current_h
 
 #include "V_Transport_BC.h"
-#include "Materials.h"
 #include "Angular_Quadrature.h"
+
 
 /** @file   V_Transport_BC.h
   *   @author pmaginot
@@ -14,18 +14,16 @@
   * at some point, (after boundary conditions are initialized, this probaly can be changed back to being a const object
  */
 
-class Transport_BC_MF_Planckian : public V_Transport_BC
+class Transport_BC_Grey_Current : public V_Transport_BC
 {
 public:
-  Transport_BC_MF_Planckian(Materials& materials, 
-  const Angular_Quadrature& angular_quadrature,
-  BC_ANGLE_DEPENDENCE incident_dependence,
-  const double t_start,
-  const double t_end,
-  const double boundary_t,
-  const BC_ENERGY_DEPENDENCE e_dependence);
+  Transport_BC_Grey_Current(const Angular_Quadrature& angular_quadrature,
+    BC_ANGLE_DEPENDENCE incident_dependence,
+    const double t_start,
+    const double t_end,
+    const double energy_current);
     
-  virtual ~Transport_BC_MF_Planckian(){}
+  virtual ~Transport_BC_Grey_Current(){}
 
   double get_boundary_condition(const double mu, const int grp, const double time) override;
 protected:
@@ -33,8 +31,9 @@ protected:
   const double m_bc_time_start;
   const double m_bc_time_end;
   const double m_abs_glance_angle;
-  const double m_abs_normal_angle;
-  std::vector<double> m_planck;
+  const double m_abs_normal_angle;  
+  double m_non_zero_value;
+  
 };
 
 #endif

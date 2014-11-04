@@ -39,6 +39,7 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_materials.calculate_local_temp_and_position(cell,m_t_star_vec);
   
   /// get Planck vector since it won't change
+  /// Planck grey_planck is \f$ acT^4 \f$  not \f$ \frac{1}{\text{m_sn_w}} acT^4 \f$
   m_materials.get_grey_planck(m_t_star_vec, m_planck_vec);
   
   /// set cell width
@@ -67,6 +68,16 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   */  
 void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
 {  
+  /** calculate the "coefficient matrix":
+    \f[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}
+    \f]  ^{-1}  
+  */
+  m_coefficient = m_identity_matrix;
+  m_coefficient += m_sn_w*m_dt*m_rk_a[m_stage]*m_r_cv*m_r_sig_a*m_d_matrix;
+  
+  m_r_sig_a = m_coefficient.inverse();
+  m_coefficient = m_r_sig_a;
+
   m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
   for(int l=0; l< m_n_l_mom ; l++)
     m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
@@ -77,14 +88,7 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   
   /// calculate \f$ \mathbf{D} \f$
   m_materials.get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
-  
-  /** calculate the "coefficient matrix":
-    \f[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}
-    \f]    
-  */
-  m_coefficient = m_identity_matrix;
-  m_coefficient += m_sn_w*m_dt*m_rk_a[m_stage]*m_r_cv*m_r_sig_a*m_d_matrix;
-  
+
   /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
   
   m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*
@@ -102,8 +106,6 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
     m_xi_isotropic += m_dt*m_rk_a[s]*m_temp_vec;
   }
   
-  /// calculate planck vector for this cell
-  m_materials.get_grey_planck(m_t_star_vec,m_planck_vec);
   /// get \f$ \vec{S}_T \f$
   m_mtrx_builder->construct_temperature_source_moments(m_driving_source,m_time);
   

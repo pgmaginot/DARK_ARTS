@@ -62,28 +62,60 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
     }
     case INCIDENT_BC:
     {
-      if(m_n_groups>1)
-      {      
-        m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Planckian(
-          materials,
-          angular_quadrature,
-          input_reader.get_left_bc_angle_dependence() ,
-          input_reader.get_left_bc_start_time() , 
-          input_reader.get_left_bc_end_time() ,
-          input_reader.get_left_bc_constant() ,
-          input_reader.get_left_bc_energy_dependence()
-            ) );
+      if(input_reader.get_left_bc_value_type() == INCIDENT_CURRENT)
+      {
+        if(m_n_groups > 1)
+        {
+          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Current(
+              angular_quadrature,
+              input_reader.get_left_bc_angle_dependence() ,
+              input_reader.get_left_bc_start_time() , 
+              input_reader.get_left_bc_end_time() ,
+              input_reader.get_left_bc_constant() ,
+              input_reader.get_left_bc_energy_dependence()
+                ) );
+        }
+        else
+        {
+          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Current(
+              angular_quadrature,
+              input_reader.get_left_bc_angle_dependence() ,
+              input_reader.get_left_bc_start_time() , 
+              input_reader.get_left_bc_end_time() ,
+              input_reader.get_left_bc_constant() 
+                ) );
+        }
+      }
+      else if(input_reader.get_left_bc_value_type() == INCIDENT_TEMPERATURE)
+      {
+        if(m_n_groups>1)
+        {      
+          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Planckian(
+            materials,
+            angular_quadrature,
+            input_reader.get_left_bc_angle_dependence() ,
+            input_reader.get_left_bc_start_time() , 
+            input_reader.get_left_bc_end_time() ,
+            input_reader.get_left_bc_constant() ,
+            input_reader.get_left_bc_energy_dependence()
+              ) );
+        }
+        else
+        {
+          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Planckian(
+            materials,
+            angular_quadrature,
+            input_reader.get_left_bc_angle_dependence() ,
+            input_reader.get_left_bc_start_time() , 
+            input_reader.get_left_bc_end_time()  ,
+            input_reader.get_left_bc_constant()         
+              ) );
+        }
       }
       else
       {
-        m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Planckian(
-          materials,
-          angular_quadrature,
-          input_reader.get_left_bc_angle_dependence() ,
-          input_reader.get_left_bc_start_time() , 
-          input_reader.get_left_bc_end_time()  ,
-          input_reader.get_left_bc_constant()         
-            ) );
+        std::cerr << "Unknown left transport BC type in Transport_Sweep constructor" << std::endl;
+        exit(EXIT_FAILURE);
       }
       break;
     }
@@ -110,27 +142,59 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
     }
     case INCIDENT_BC:
     {
-      if(m_n_groups>1)
-      {      
-        m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_MF_Planckian(
-          materials,
-          angular_quadrature,
-          input_reader.get_right_bc_angle_dependence() ,
-          input_reader.get_right_bc_start_time() , 
-          input_reader.get_right_bc_end_time(),
-          input_reader.get_right_bc_constant() ,
-          input_reader.get_right_bc_energy_dependence()
-            ) );
+      if(input_reader.get_right_bc_value_type() == INCIDENT_CURRENT)
+      {
+        if(m_n_groups > 1)
+        {
+          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Current(
+              angular_quadrature,
+              input_reader.get_right_bc_angle_dependence() ,
+              input_reader.get_right_bc_start_time() , 
+              input_reader.get_right_bc_end_time() ,
+              input_reader.get_right_bc_constant() ,
+              input_reader.get_right_bc_energy_dependence()
+                ) );
+        }
+        else
+        {
+          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Current(
+              angular_quadrature,
+              input_reader.get_right_bc_angle_dependence() ,
+              input_reader.get_right_bc_start_time() , 
+              input_reader.get_right_bc_end_time() ,
+              input_reader.get_right_bc_constant() 
+                ) );
+        }
+      }
+      else if(input_reader.get_right_bc_value_type() == INCIDENT_TEMPERATURE)
+      {
+        if(m_n_groups>1)
+        {      
+          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_MF_Planckian(
+            materials,
+            angular_quadrature,
+            input_reader.get_right_bc_angle_dependence() ,
+            input_reader.get_right_bc_start_time() , 
+            input_reader.get_right_bc_end_time(),
+            input_reader.get_right_bc_constant() ,
+            input_reader.get_right_bc_energy_dependence()
+              ) );
+        }
+        else
+        {
+          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Grey_Planckian(
+            materials,
+            angular_quadrature,
+            input_reader.get_right_bc_angle_dependence() ,
+            input_reader.get_right_bc_start_time() , 
+            input_reader.get_right_bc_end_time()  ,      
+            input_reader.get_right_bc_constant()  ) );
+        }
       }
       else
       {
-        m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Grey_Planckian(
-          materials,
-          angular_quadrature,
-          input_reader.get_right_bc_angle_dependence() ,
-          input_reader.get_right_bc_start_time() , 
-          input_reader.get_right_bc_end_time()  ,      
-          input_reader.get_right_bc_constant()  ) );
+        std::cerr << "Invalid Incident_Value type for right boundary in Transport_Sweep constructor"<< std::endl;
+        exit(EXIT_FAILURE);
       }
       break;
     }
