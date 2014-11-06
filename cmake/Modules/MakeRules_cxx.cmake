@@ -52,9 +52,8 @@ function(__add_definitions)
     endif()
 
     # Standard Preprocessor flags
-    set(PREPROCESSOR_FLAGS
-
-                )
+    set(PREPROCESSOR_FLAGS)
+    
     # Additional Preprocessor flags specified by user
     list(APPEND PREPROCESSOR_FLAGS ${ADDITIONAL_PREPROCESSOR_FLAGS})
 
@@ -179,19 +178,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     __add_definitions()
 
     if(CMAKE_COMPILER_IS_GNUCXX)
-        set(_default_cxx_flags "-Wno-unknown-pragmas -Wno-deprecated -Wno-unused-function -Wno-unused-local-typedefs")
+        set(_default_cxx_flags "-Wno-unknown-pragmas -Wno-deprecated -Wno-unused-function -Wno-unused-local-typedefs  ")
     else()
-        set(_default_cxx_flags "-Wno-unknown-pragmas -Wno-deprecated -Wno-unused-function")
+        set(_default_cxx_flags "-Wno-unknown-pragmas -Wno-deprecated -Wno-unused-function  ")
     endif()
-    set(_verbose_cxx_flags "-Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wshadow -pipe")
-    set(_extra_cxx_flags "-pedantic -Wno-non-virtual-dtor -Wno-long-long -Wno-variadic-macros")
+    set(_verbose_cxx_flags "-Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wshadow -pipe  ")
+    set(_extra_cxx_flags "-pedantic -Wno-non-virtual-dtor -Wno-long-long -Wno-variadic-macros  ")
 
     set(CMAKE_CXX_FLAGS_INIT "-Wall ${_default_cxx_flags}")
-    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g")
+    set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g  ")
     set(CMAKE_CXX_FLAGS_VERBOSEDEBUG_INIT "-g ${_verbose_cxx_flags}")
-    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT "-Os -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O3 -g")
+    set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG  ")
+    set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT "-Os -DNDEBUG  ")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "-O3 -g  ")
 
     # Remove superfluous "unused argument" "warnings" from Clang
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")

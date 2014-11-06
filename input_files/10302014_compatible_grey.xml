@@ -94,6 +94,8 @@
    
    <!-- Valid options are INCIDENT_BC, VACUUM_BC, REFLECTIVE_BC   -->
    <Left_Radiation_BC_Type> INCIDENT_BC 
+    <!-- INCIDENT_CURRENT , INCIDENT_TEMPERATURE --> 
+    <BC_Value_Type> INCIDENT_CURRENT </BC_Value_Type>
     <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
     <BC_Angle_Dependence> BC_GLANCE </BC_Angle_Dependence>   
     <Incident_Energy> 10 </Incident_Energy>    

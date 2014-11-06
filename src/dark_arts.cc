@@ -1,4 +1,5 @@
 static char help[] = "A character array that PETSc might be expecting";
+#include <petscksp.h>
 
 #include "Input_Reader.h"
 #include "Fem_Quadrature.h"
@@ -10,23 +11,26 @@ static char help[] = "A character array that PETSc might be expecting";
 #include "Temperature_Data.h"
 #include "Materials.h"
 
-#include <petscksp.h>
+
 
 int main(int argc, char** argv)
 {
-  std::cout << "argc = " << argc << '\n'; 
-  for(int i = 0; i < argc; i++) 
-    std::cout << "argv[" << i << "] = " << argv[i] << '\n'; 
-  
   /**
     Initialize PETSc
   */
   PetscErrorCode ierr;  
-  PetscInitialize(&argc,&args,(char * )0,help );
   PetscMPIInt size;
-  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);CHKERRQ(ierr);
-  if (size != 1) SETERRQ(PETSC_COMM_WORLD,1,"DARK_ARTS is written to be serial only!");
   
+  PetscInitialize(&argc,&argv,(char*)0,help);
+  ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);
+  CHKERRQ(ierr);
+  // if (size != 1) 
+    // SETERRQ(PETSC_COMM_WORLD,1,"DARK_ARTS is written to be serial only!");
+    
+  std::cout << "argc = " << argc << '\n'; 
+  for(int i = 0; i < argc; i++) 
+    std::cout << "argv[" << i << "] = " << argv[i] << '\n'; 
+
   /// DARK_ARTS objects follow
   Input_Reader input_reader;
   bool input_parsed = false;

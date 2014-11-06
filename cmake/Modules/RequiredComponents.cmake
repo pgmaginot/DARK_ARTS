@@ -37,13 +37,105 @@ list(REMOVE_DUPLICATES INCLUDE_BIN_PATHS)
 
 
 
+########################################################################################
+#
+#        MPI
+#
+########################################################################################
+option(USE_MPI "Turn on MPI" ON)
+if(USE_MPI)
+    ENABLE_MPI_SUPPORT(ON)
+    if(MPI_FOUND)
+        message(STATUS "MPI FOUND : ${MPI_ROOT}")
+
+        #if(XCODE OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            # set the C and C++ compilers to MPI compilers
+        #    message(STATUS "")
+        #    message(STATUS "\tXCODE support for MPI")
+        #    message(STATUS "")
+        #    set(CMAKE_C_COMPILER ${MPI_CC_COMPILER})
+        #    set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+        #    set($ENV{OMPI_CXX} clang++)
+        #    set($ENV{OMPI_CC} clang)
+        #endif()
+
+        include_directories(${MPI_INCLUDE_PATH})
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_CC_COMPILE_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_LINK_FLAGS}")
+
+
+        list(APPEND ${PROJECT_NAME}_LINKED_LIBRARIES ${MPI_CC_LIBRARIES} ${MPI_CXX_LIBRARIES})
+        list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${MPI_INCLUDE_PATH})
+
+        message(STATUS "MPI_INCLUDE_PATH : ${MPI_INCLUDE_PATH}")
+        message(STATUS "MPI  CC Libraries : ${MPI_CC_LIBRARIES}")
+        message(STATUS "MPI CXX Libraries : ${MPI_CXX_LIBRARIES}")
+		message(STATUS "Adding MPI package definitions...")
+        add_package_definitions(MPI)
+        
+    else()
+        message(WARNING "MPI NOT FOUND - ${PROJECT_NAME} is best run with MPI")
+        remove_package_definitions(MPI)
+    endif()
+else()
+	remove_package_definitions(MPI)
+endif()
+
+########################################################################################
+#
+#        PETSc
+#
+########################################################################################
+
+option(USE_PETSC "Use the PETSc library" ON)
+if(USE_PETSC)
+  message(STATUS "Trying to tie into the PETSc library")
+#  SET( PETSC_DIR "$ENV{PETSC_DIR}" )
+  
+ # IF( NOT PETSC_DIR )
+ #   MESSAGE( FATAL_ERROR "Please point the environment variable PETSC_DIR to the include directory of your PETSc installation.")
+ # ENDIF()
+  
+  find_package(PETSc REQUIRED)
+  
+  if( NOT PETSC_FOUND)
+    MESSAGE( FATAL_ERROR "Could Not find PETSc")
+  else()
+    MESSAGE(STATUS "Found PETSc")
+  ENDIF()
+  
+  # grove-01.ne.tamu.edu {~/Research/dark_arts_local/build }202 :which mpicc
+  # /usr/local/openmpi-1.6.3-gcc-4.7.2/bin/mpicc
+
+  
+  message( STATUS "Here are the PETSc includes: ${PETSC_INCLUDES}")
+  message( STATUS "PETSc was compiled with this compiler: ${PETSC_COMPILER}" )
+  message( STATUS "PETSc version: ${PETSC_VERSION}" )
+  
+#  PETSC_INCLUDES     - the PETSc include directories
+#  PETSC_LIBRARIES    - Link these to use PETSc
+#  PETSC_COMPILER     - Compiler used by PETSc, helpful to find a compatible MPI
+#  PETSC_DEFINITIONS  - Compiler switches for using PETSc
+#  PETSC_MPIEXEC      - Executable for running MPI programs
+#  PETSC_VERSION 
+
+  list(APPEND ${PROJECT_NAME}_LINKED_LIBRARIES ${PETSC_LIBRARIES})
+  list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${PETSC_INCLUDES})
+  
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PETSC_DEFINITIONS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PETSC_DEFINITIONS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PETSC_DEFINITIONS}")
+
+endif()
+
 
 ########################################################################################
 #
 #        BOOST
 #
 ########################################################################################
-option(USE_BOOST "Enable the use of BOOST" ON)
+option(USE_BOOST "Enable the use of BOOST" OFF)
 add_feature(BOOST_ROOT "The root location of Boost" $ENV{BOOST_ROOT})
 add_feature(BOOST_ROOT_DIR "The root location of Boost" $ENV{BOOST_ROOT})
 
@@ -72,7 +164,7 @@ if(USE_BOOST)
                                                 # python
                                                 # regex
                                                 # program_options
-                                                random
+                                                # random
                                                 # serialization
                                                 # signals
                                                 # system

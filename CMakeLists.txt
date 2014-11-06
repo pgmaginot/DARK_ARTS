@@ -33,7 +33,6 @@ endif()
 
 #==============================================================================
 # - Define CMake requirements and override make rules as needed
-#
 
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
@@ -94,14 +93,7 @@ IF( NOT EIGEN_PATH )
 ENDIF()
 INCLUDE_DIRECTORIES ( "${EIGEN_PATH}" )
 
-###########################################
-# Including the PETSc library header files
-###########################################
-SET( PETSC_DIR "$ENV{PETSC_DIR}" )
-IF( NOT PETSC_DIR )
-    MESSAGE( FATAL_ERROR "Please point the environment variable PETSC_DIR to the include directory of your PETSc installation.")
-ENDIF()
-INCLUDE_DIRECTORIES ( "${PETSC_DIR}/include" )
+
 
 
 ############################################
@@ -149,9 +141,12 @@ include(OptionalComponents)
 # Add the source and environments subdirectories
 add_subdirectory(src)
 #-------------------------------------------------------
-include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
-remove_duplicates(${PROJECT_NAME}_LINKED_LIBRARIES)
-remove_duplicates(PROJECT_FOLDERS)
+# include_directories(${PETSC_INCLUDES})
+include_directories("${${PROJECT_NAME}_INCLUDE_DIRS}" ${PETSC_INCLUDES})
+add_definitions(${PETSC_DEFINITIONS})
+set(${PROJECT_NAME}_DEPENDENT_LIBRARIES ${PETSC_LIBRARIES})
+#remove_duplicates(${PROJECT_NAME}_LINKED_LIBRARIES)
+#remove_duplicates(PROJECT_FOLDERS)
 
 
 

@@ -19,7 +19,7 @@ bool Input_Reader::read_xml(std::string xmlFile)
     std::cout << "Found input file: " << xmlFile << std::endl << std::endl;
   }
   else{
-    std::cerr << "Could not open file: " << xmlFile << std::endl;
+    std::cerr << "Error opening file: " << xmlFile << " File non-existent or possibly an XML formatting error .." << std::endl;
     exit(EXIT_FAILURE);
   }
   
@@ -1656,7 +1656,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(!rad_left_bc_value_type_elem)
     {
-      std::cerr << "Missing BC_Value_Type element for Incident_BC type\n";
+      std::cerr << "Missing BC_Value_Type element in Left Incident_BC type\n";
       exit(EXIT_FAILURE);
     }
     
@@ -1693,7 +1693,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(m_rad_bc_left_value_type == INVALID_INCIDENT_BC_VALUE_TYPE)
     {
-      std::cerr << "Invalid BC_Value_Type element value\n" ;
+      std::cerr << "Invalid BC_Value_Type element value for left boundary condition\n" ;
       exit(EXIT_FAILURE);
     }
 
@@ -1733,7 +1733,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(m_left_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
     {
-      std::cerr << "Invalid left BC time dependence\n";
+      std::cerr << "Invalid left BC time dependence for left boundary\n";
       exit(EXIT_FAILURE);
     }
     else if(m_left_bc_time_dependence == BC_CONSTANT)
@@ -1758,7 +1758,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       
       if(m_bc_left_end_time < m_bc_left_start_time)
       {
-        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
+        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off in left BC block\n";
         exit(EXIT_FAILURE);
       }
       if( (m_bc_left_start_time < m_t_start) || (m_bc_left_end_time > m_t_end) )
@@ -1804,7 +1804,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(!rad_right_bc_value_type_elem)
     {
-      std::cerr << "Missing BC_Value_Type for left INCIDENT_BC\n";
+      std::cerr << "Missing BC_Value_Type for right INCIDENT_BC\n";
       exit(EXIT_FAILURE);
     }
     
@@ -1882,7 +1882,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(m_right_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
     {
-      std::cerr << "Must specify angular dependence of Planckian BC on right edge\n";
+      std::cerr << "Must specify angular dependence of Incident_BC on right edge\n";
       exit(EXIT_FAILURE);
     }
     

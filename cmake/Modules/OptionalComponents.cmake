@@ -39,50 +39,6 @@ list(REMOVE_DUPLICATES INCLUDE_BIN_PATHS)
 include(GenericCMakeFunctions)
 
 
-########################################################################################
-#
-#        MPI
-#
-########################################################################################
-option(USE_MPI "Enable the use of MPI" OFF)
-if(USE_MPI)
-    enable_mpi_support(ON)
-    if(MPI_FOUND)
-        message(STATUS "MPI FOUND : ${MPI_ROOT}")
-
-        #if(XCODE OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            # set the C and C++ compilers to MPI compilers
-        #    message(STATUS "")
-        #    message(STATUS "\tXCODE support for MPI")
-        #    message(STATUS "")
-        #    set(CMAKE_C_COMPILER ${MPI_CC_COMPILER})
-        #    set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-        #    set($ENV{OMPI_CXX} clang++)
-        #    set($ENV{OMPI_CC} clang)
-        #endif()
-
-        include_directories(${MPI_INCLUDE_PATH})
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_CC_COMPILE_FLAGS}")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_LINK_FLAGS}")
-
-
-        list(APPEND ${PROJECT_NAME}_LINKED_LIBRARIES ${MPI_CC_LIBRARIES} ${MPI_CXX_LIBRARIES})
-        list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS ${MPI_INCLUDE_PATH})
-
-        #message(STATUS "MPI_INCLUDE_PATH : ${MPI_INCLUDE_PATH}")
-        #message(STATUS "MPI  CC Libraries : ${MPI_CC_LIBRARIES}")
-        #message(STATUS "MPI CXX Libraries : ${MPI_CXX_LIBRARIES}")
-		message(STATUS "Adding MPI package definitions...")
-        add_package_definitions(MPI)
-        
-    else()
-        message(WARNING "MPI NOT FOUND - ${PROJECT_NAME} is best run with MPI")
-        remove_package_definitions(MPI)
-    endif()
-else()
-	remove_package_definitions(MPI)
-endif()
 
 
 

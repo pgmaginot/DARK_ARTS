@@ -116,6 +116,7 @@
    <!-- Valid options are PLANCKIAN_BC, VACUUM, REFLECTIVE   -->
    <Left_Radiation_BC_Type> INCIDENT_BC 
     <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
+    <BC_Value_Type> INCIDENT_TEMPERATURE </BC_Value_Type>
     <BC_Angle_Dependence> BC_NORMAL </BC_Angle_Dependence>   
     <Incident_Energy> 10 </Incident_Energy>
     <BC_Energy_Dependence> PLANCKIAN </BC_Energy_Dependence>

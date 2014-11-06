@@ -230,7 +230,7 @@ MACRO(OPTION_ENABLE_CXX11 DEFAULT)
     if(ENABLE_CXX11)
         message(STATUS "Enabling C++11 for GNU/Clang compilers")
         if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lpetsc")
             if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
             endif()
@@ -272,11 +272,11 @@ ENDMACRO(OPTION_FORCE_32_BIT)
 ####################################################
 
 # Begin configuring MPI options
-macro(enable_mpi_support DEFAULT)
-    OPTION(USE_MPI "Use MPI Parallelization" ${DEFAULT})
+macro( ENABLE_MPI_SUPPORT )
     IF(USE_MPI)
         find_package(MPI REQUIRED)
 
+        message(STATUS "Enabling MPI support")
         # Add the MPI-specific compiler and linker flags
         # Also, search for #includes in MPI's paths
 
@@ -287,9 +287,10 @@ macro(enable_mpi_support DEFAULT)
         set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
         set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
         include_directories(${MPI_CXX_INCLUDE_PATH})
-        
+    else()
+      message(STATUS "Not enabling MPI support")
     ENDIF()
-endmacro(enable_mpi_support)
+endmacro(ENABLE_MPI_SUPPORT)
 
 # Done configuring MPI Options
 
