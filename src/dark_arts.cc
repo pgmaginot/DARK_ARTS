@@ -34,25 +34,23 @@ int main(int argc, char** argv)
 
   /// DARK_ARTS objects follow
   Input_Reader input_reader;    
-  try{
+  try
+  {
     input_reader.read_xml(argv[1]);
   }
   catch(const Dark_Arts_Exception& da_exception )
   {
     da_exception.message() ;
-  }
-     
+  }     
   std::cout << "Input File Read" << std::endl;
   
   /// Initialize a Quadrule object to be able to get all of the quadrature we need
-  Quadrule_New quad_fun;
-  
+  Quadrule_New quad_fun;  
   std::cout << "Quadrule object created" << std::endl;
   
   /// Initialize FEM data
   /// get all interpolation points, quadrature formuals, matrix formation routines, etc.
-  Fem_Quadrature fem_quadrature( input_reader , quad_fun);
-  
+  Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
   std::cout << "Fem_Quadrature object created" << std::endl;
     
   /// Initalize cell data (dx, xL, xR, x_ip, material_number)
@@ -68,25 +66,32 @@ int main(int argc, char** argv)
   Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
   std::cout << "Materials object created" << std::endl;
   
-  /// Initialize intensity and angle integrated intensity of previous time step
-  Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature, materials, input_reader);
-  std::cout << "Intensity object created" << std::endl;
-  
-  /// Initialize a Temperature_Data structure
-  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);
-  std::cout << "Temperature object created" << std::endl;
-  
   /// Load SDIRK data
   Time_Data time_data( input_reader);  
   std::cout << "Time data object created" << std::endl;
   
-  /// Time Marcher.  This is the key to the whole operation.  Everything happens here!
+  /// Initialize intensity and angle integrated intensity of previous time step
+  Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature, materials, input_reader);
+  std::cout << "Intensity object created" << std::endl;
+    
+    /// Initialize a Temperature_Data structure
+  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);
+  std::cout << "Temperature object created" << std::endl;
+
+  
+  /// Time Marcher.  This object will take care of solving the problem
   Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
     cell_data, materials, temperature_old, intensity_old, time_data);    
   std::cout << "Time_Marcher object created"<< std::endl;
   
   /// this is the entire time loop !
-  // time_marcher.solve(intensity_old, temperature_old, time_data);
+  try{
+    // time_marcher.solve(intensity_old, temperature_old, time_data);
+  }
+  catch(const Dark_Arts_Exception& da_exception)
+  {
+    da_exception.message() ;
+  }
   
   /**
     End PETSc

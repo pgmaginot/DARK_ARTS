@@ -54,8 +54,7 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
     }
     case INVALID_TEMPERATURE_IC_TYPE:
     {
-      std::cerr << "Must have a valid Temperature IC initializtion\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( VARIABLE_STORAGE , "Must have a valid Temperature IC initializtion");
       break;
     }
   }  
@@ -119,19 +118,14 @@ int Temperature_Data::temperature_data_locator(const int el, const int cell) con
   int loc_val = -1;
   
   if( temperature_range_check(el,cell) )
-  {
-    std::cerr << "Attempting to access illogical temperature location\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , "Attempting to access illogical temperature location");
+   
   
   /// layout temperature unknowns from left to right
   loc_val = cell*m_el_per_cell + el;
   
   if( temperature_bounds_check(loc_val) )
-  {
-    std::cerr << "Location out of bounds in temperature data\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , "Calculated memory location out of bounds in temperature data");
   
   return loc_val;
 }
@@ -151,8 +145,7 @@ Temperature_Data& Temperature_Data::operator= (const Temperature_Data& t_data)
       (m_el_per_cell != t_data.m_el_per_cell) ||
       (m_t_length != t_data.m_t_length) )
   {
-    std::cerr << "Trying to copy non-identical Temperature_Data objects \n";
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , "Trying to copy non-identical Temperature_Data objects");
   }
   for(int i=0; i< m_t_length; i++)
     m_t[i] = t_data.m_t[i];

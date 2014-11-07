@@ -1528,8 +1528,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   /// Right radiation boundary condition
   if( m_rad_bc_right == INVALID_RADIATION_BC_TYPE)
   {
-    std::cerr << "Right radiation BC type not recognized\n";
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Right radiation BC type not recognized");
   }
   else if( m_rad_bc_right == VACUUM_BC)
   {

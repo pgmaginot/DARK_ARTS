@@ -11,8 +11,9 @@ Source_T_Constant::Source_T_Constant(
 {
   if(m_const < 0. )
   {
-    std::cerr << "Invalid temperature source in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err    << "Invalid temperature source in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
 }
 

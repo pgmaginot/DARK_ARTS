@@ -13,18 +13,21 @@ Scattering_Opacity_Rational::Scattering_Opacity_Rational(
 {
   if(m_const < 0. )
   {
-    std::cerr << "Invalid scattering opacity constant in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid scattering opacity constant in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
   if(m_offset < 0. )
   {
-    std::cerr << "Invalid scattering opacity denominator offset in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid scattering opacity denominator offset in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
   if(m_p < 1 )
   {
-    std::cerr << "Invalid scattering opacity temperature power in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid scattering opacity temperature power in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
 }
 

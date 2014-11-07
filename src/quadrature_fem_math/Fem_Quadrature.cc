@@ -10,223 +10,227 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
 m_n_interpolation_points{ input_reader.get_dfem_degree() + 1},
 m_int_method{ input_reader.get_integration_method() },
 m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
-{  
-  /// Get the DFEM interpolation points
-  // m_n_interpolation_points = input_reader.get_dfem_degree() + 1;
-  
-  m_dfem_interpolation_points.resize(m_n_interpolation_points,0.);
-  m_dfem_interpolation_weights.resize(m_n_interpolation_points,0.);
-  const QUADRATURE_TYPE dfem_point_type = input_reader.get_dfem_interpolation_point_type();
-  switch(dfem_point_type)
-  {
-    case GAUSS:
-    {
-      quad_fun.legendre_dr_compute( m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
-      break;
-    }
-    case LOBATTO:
-    {
-      quad_fun.lobatto_compute(m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
-      break;
-    }
-    case EQUAL_SPACED:
-    {
-      quad_fun.ncc_compute(m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
-      break;
-    }
-    case INVALID_QUADRATURE_TYPE:
-    {
-      std::cout << "Invalid Interpolation point in quadrature calculation" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-  }  
-  
-  /** Get the points where we will evaluate material properties at
-      These points are different than the points which will be integrated
-  */
-  const OPACITY_TREATMENT xs_treatment = input_reader.get_opacity_treatment();
-  switch( xs_treatment)
-  {
-    case MOMENT_PRESERVING:
-    {
-      m_n_xs_evaluation_points = m_xs_extra_points + input_reader.get_opacity_degree();
-      break;
-    }
-    case INTERPOLATING:
-    {
-      m_n_xs_evaluation_points = 1 + input_reader.get_opacity_degree();
-      break;
-    }
-    case SLXS:
-    {
-      m_n_xs_evaluation_points = m_n_interpolation_points;
-      break;
-    }
-    case INVALID_OPACITY_TREATMENT:
-    {
-      std::cerr << "Invalid Opacity treatement in quadrature" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-  }
-  
-  if(m_n_xs_evaluation_points < 1)
-  {
-    std::cerr << "Requesting to evalaute material properties at less than 1 point \n";
-    exit(EXIT_FAILURE);
-  }
-  
-  m_xs_eval_points.resize(m_n_xs_evaluation_points,0.);
-  m_xs_eval_weights.resize(m_n_xs_evaluation_points,0.);
-  if(xs_treatment == INTERPOLATING)
-  {
-    switch(input_reader.get_opacity_interpolation_point_type())
-    {
-      case GAUSS:
-      {
-        quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-        break;
-      }
-      case LOBATTO:
-      {
-        quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-        break;
-      }
-      case EQUAL_SPACED:
-      {
-        quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-        break;
-      }
-      case INVALID_QUADRATURE_TYPE:
-      {
-        std::cerr << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
-        exit(EXIT_FAILURE);
-      }
-    }
-    /// evaluate xs interpolatory polynomials at dfem integration points
-    evaluate_lagrange_func(m_xs_eval_points, m_integration_points, m_xs_poly_at_integration_points);
+{
+  try{
+    /// Get the DFEM interpolation points
+    // m_n_interpolation_points = input_reader.get_dfem_degree() + 1;
     
-  }
-  else if(xs_treatment == SLXS)
-  {
-    switch(input_reader.get_dfem_interpolation_point_type())
-    {
-      case GAUSS:
-      {
-        quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-        break;
-      }
-      case LOBATTO:
-      {
-        quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-        break;
-      }
-      case EQUAL_SPACED:
-      {
-        quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-        break;
-      }
-      case INVALID_QUADRATURE_TYPE:
-      {
-        std::cerr << "Bad Opacity Interpolation Point Type in Fem_Quadrature" << std::endl;
-        exit(EXIT_FAILURE);
-      }
-    }
-  }
-  else{
-    /// moment preserving, use Gauss quad to maximize accuracy
-    quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-  }
-  
-  /// Get the quadrature points we are going to use to form the matrices
-  // m_int_method = input_reader.get_integration_method();
-  switch(m_int_method)
-  {
-    case SELF_LUMPING:
-    {
-      m_n_integration_points = m_n_interpolation_points;
-      break;
-    }
-    case TRAD_LUMPING:
-    {
-      m_n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
-      break;
-    }
-    case EXACT:
-    {
-      /// going to use Gauss quadrature point (accurate for P <= 2*Np - 1)
-      /// integrating P_dfem + P_dfem + P_xs functions
-      /// P_dfem + 1 + P_xs will more than cover it
-      m_n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
-      break;
-    }
-    case INVALID_MATRIX_INTEGRATION:
-    {
-      std::cerr << "Error.  Invalid matrix integration strategy in Fem_Quadrature" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-  }
-  
-  m_integration_points.resize(m_n_integration_points,0.);
-  m_integration_weights.resize(m_n_integration_points,0.);
-  
-  if(m_int_method == SELF_LUMPING)
-  {
+    m_dfem_interpolation_points.resize(m_n_interpolation_points,0.);
+    m_dfem_interpolation_weights.resize(m_n_interpolation_points,0.);
+    const QUADRATURE_TYPE dfem_point_type = input_reader.get_dfem_interpolation_point_type();
     switch(dfem_point_type)
     {
       case GAUSS:
       {
-        quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
+        quad_fun.legendre_dr_compute( m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
         break;
       }
       case LOBATTO:
       {
-        quad_fun.lobatto_compute(m_n_integration_points , m_integration_points, m_integration_weights);
+        quad_fun.lobatto_compute(m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
         break;
       }
       case EQUAL_SPACED:
       {
-        quad_fun.ncc_compute(m_n_integration_points , m_integration_points, m_integration_weights);
+        quad_fun.ncc_compute(m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
         break;
       }
       case INVALID_QUADRATURE_TYPE:
       {
-        std::cerr << "Invalid integration points in Fem_Quadrature.cc " << std::endl;
-        exit(EXIT_FAILURE);
+        throw Dark_Arts_Exception( FEM , "Invalid Interpolation point in quadrature calculation");
+        break;
+      }
+    }  
+    
+    /** Get the points where we will evaluate material properties at
+        These points are different than the points which will be integrated
+    */
+    const OPACITY_TREATMENT xs_treatment = input_reader.get_opacity_treatment();
+    switch( xs_treatment)
+    {
+      case MOMENT_PRESERVING:
+      {
+        m_n_xs_evaluation_points = m_xs_extra_points + input_reader.get_opacity_degree();
+        break;
+      }
+      case INTERPOLATING:
+      {
+        m_n_xs_evaluation_points = 1 + input_reader.get_opacity_degree();
+        break;
+      }
+      case SLXS:
+      {
+        m_n_xs_evaluation_points = m_n_interpolation_points;
+        break;
+      }
+      case INVALID_OPACITY_TREATMENT:
+      {
+        throw Dark_Arts_Exception( FEM , "Invalid Opacity treatement in quadrature" );
+        break;
       }
     }
-  }
-  else
-  {  
-    quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
-  }
-  
-  /// Evaluate DFEM basis functions at matrix integration points
-  evaluate_lagrange_func(m_dfem_interpolation_points, m_integration_points,
-    m_basis_at_integration_points);
-  
-  /// Evaluate derivatives of basis functions on the reference element
-  evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, m_integration_points,
-    m_d_basis_d_s_at_integration_points);
     
-  /// Evaluate DFEM basis functions at xs evaluation points
-  evaluate_lagrange_func(m_dfem_interpolation_points, m_xs_eval_points,
-    m_basis_at_xs_points);
+    if(m_n_xs_evaluation_points < 1)
+      throw Dark_Arts_Exception( FEM , "Requesting to evalaute material properties at less than 1 point ");
+
     
-  /// make a dummy vector to use in filling out the edge values
-  std::vector<double> edge_vec(1,-1.);
-  evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_left_edge);  
-  evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_left_edge);
-  
-  edge_vec[0] = 1.;
-  evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_right_edge);  
-  evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_right_edge);
-  
-  /// use a finer quadrature to evaluate source moment
-  /// use Lobatto just for giggles in case we really want to caputre the end point data
-  m_source_points.resize(m_n_source_points,0.);
-  m_source_weights.resize(m_n_source_points,0.);
-  quad_fun.lobatto_compute(m_n_source_points , m_source_points, m_source_weights);
-  /// calculate dfem at source weigths
+    m_xs_eval_points.resize(m_n_xs_evaluation_points,0.);
+    m_xs_eval_weights.resize(m_n_xs_evaluation_points,0.);
+    if(xs_treatment == INTERPOLATING)
+    {
+      switch(input_reader.get_opacity_interpolation_point_type())
+      {
+        case GAUSS:
+        {
+          quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          break;
+        }
+        case LOBATTO:
+        {
+          quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          break;
+        }
+        case EQUAL_SPACED:
+        {
+          quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          break;
+        }
+        case INVALID_QUADRATURE_TYPE:
+        {
+          throw Dark_Arts_Exception( FEM , "Bad Opacity Interpolation Point Type in Fem_Quadrature" );
+          break;
+        }
+      }
+      /// evaluate xs interpolatory polynomials at dfem integration points
+      evaluate_lagrange_func(m_xs_eval_points, m_integration_points, m_xs_poly_at_integration_points);
+      
+    }
+    else if(xs_treatment == SLXS)
+    {
+      switch(input_reader.get_dfem_interpolation_point_type())
+      {
+        case GAUSS:
+        {
+          quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          break;
+        }
+        case LOBATTO:
+        {
+          quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          break;
+        }
+        case EQUAL_SPACED:
+        {
+          quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          break;
+        }
+        case INVALID_QUADRATURE_TYPE:
+        {
+          throw Dark_Arts_Exception( FEM , "Bad Opacity Interpolation Point Type in Fem_Quadrature" );
+          break;
+        }
+      }
+    }
+    else{
+      /// moment preserving, use Gauss quad to maximize accuracy
+      quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+    }
+    
+    /// Get the quadrature points we are going to use to form the matrices
+    // m_int_method = input_reader.get_integration_method();
+    switch(m_int_method)
+    {
+      case SELF_LUMPING:
+      {
+        m_n_integration_points = m_n_interpolation_points;
+        break;
+      }
+      case TRAD_LUMPING:
+      {
+        m_n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
+        break;
+      }
+      case EXACT:
+      {
+        /// going to use Gauss quadrature point (accurate for P <= 2*Np - 1)
+        /// integrating P_dfem + P_dfem + P_xs functions
+        /// P_dfem + 1 + P_xs will more than cover it
+        m_n_integration_points = input_reader.get_dfem_degree() + 1 + input_reader.get_opacity_degree();
+        break;
+      }
+      case INVALID_MATRIX_INTEGRATION:
+      {
+        throw Dark_Arts_Exception( FEM ,"Invalid matrix integration strategy in Fem_Quadrature" );
+        break;
+      }
+    }
+    
+    m_integration_points.resize(m_n_integration_points,0.);
+    m_integration_weights.resize(m_n_integration_points,0.);
+    
+    if(m_int_method == SELF_LUMPING)
+    {
+      switch(dfem_point_type)
+      {
+        case GAUSS:
+        {
+          quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
+          break;
+        }
+        case LOBATTO:
+        {
+          quad_fun.lobatto_compute(m_n_integration_points , m_integration_points, m_integration_weights);
+          break;
+        }
+        case EQUAL_SPACED:
+        {
+          quad_fun.ncc_compute(m_n_integration_points , m_integration_points, m_integration_weights);
+          break;
+        }
+        case INVALID_QUADRATURE_TYPE:
+        {
+          throw Dark_Arts_Exception( FEM , "Invalid integration points in Fem_Quadrature.cc " );
+          break;
+        }
+      }
+    }
+    else
+    {  
+      quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
+    }
+    
+    /// Evaluate DFEM basis functions at matrix integration points
+    evaluate_lagrange_func(m_dfem_interpolation_points, m_integration_points,
+      m_basis_at_integration_points);
+    
+    /// Evaluate derivatives of basis functions on the reference element
+    evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, m_integration_points,
+      m_d_basis_d_s_at_integration_points);
+      
+    /// Evaluate DFEM basis functions at xs evaluation points
+    evaluate_lagrange_func(m_dfem_interpolation_points, m_xs_eval_points,
+      m_basis_at_xs_points);
+      
+    /// make a dummy vector to use in filling out the edge values
+    std::vector<double> edge_vec(1,-1.);
+    evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_left_edge);  
+    evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_left_edge);
+    
+    edge_vec[0] = 1.;
+    evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_right_edge);  
+    evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_right_edge);
+    
+    /// use a finer quadrature to evaluate source moment
+    /// use Lobatto just for giggles in case we really want to caputre the end point data
+    m_source_points.resize(m_n_source_points,0.);
+    m_source_weights.resize(m_n_source_points,0.);
+    quad_fun.lobatto_compute(m_n_source_points , m_source_points, m_source_weights);
+    /// calculate dfem at source weigths
+  }
+  catch(const Dark_Arts_Exception& da_exception)
+  {
+    da_exception.message();
+  }
   
 }
 

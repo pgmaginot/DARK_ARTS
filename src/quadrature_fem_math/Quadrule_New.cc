@@ -85,10 +85,9 @@
 
   if ( order < 1 )
   {
-    std::cerr << "\n";
-    std::cerr << "LEGENDRE_DR_COMPUTE - Fatal error!\n";
-    std::cerr << "  Illegal value of ORDER = " << order << "\n";
-    exit ( EXIT_FAILURE );
+    std::stringstream err;
+    err << "LEGENDRE_DR_COMPUTE - Fatal error!\n" << "  Illegal value of ORDER = " << order << "\n";
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
 
   e1 = ( double ) ( order * ( order + 1 ) );
@@ -4318,11 +4317,9 @@
   }
   else
   {
-    std::cerr << "\n";
-    std::cerr << "LEGENDRE_SET - Fatal error!\n";
-    std::cerr << "  Illegal value of N = " << n << "\n";
-    std::cerr << "  Legal values are 1:33, 63/64/65, 127/128/129, 255/256/257\n";
-    exit ( EXIT_FAILURE );
+    std::stringstream err;
+    err << "LEGENDRE_SET - Fatal error!\n" << "  Illegal value of N = " << n << "\n" << "  Legal values are 1:33, 63/64/65, 127/128/129, 255/256/257\n";
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
   return;
 }
@@ -5039,11 +5036,9 @@
   }
   else
   {
-    std::cerr << "\n";
-    std::cerr << "LOBATTO_SET - Fatal error!\n";
-    std::cerr << "  Illegal value of ORDER = " << order << "\n";
-    std::cerr << "  Legal values are between 1 and 20.\n";
-    exit ( EXIT_FAILURE );
+    std::stringstream err;
+    err << "LOBATTO_SET - Fatal error!\n" << "  Illegal value of ORDER = " << order << "\n" << "  Legal values are between 1 and 20.\n";
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() );
   }
 
   return;
@@ -5996,11 +5991,9 @@
   }
   else
   {
-    std::cerr << "\n";
-    std::cerr << "NCC_SET - Fatal error!\n";
-    std::cerr << "  Illegal value of ORDER = " << order << "\n";
-    std::cerr << "  Legal values are 1 through 21.\n";
-    exit ( EXIT_FAILURE );
+    std::stringstream err ;
+    err << "NCC_SET - Fatal error!\n" << "  Illegal value of ORDER = " << order << "Legal values are 1 through 21.";
+    throw Dark_Arts_Exception(SUPPORT_OBJECT , err.str() );
   }
 
   return;
@@ -6126,11 +6119,10 @@ void Quadrule_New::imtqlx( const int n, std::vector<double>& d, std::vector<doub
         break;
       }
       if ( itn <= j )
-      {
-        std::cerr << "\n";
-        std::cerr << "IMTQLX - Fatal error!\n";
-        std::cerr << "  Iteration limit exceeded\n";
-        exit ( EXIT_FAILURE );
+      {        
+        std::stringstream err ;
+        err << "IMTQLX - Fatal error!\n" << "  Iteration limit exceeded\n";
+        throw Dark_Arts_Exception(SUPPORT_OBJECT , err.str() );
       }
       j = j + 1;
       g = ( d[l] - p ) / ( 2.0 * e[l-1] );

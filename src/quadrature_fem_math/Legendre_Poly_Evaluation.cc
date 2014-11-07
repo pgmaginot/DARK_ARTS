@@ -11,31 +11,36 @@
 void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
   const double x, const int n, const int start, std::vector<double>& evals)
 {
-  if(n < 0)
-  {
-    std::cerr << "Trying to calculate negative legendre moment\n" ;
-    exit(EXIT_FAILURE);
-  }  
-  else if(n==0)
-  {
-    evals[start] = 1.;
-  }
-  else if(n==1)
-  {
-    evals[start] = 1.;
-    evals[start+1] = x;
-  }
-  else
-  {
-    evals[start] = 1.;
-    evals[start+1] = x;
-    double dbl_n = 2.;
-    for(int k=2; k < (n+1); k++)
+  try{
+    if(n < 0)
     {
-      evals[start+k] = (2.*dbl_n + 1.)*x*evals[k-1] - dbl_n*evals[k-2];
-      evals[start+k] /= dbl_n + 1.;
-      dbl_n += 1.;
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Trying to calculate negative legendre moment" );
+    }  
+    else if(n==0)
+    {
+      evals[start] = 1.;
     }
+    else if(n==1)
+    {
+      evals[start] = 1.;
+      evals[start+1] = x;
+    }
+    else
+    {
+      evals[start] = 1.;
+      evals[start+1] = x;
+      double dbl_n = 2.;
+      for(int k=2; k < (n+1); k++)
+      {
+        evals[start+k] = (2.*dbl_n + 1.)*x*evals[k-1] - dbl_n*evals[k-2];
+        evals[start+k] /= dbl_n + 1.;
+        dbl_n += 1.;
+      }
+    }
+  }
+  catch(const Dark_Arts_Exception& da_exception)
+  {
+    da_exception.message() ;
   }
   
   return;

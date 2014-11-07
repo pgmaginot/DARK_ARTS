@@ -113,16 +113,13 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
         }
       }
       else
-      {
-        std::cerr << "Unknown left transport BC type in Transport_Sweep constructor" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Unknown left transport BC type in Transport_Sweep constructor" );
+        
       break;
     }
     case INVALID_RADIATION_BC_TYPE:
     {
-      std::cerr << "Made it into Transport_Sweep constructor with invalid left bc\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Made it into Transport_Sweep constructor with invalid left bc");
       break;
     }
   }
@@ -136,8 +133,7 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
     }
     case REFLECTIVE_BC:
     {
-      std::cerr << "Reflective boundary condition on right face of slab caught in Transport_Sweep constructor\n";
-      exit(EXIT_FAILURE);      
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Reflective boundary condition on right face of slab caught in Transport_Sweep constructor");
       break;
     }
     case INCIDENT_BC:
@@ -193,15 +189,13 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
       }
       else
       {
-        std::cerr << "Invalid Incident_Value type for right boundary in Transport_Sweep constructor"<< std::endl;
-        exit(EXIT_FAILURE);
+        throw Dark_Arts_Exception( SUPPORT_OBJECT , "Invalid Incident_Value type for right boundary in Transport_Sweep constructor");
       }
       break;
     }
     case INVALID_RADIATION_BC_TYPE:
     {
-      std::cerr << "Made it into Transport_Sweep constructor with invalid right bc\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,"Made it into Transport_Sweep constructor with invalid right bc");
       break;
     }
   }
@@ -209,6 +203,9 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
 
 void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
 {
+  if(!ard_phi_ptr)
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , "Attempting to set ard_phi_tr to a NULL ptr");
+  
   m_sweep_matrix_creator->set_ard_phi_ptr(ard_phi_ptr);
   return;
 }
@@ -237,10 +234,8 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
   if(is_get_k_i)
   {
     if(is_krylov)
-    {
-      std::cerr << "Cannot calculate k_i with a Krylov mode sweep\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Cannot calculate k_i during a Krylov mode sweep");
+
     m_sweep_saver = m_k_i_saver;
   }
   else

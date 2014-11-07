@@ -11,8 +11,9 @@ Scattering_Opacity_Constant::Scattering_Opacity_Constant(
 {
   if(m_const < 0. )
   {
-    std::cerr << "Invalid scattering opacity constant in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid scattering opacity constant in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
 }
 

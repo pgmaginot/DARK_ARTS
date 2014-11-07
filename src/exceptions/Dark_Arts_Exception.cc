@@ -9,6 +9,26 @@ Dark_Arts_Exception::Dark_Arts_Exception( EXCEPTION_TYPE ex_type , const std::st
       error_message = "INPUT: ";
       break;
     }
+    case FEM:
+    {
+      error_message = "FEM: ";
+      break;
+    }
+    case VARIABLE_STORAGE:
+    {
+      error_message = "VARIABLE_STORAGE: ";
+      break;
+    }
+    case SUPPORT_OBJECT:
+    {
+      error_message = "SUPPORT_OBJECT: ";
+      break;
+    }
+    case TIME_MARCHER:
+    {
+      error_message = "TIME_MARCHER: ";
+      break;
+    }
     default:
     {
       error_message = "Unknown Exception Type: " ;

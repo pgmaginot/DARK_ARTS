@@ -11,14 +11,9 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   m_dt_max{input_reader.get_dt_max() },
   m_t_end{input_reader.get_t_end() },
   m_t_start{input_reader.get_t_start() }
-{
-
-  
+{  
   if(m_time_solver == INVALID_TIME_SOLVER)
-  {
-    std::cerr << "Bad time solver in Time_Stepper constructor\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , "Bad time solver in Time_Stepper constructor");
   
   if( m_time_solver == IMPLICIT_EULER)
   {
@@ -68,16 +63,10 @@ void Time_Data::fill_sdirk_vectors(void)
 double Time_Data::get_a(const int stage, const int index) const
 {
   if( (stage >= m_number_stages) || (stage < 0) )
-  {
-    std::cerr << "Invalid stage request for DIRK a constant\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , "Invalid stage request for DIRK a constant");
   
   if( (index < 0) || (index > stage) )
-  {
-    std::cerr << "Index > stage  or index < 0 in request for DIRK a constant\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , "Index > stage  or index < 0 in request for DIRK a constant");
   
   if(stage == 0)
   {

@@ -14,6 +14,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <iostream>
+#include "Dark_Arts_Exception.h"
 
 
 class Legendre_Poly_Evaluation

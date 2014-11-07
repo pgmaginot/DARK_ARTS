@@ -36,8 +36,7 @@ void K_Temperature::set_kt(const int cell, const int stage, Eigen::VectorXd& kt)
   /// find first element location
   int base_loc = kt_data_locator(cell, stage);
   for(int i=0;i<m_el_per_cell;i++)
-    m_kt[base_loc + i]=kt(i);
-   
+    m_kt[base_loc + i]=kt(i);   
    
   return ;
 }
@@ -60,19 +59,13 @@ int K_Temperature::kt_data_locator(const int cell, const int stage) const
   int loc_val = -1;
   
   if( kt_range_check(cell,stage) )
-  {
-    std::cerr << "Attempting to access illogical temperature location\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , "Attempting to access illogical K_T location");
   
   /// layout temperature unknowns from left to right
   loc_val = cell*m_el_per_cell*m_n_stages + stage*m_el_per_cell;
   
   if( kt_bounds_check(loc_val) )
-  {
-    std::cerr << "Location out of bounds in temperature data\n";
-    exit(EXIT_FAILURE);
-  }
+   throw Dark_Arts_Exception( VARIABLE_STORAGE , "Calculated K_T memory index exceeds the size of K_T data");
   
   return loc_val;
 }

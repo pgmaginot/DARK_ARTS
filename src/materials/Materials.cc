@@ -27,64 +27,68 @@ Materials::Materials( const Input_Reader& input_reader,
   m_cell_data( cell_data),
   m_n_source_pts{ fem_quadrature.get_number_of_source_points() }
 { 
-  
-  /// resize material property objects
-  m_abs_opacities.resize(m_num_materials);
-  m_scat_opacities.resize(m_num_materials);
-  m_cv_obj.resize(m_num_materials);
-  m_source_t.resize(m_num_materials);
-  m_source_i.resize(m_num_materials);  
-  
-  /// load material property objects for each different material
-  load_materials(input_reader);
+  try{
+    /// resize material property objects
+    m_abs_opacities.resize(m_num_materials);
+    m_scat_opacities.resize(m_num_materials);
+    m_cv_obj.resize(m_num_materials);
+    m_source_t.resize(m_num_materials);
+    m_source_i.resize(m_num_materials);  
     
-  /// create smart pointers that look at input once, then select cross section treatment type
-  switch( input_reader.get_opacity_treatment() )
-  {
-    case SLXS:
+    /// load material property objects for each different material
+    load_materials(input_reader);
+      
+    /// create smart pointers that look at input once, then select cross section treatment type
+    switch( input_reader.get_opacity_treatment() )
     {
-      m_xs_treatment = std::shared_ptr<V_XS_Treatment>( new XS_Treatment_SLXS(fem_quadrature) );
-      break;
+      case SLXS:
+      {
+        m_xs_treatment = std::shared_ptr<V_XS_Treatment>( new XS_Treatment_SLXS(fem_quadrature) );
+        break;
+      }
+      case INTERPOLATING:
+      {
+        m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Interpolating(fem_quadrature) );
+        break;
+      }
+      case MOMENT_PRESERVING:
+      {
+        m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Moment_Preserving(fem_quadrature , input_reader) );
+        break;
+      }
+      case INVALID_OPACITY_TREATMENT:
+      {
+        throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Invalid OPacity treament still exists in Materials initializations" );
+        break;
+      }    
     }
-    case INTERPOLATING:
+    
+    /// get cross section evaluation quadrature points, dfem evaluations at integration points and cell edges
+    fem_quadrature.get_xs_eval_points(m_xs_eval_quad);  
+    fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);    
+    fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);  
+    
+    /// allocate space for physical position and temperature at material property evaluation points
+    m_xs_position.resize(m_n_xs_quad,0.);  
+    m_t_at_xs_eval_points.resize(m_n_xs_quad,0.);
+    /// allocate scratch vector space for material property evaluations
+    m_mat_property_evals.resize(m_n_xs_quad,0.);
+    
+    /// qet source moment quadrature points and allocate space for source moment evaluations
+    fem_quadrature.get_source_points(m_source_quad);
+    m_position_at_source_quad.resize(m_n_source_pts,0.);
+    
+    /// get energy bounds 
+    if(n_groups > 1)
     {
-      m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Interpolating(fem_quadrature) );
-      break;
+      /// having energy group bounds only makes sense if this is a grey problem
+      input_reader.get_lower_energy_bounds(m_grp_e_min);
+      input_reader.get_upper_energy_bounds(m_grp_e_max);
     }
-    case MOMENT_PRESERVING:
-    {
-      m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Moment_Preserving(fem_quadrature , input_reader) );
-      break;
-    }
-    case INVALID_OPACITY_TREATMENT:
-    {
-      std::cerr << "Invalid OPacity treament still exists in Materials initializations\n" ;
-      exit(EXIT_FAILURE);
-      break;
-    }    
   }
-  
-  /// get cross section evaluation quadrature points, dfem evaluations at integration points and cell edges
-  fem_quadrature.get_xs_eval_points(m_xs_eval_quad);  
-  fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);    
-  fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);  
-  
-  /// allocate space for physical position and temperature at material property evaluation points
-  m_xs_position.resize(m_n_xs_quad,0.);  
-  m_t_at_xs_eval_points.resize(m_n_xs_quad,0.);
-  /// allocate scratch vector space for material property evaluations
-  m_mat_property_evals.resize(m_n_xs_quad,0.);
-  
-  /// qet source moment quadrature points and allocate space for source moment evaluations
-  fem_quadrature.get_source_points(m_source_quad);
-  m_position_at_source_quad.resize(m_n_source_pts,0.);
-  
-  /// get energy bounds 
-  if(n_groups > 1)
+  catch(const Dark_Arts_Exception& da_exception)
   {
-    /// having energy group bounds only makes sense if this is a grey problem
-    input_reader.get_lower_energy_bounds(m_grp_e_min);
-    input_reader.get_upper_energy_bounds(m_grp_e_max);
+    da_exception.message();
   }
 }
 
@@ -129,11 +133,9 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
     {
       m_t_at_xs_eval_points[i] += t_el*m_dfem_at_xs[p];
       p++;
-    }
-    
+    }    
 
   }
-  
   return;
 }
      

@@ -52,8 +52,7 @@ double Transport_BC_MF_Planckian::get_boundary_condition(const double mu, const 
     }
     else
     {
-      std::cerr << "Invalid angular dependence for a radiation boundary condition\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Invalid angular dependence for MF_Planckian radiation boundary condition");
     }
   }
   

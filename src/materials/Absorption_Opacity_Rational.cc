@@ -13,18 +13,21 @@ Absorption_Opacity_Rational::Absorption_Opacity_Rational( const Input_Reader& in
 {
   if(m_const < 0. )
   {
-    std::cerr << "Invalid absorption opacity constant in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid absorption opacity constant in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
   if(m_offset < 0. )
   {
-    std::cerr << "Invalid absorption opacity denominator offset in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid absorption opacity denominator offset in material " << mat_num ;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
   if(m_p < 1 )
   {
-    std::cerr << "Invalid absorption opacity temperature power in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err <<  "Invalid absorption opacity temperature power in material " << mat_num;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
 }
 

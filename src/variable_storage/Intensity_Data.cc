@@ -47,8 +47,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
       std::vector<int> cell_per_reg;
       std::vector<double> temp_in_reg;
       
-      input_reader.get_cells_per_region_vector(cell_per_reg);      
-      
+      input_reader.get_cells_per_region_vector(cell_per_reg);           
       
       int cell_cnt = 0;
       double iso_emission = 0.;
@@ -82,51 +81,20 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
       }    
     }
     else
-    {
-      std::cerr << "Unknown intensity initial condition type\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception( VARIABLE_STORAGE , "Unknown intensity initial condition type");
   }
 
 double Intensity_Data::get_intensity(const int el, const int cell, const int group, const int dir) const
-{
-  bool bad_input = intensity_range_check(el,cell,group,dir);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Accessing out of logical range intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int val_loc = intensity_data_locator(0,cell,group,dir);
-  bool bad_location = intensity_bounds_check(val_loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Intensity location out of possible range\n";
-    exit(EXIT_FAILURE);
-  }
-  
+{ 
+  int val_loc = intensity_data_locator(el,cell,group,dir);
+ 
   return m_i[val_loc];
 }
 
 void Intensity_Data::get_cell_intensity(const int cell, const int group, 
   const int dir, Eigen::VectorXd& loc_i_vec) const
 {
-  bool bad_input = intensity_range_check(0,cell,group,dir);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Accessing out of logical range intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
   int val_loc = intensity_data_locator(0,cell,group,dir);
-  bool bad_location = intensity_bounds_check(val_loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Intensity location out of possible range\n";
-    exit(EXIT_FAILURE);
-  }
   
   for(int i=0; i<m_el_per_cell; i++)
     loc_i_vec(i) = m_i[val_loc+i];
@@ -149,13 +117,6 @@ void Intensity_Data::set_cell_intensity(const int cell,
   const int group, const int dir, const Eigen::VectorXd& val) 
 {  
   int loc = intensity_data_locator(0,cell,group,dir);
-  bool bad_location = intensity_bounds_check(loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Trying to write to an intensity location out of range\n";
-    exit(EXIT_FAILURE);
-  }
   
   for(int i=0; i<m_el_per_cell ; i++)
     m_i[loc+i] = val(i);
@@ -172,7 +133,9 @@ void Intensity_Data::set_cell_intensity(const int cell,
 /// This function controls the layout of intensity in memory!!
 int Intensity_Data::intensity_data_locator(const int el, const int cell, const int group, const int dir) const
 {
+  intensity_range_check(el,cell,group,dir);
   int loc = -1;
+  
   
   /**
     Arrange intensity data as follows:
@@ -189,13 +152,7 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
     This will hopefully minizmize data movement
     
   */
-  if( intensity_range_check(el, cell, group, dir) )
-  {
-    std::cerr << " Attemping to access out of logical bounds. \n" ;
-    std::cerr << "Requested Element: " << el << " of cell: " << cell << " group: " << group << " direction: " << dir << std::endl;
-    std::cerr << "Max Element: " << m_el_per_cell << "Max Cell: " << m_cells << " Max Dir: " << m_dir << " Max group: " << m_groups << std::endl;
-  }
-  
+
   if(dir < m_dir_div_2)
   {
     /// mu < 0
@@ -207,16 +164,7 @@ int Intensity_Data::intensity_data_locator(const int el, const int cell, const i
     loc = m_offset + el + (dir-m_dir_div_2)*m_el_per_cell + group*m_el_times_dir_div_2 + cell*m_el_times_dir_div_2_times_grp;
   }
   
-  bool bad_location = intensity_bounds_check(loc);
-  
-  if(bad_location)
-  {
-    std::cerr << "Error.  Intensity location out of possible range\n";
-    std::cerr << "Requesting element: " << loc << " . Length of intensity is: " << m_i_length << std::endl;
-    std::cerr << "Requested Element: " << el << " of cell: " << cell << " group: " << group << " direction: " << dir << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  
+  intensity_bounds_check(loc);
   return loc;
 }
 
@@ -236,6 +184,15 @@ bool Intensity_Data::intensity_range_check(const int el, const int cell,
     
   if( (dir < 0) || (dir >= m_dir) )
     is_bad = true;
+    
+  if(is_bad)
+  {
+    std::stringstream err;
+    err <<" Attemping to access intensity outside of logical bounds. \n" ;
+    err << "Requested Element: " << el << " of cell: " << cell << " group: " << grp << " direction: " << dir << std::endl;
+    err << "Max Element: " << m_el_per_cell << "Max Cell: " << m_cells << " Max Dir: " << m_dir << " Max group: " << m_groups << std::endl;
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , err.str());
+  }
   
   return is_bad;
 }
@@ -244,7 +201,13 @@ bool Intensity_Data::intensity_bounds_check(const int loc) const
 {
   bool is_bad_loc = false;
   if( (loc < 0) || (loc >= m_i_length) )
+  {
     is_bad_loc = true;  
+    std::stringstream err; 
+    err << "Calculated intensity memory index outside of possible values\n";
+    err << "Requested element: " << loc << " Length of m_i: " << m_i_length << std::endl;
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , err.str() );
+  }
   
   return is_bad_loc;
 }

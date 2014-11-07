@@ -36,8 +36,7 @@ Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader, cons
     }
     else
     {
-      std::cerr << "Other unit types not coded\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Other Unit Types Not coded in Planck.cc");
     }
   }
   else

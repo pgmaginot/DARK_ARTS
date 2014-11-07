@@ -16,7 +16,6 @@ Scattering_Opacity_Table::~Scattering_Opacity_Table(){}
 double  Scattering_Opacity_Table::get_scattering_opacity(const int l_mom,
   const int group, const double temperature, const double position)
 {
-  std::cerr << "Table look-up has not been coded yet.  Error.\n";
-  exit(EXIT_FAILURE);
+  throw Dark_Arts_Exception( SUPPORT_OBJECT , "Table look-up opacity has not been coded yet.");
   return 0.;
 }

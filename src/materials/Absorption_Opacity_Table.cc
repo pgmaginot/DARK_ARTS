@@ -16,7 +16,7 @@ Absorption_Opacity_Table::~Absorption_Opacity_Table(){}
 double  Absorption_Opacity_Table::get_absorption_opacity(const int group, 
   const double temperature, const double position)
 {
-  std::cerr << "Table look-up has not been coded yet.  Error.\n";
-  exit(EXIT_FAILURE);
+  throw Dark_Arts_Exception( SUPPORT_OBJECT , "Tabular absorption opacity objects not yet coded");
+  
   return 0.;
 }

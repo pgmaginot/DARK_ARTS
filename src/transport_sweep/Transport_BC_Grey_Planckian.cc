@@ -45,10 +45,8 @@ double Transport_BC_Grey_Planckian::get_boundary_condition(const double mu, cons
         val = m_non_zero_outflow_value;      
     }
     else
-    {
-      std::cerr << "Invalid angular dependence for a radiation boundary condition\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Invalid angular dependence for a radiation boundary condition");
+
   }
   
   return val;

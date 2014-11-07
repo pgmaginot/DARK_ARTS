@@ -19,8 +19,7 @@ Transport_BC_MF_Current::Transport_BC_MF_Current(const Angular_Quadrature& angul
   m_planck(angular_quadrature.get_number_of_groups() , 0. )
 {
   /// need an energy current that we want in and a temperature to evalaute the planckian, if this indeeed a planckia energy distribtuion
-  std::cerr << "This feature is not coded yet.  Need to add input varialbes that clarify energy distribution of incident intensity\n";
-  exit(EXIT_FAILURE);
+  throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "MF_Current transport BC not coded yet.  Need to add input varialbes that clarify energy distribution of incident intensity");
 }
 
 double Transport_BC_MF_Current::get_boundary_condition(const double mu, const int grp , const double time) 

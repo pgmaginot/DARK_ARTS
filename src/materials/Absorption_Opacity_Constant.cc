@@ -11,8 +11,9 @@ Absorption_Opacity_Constant::Absorption_Opacity_Constant(
 {
   if(m_const < 0. )
   {
-    std::cerr << "Invalid absorption opacity constant in material " << mat_num << std::endl;
-    exit(EXIT_FAILURE);
+    std::stringstream err;
+    err << "Invalid absorption opacity constant in material " << mat_num;
+    throw Dark_Arts_Exception( SUPPORT_OBJECT, err.str() ) ;
   }
 }
 

@@ -21,6 +21,13 @@ Cell_Data::Cell_Data(Input_Reader&  input_reader)
   m_dx.resize(m_total_cells,0.);
   m_material_num.resize(m_total_cells,0);
   
+  try{
+    determine_cell_properties(n_region, cells_per_region, input_reader);
+  }
+  catch(const Dark_Arts_Exception& da_exception )
+  { 
+    da_exception.message();
+  }
 }
 
 double Cell_Data::get_cell_width(int cell_num) const
@@ -85,22 +92,15 @@ void Cell_Data::determine_cell_properties(const int n_reg, const std::vector<int
       double x_l_cell = x_l;
       
       if(dx_leftmost < 0.)
-      {
-        std::cerr << "Calculated a negative cell width in log spacing\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Calculated a negative cell width in log spacing");
       
       if(dx_rightmost < 0.)
-      {
-        std::cerr << "Calculated a negative cell width in log spacing\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Calculated a negative cell width in log spacing");
       
       /// enforce minimum cell width condition
       if( (dx_leftmost < min_size) && (dx_rightmost < min_size))
       {
-        std::cerr << "Minimum cell size is too large for the desired number of cells\n";
-        exit(EXIT_FAILURE);
+        throw Dark_Arts_Exception(SUPPORT_OBJECT ,  "Minimum cell size is too large for the desired number of cells");        
       }
       else if( dx_leftmost < min_size) 
       {

@@ -57,8 +57,7 @@ double Transport_BC_Grey_Current::get_boundary_condition(const double mu, const 
     }   
     else
     {
-      std::cerr << "Invalid angular dependence for a radiation boundary condition\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Invalid angular dependence for Transport_BC_Grey_Current_Boundary condition");
     }
   }
   

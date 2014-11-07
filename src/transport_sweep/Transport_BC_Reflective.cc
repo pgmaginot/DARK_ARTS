@@ -9,9 +9,8 @@ Transport_BC_Reflective::Transport_BC_Reflective()
 
 double Transport_BC_Reflective::get_boundary_condition(const double mu, const int grp , const double time) 
 {
-  std::cerr << "Accessing reflective boundary condition creator\n";
-  std::cerr << "By covnention, this should not be happening\n";
-  exit(EXIT_FAILURE);
+  throw Dark_Arts_Exception( SUPPORT_OBJECT , "Reflective condition should be being taken care of elsewhere");
+  
   return 0.;
 }
 

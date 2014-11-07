@@ -60,11 +60,8 @@ Intensity_Moment_Data& Intensity_Moment_Data::operator= (const Intensity_Moment_
       (m_groups != intensity_moment.m_groups) ||
       (m_cells != intensity_moment.m_cells) ||
       (m_leg != intensity_moment.m_leg) 
-  )
-  {
-    std::cerr << "Error assigning to Intensity_Moment_Data object, objects not the same size\n";
-    exit(EXIT_FAILURE);
-  }
+    )
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , "Trying to assign different sized Intensity_Moment_Data object");
   
   for(int i=0; i<m_phi_length; i++)
     m_phi[i] = intensity_moment.m_phi[i];
@@ -75,13 +72,6 @@ Intensity_Moment_Data& Intensity_Moment_Data::operator= (const Intensity_Moment_
 double Intensity_Moment_Data::get_angle_integrated_intensity(const int el, const int cell,
   const int group, const int l_mom) const
 {
-  bool bad_input = angle_integrated_range_check(el,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
   int val_loc = angle_integrated_data_locator(el,cell,group,l_mom); 
 
   return m_phi[val_loc];
@@ -92,13 +82,6 @@ double Intensity_Moment_Data::get_angle_integrated_intensity(const int el, const
 void Intensity_Moment_Data::get_cell_angle_integrated_intensity(const int cell,
   const int group, const int l_mom, Eigen::VectorXd& loc_phi_vec) const
 {
-  bool bad_input = angle_integrated_range_check(0,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to get out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
   int val_loc = angle_integrated_data_locator(0,cell,group,l_mom);
   
   for(int i=0; i< m_el_per_cell; i++)
@@ -110,13 +93,6 @@ void Intensity_Moment_Data::get_cell_angle_integrated_intensity(const int cell,
 void Intensity_Moment_Data::set_cell_angle_integrated_intensity(const int cell,
     const int group, const int l_mom, const Eigen::VectorXd& val) 
 {
-  bool bad_input = angle_integrated_range_check(0,cell,group,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
   int val_loc = angle_integrated_data_locator(0,cell,group,l_mom);
   
   for(int i=0; i< m_el_per_cell ; i++)
@@ -127,13 +103,6 @@ void Intensity_Moment_Data::set_cell_angle_integrated_intensity(const int cell,
 
 void Intensity_Moment_Data::add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib)
 {
-  bool bad_input = angle_integrated_range_check(0,cell,grp,l_mom);
-  if(bad_input)
-  {
-    std::cerr << "Error.  Attempting to set out of logical range angle integrated intensity\n";
-    exit(EXIT_FAILURE);
-  }
-  
   int val_loc = angle_integrated_data_locator(0,cell,grp,l_mom);
   
   for(int i=0; i< m_el_per_cell ; i++)
@@ -142,6 +111,26 @@ void Intensity_Moment_Data::add_contribution(const int cell, const int grp, cons
   return;
 }
 
+/// This function controls the layout of angle_integrated intensities in memory!!
+int Intensity_Moment_Data::angle_integrated_data_locator(const int el, const int cell, const int group, const int l_mom) const
+{
+  int loc = -1;
+  
+  angle_integrated_range_check(el,cell,group,l_mom);
+  
+  /**
+    Arrange data as:
+    element
+    moment
+    group
+    cell
+  */
+  loc = el + l_mom*m_el_per_cell + group*m_el_times_l_mom + cell*m_el_times_l_mom_times_group;
+  
+  angle_integrated_bounds_check(loc);
+  
+  return loc;
+}
 
 bool Intensity_Moment_Data::angle_integrated_range_check(const int el, const int cell, 
   const int grp, const int l_mom) const
@@ -159,40 +148,31 @@ bool Intensity_Moment_Data::angle_integrated_range_check(const int el, const int
     
   if( (l_mom < 0) || (l_mom >= m_leg) )
     is_bad = true;
+    
+  if(is_bad)
+  {
+    std::stringstream err;
+    err <<" Attemping to access intensity_moment_data outside of logical bounds.\n" ;
+    err << "Requested Element: " << el << " of cell: " << cell << " group: " << grp << " Legendre moment: " << l_mom << std::endl;
+    err << "Max Element: " << m_el_per_cell << "Max Cell: " << m_cells  << " Max group: " << m_groups << " Max L_mom " << m_leg<< std::endl;
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , err.str());
+  }
   
   return is_bad;
 }
-
-/// This function controls the layout of angle_integrated intensities in memory!!
-int Intensity_Moment_Data::angle_integrated_data_locator(const int el, const int cell, const int group, const int l_mom) const
-{
-  int loc = -1;
-  
-  /**
-    Arrange data as:
-    element
-    moment
-    group
-    cell
-  */
-  loc = el + l_mom*m_el_per_cell + group*m_el_times_l_mom + cell*m_el_times_l_mom_times_group;
-  
-  bool bad_location = angle_integrated_bounds_check(loc);
-  if(bad_location)
-  {
-    std::cerr << "Error.  Angle integrated intensity location out of possible range\n";
-    exit(EXIT_FAILURE);
-  }
-  
-  return loc;
-}
-
 
 bool Intensity_Moment_Data::angle_integrated_bounds_check(const int loc) const
 {
   bool is_bad_loc = false;
   if( (loc < 0) || (loc >= m_phi_length) )
     is_bad_loc = true;  
+    
+  if(is_bad_loc)
+  {
+    std::stringstream err;
+    err << "Calculated memory idex is out of range.  Calculated: " << loc << " . m_phi_length is: " << m_phi_length ; 
+    throw Dark_Arts_Exception(VARIABLE_STORAGE , err.str() );
+  }
   
   return is_bad_loc;
 }

@@ -19,6 +19,7 @@ Intensity_Update_MF::Intensity_Update_MF(const Input_Reader& input_reader,
   switch(input_reader.get_ard_solve_type() )
   {
     case FP_NO_ACCEL:
+    {
       m_ard_solver = std::shared_ptr<V_MF_ARD_Solver> (new MF_ARD_Solver_FP_No_LMFGA(
         input_reader, 
         fem_quadrature, 
@@ -27,18 +28,22 @@ Intensity_Update_MF::Intensity_Update_MF(const Input_Reader& input_reader,
         m_within_group_radiation_solver, 
         phi_ref_norm) );
       break;
+    }
     case FP_LMFGA:
-      std::cerr << "FP with LMFGA not coded\n";
-      exit(EXIT_FAILURE);
+    {
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,"FP with LMFGA not coded");
       break;
+    }
     case KRYLOV_LMFGA:
-      std::cerr << "Krylov with LMFGA not coded\n";
-      exit(EXIT_FAILURE);
+    {
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,"Krylov with LMFGA not coded");      
       break;
+    }
     case INVALID_ARD_SOLVE_TYPE:
-      std::cerr << "Constructing Intensity_Update_MF, but still have an invalid MF ARD solver!\n";
-      exit(EXIT_FAILURE);
+    {
+      throw Dark_Arts_Exception( SUPPORT_OBJECT ,"Constructing Intensity_Update_MF, but still have an invalid MF ARD solver!");
       break;
+    }
   }
 
 }

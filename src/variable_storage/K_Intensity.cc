@@ -62,6 +62,15 @@ bool K_Intensity::ki_range_check(const int cell, const int grp, const int dir,co
     
   if( (dir < 0) || ( dir > m_n_dir) ) 
     is_bad = true;
+    
+  if(is_bad)
+  {
+    std::stringstream err;
+    err <<" Attemping to access k_i outside of logical bounds. \n" ;
+    err << "Requested cell: " << cell << " group: " << grp << " direction: " << dir << " stage: " << stage << std::endl;
+    err << "Max Element: " << m_el_per_cell << "Max Cell: " << m_cells << " Max Dir: " << m_n_dir << " Max group: " << m_n_grp << " max stage: " << m_n_stages << std::endl;
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , err.str() );
+  }
   
   return is_bad;
 }
@@ -71,13 +80,8 @@ bool K_Intensity::ki_range_check(const int cell, const int grp, const int dir,co
   Layout is critical to memory performance!
 */
 int K_Intensity::ki_data_locator(const int cell, const int grp, const int dir,const int stage) const
-{
-  
-  if( ki_range_check(cell,grp,dir,stage) )
-  {
-    std::cerr << "Attempting to access illogical k_intensity location\n";
-    exit(EXIT_FAILURE);
-  }
+{  
+  ki_range_check(cell,grp,dir,stage) ;
   
   /** we are sweeping as follows:   
       mu < 0 
@@ -102,11 +106,7 @@ int K_Intensity::ki_data_locator(const int cell, const int grp, const int dir,co
     loc_val = m_offset + stage*m_el_per_cell + (dir-m_dir_div_2)*m_el_stage + grp*m_el_stage_dir_div_2 + cell*m_el_stage_dir_div_2_grp;;
   }
   
-  if( ki_bounds_check(loc_val) )
-  {
-    std::cerr << "Location out of bounds in k_intensity data\n";
-    exit(EXIT_FAILURE);
-  }
+  ki_bounds_check(loc_val);
   
   return loc_val;
 }
@@ -114,8 +114,15 @@ int K_Intensity::ki_data_locator(const int cell, const int grp, const int dir,co
 bool K_Intensity::ki_bounds_check(const int loc) const
 {
   bool is_bad_loc = false;
-  // if( (loc < 0) || (loc >= m_k_length) )
-    // is_bad_loc = true;  
+  if( (loc < 0) || (loc >= m_k_length) )
+    is_bad_loc = true;  
+    
+  if(is_bad_loc)
+  {
+    std::stringstream err;
+    err << "Requested memory index: " << loc << " m_k_length is: " << m_k_length;
+    throw Dark_Arts_Exception( VARIABLE_STORAGE , err.str() ) ;
+  }
   
   return is_bad_loc;
 }

@@ -19,6 +19,7 @@
 # include <cstring>
 #include <vector>
 #include <stdlib.h>
+#include "Dark_Arts_Exception.h"
 
 
 class Quadrule_New
