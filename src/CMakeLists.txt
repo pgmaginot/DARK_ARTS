@@ -68,6 +68,13 @@ set(${PROJECT_NAME}_EXE_PATH ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
 set(${PROJECT_NAME}_EXE_NAME dark_arts PARENT_SCOPE)
 
 #----------------------------------------
+# Exceptions
+#----------------------------------------
+add_subdirectory(exceptions)
+PropagateSG(EXCEPTIONS)
+
+
+#----------------------------------------
 # Input
 #----------------------------------------
 add_subdirectory(input)

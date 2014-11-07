@@ -8,28 +8,22 @@
 // Public functions 
 // ##########################################################
 
-bool Input_Reader::read_xml(std::string xmlFile)
-{
-  bool good_exit = true;
-  
+void Input_Reader::read_xml(std::string xmlFile)
+{  
   TiXmlDocument doc( xmlFile.c_str() );
-  bool load_success = doc.LoadFile();
   
-  if(load_success){
+  if( doc.LoadFile() )
+  {
     std::cout << "Found input file: " << xmlFile << std::endl << std::endl;
   }
   else{
-    std::cerr << "Error opening file: " << xmlFile << " File non-existent or possibly an XML formatting error .." << std::endl;
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception( INPUT , "Error reading input file, file non-existent or XML error" );
   }
   
   TiXmlElement* inp_block = doc.FirstChildElement( "INPUT_FILE" );
   
   if( !inp_block )
-  {
-    std::cerr << "INPUT_FILE block not found.  Error. \n" ;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT ,  "INPUT_FILE block not found. " );
   
   //! Every Input File Is Required To Have These Blocks
   TiXmlElement* reg_elem = inp_block->FirstChildElement( "REGIONS" );
@@ -41,85 +35,36 @@ bool Input_Reader::read_xml(std::string xmlFile)
   TiXmlElement* bc_ic_elem = inp_block->FirstChildElement( "BC_IC" );
   
   if(!reg_elem)
-  {
-    std::cerr << "REGIONS block not found.\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "REGIONS block not found.");
   
   if(!mat_elem)
-  {
-    std::cerr << "MATERIALS block not found.  Error \n";
-    exit(EXIT_FAILURE);
-  } 
-  
+    throw Dark_Arts_Exception( INPUT , "MATERIALS block not found.");
+    
   if(!time_elem)
-  {
-    std::cerr << "TIME block not found.  Error \n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT ,  "TIME block not found. ");
   
   if(!discr_elem)
-  {
-    std::cerr << "SPATIAL_DISCRETIZATION block not found.  Error \n";
-    exit(EXIT_FAILURE);
-  }
-  
+    throw Dark_Arts_Exception( INPUT , "SPATIAL_DISCRETIZATION block not found.");
+ 
   if(!angle_elem)
-  {
-    std::cerr << "ANGULAR_DISCRETIZATION block not found.  Error \n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "ANGULAR_DISCRETIZATION block not found.");
   
   if(!solver_elem)
-  {
-    std::cerr << "SOLVER block not found.  Error \n";
-    exit(EXIT_FAILURE);
-  }
-  
+    throw Dark_Arts_Exception( INPUT ,  "SOLVER block not found. ");
+ 
   if(!bc_ic_elem)
-  {
-    std::cerr << "BC_IC block not found.  Error \n";
-    exit(EXIT_FAILURE);
-  }
-  
-  int region_return = -1;
-  int material_return = -1;
-  int time_return = -1;
-  int spatial_return = -1;
-  int angle_return = -1;
-  int solver_return = -1;
-  int bc_ic_return = -1;
+    throw Dark_Arts_Exception( INPUT , "BC_IC block not found. ");  
   
   //! Load Data Appropriately from each input block
-  region_return = load_region_data(reg_elem);
-  std::cout << "Region block read\n\n" ;
-  
-  material_return = load_material_data(mat_elem);
-  std::cout << "Material block read\n\n" ;
-  
-  time_return = load_time_stepping_data(time_elem);
-  std::cout << "Time block read\n\n" ;
-  
-  spatial_return = load_spatial_discretization_data(discr_elem);
-  std::cout << "Spatial discretization block read\n\n" ;
-  
-  angle_return = load_angular_discretization_data(angle_elem);
-  std::cout << "Angle block read\n\n" ;
-  
-  solver_return = load_solver_data(solver_elem);
-  std::cout << "Solver block read \n\n";
-  
-  bc_ic_return = load_bc_ic_data(bc_ic_elem);
-  std::cout << "BC_IC block read \n\n";
-  
-  if( (region_return < 0) || (material_return < 0) || (time_return < 0) || 
-      (spatial_return < 0) || (angle_return < 0) || (solver_return < 0) ||
-      (bc_ic_return < 0) )
-  {
-    good_exit = false;
-  }  
-  
-  return good_exit;
+  load_region_data(reg_elem);
+  load_material_data(mat_elem);
+  load_time_stepping_data(time_elem);
+  load_spatial_discretization_data(discr_elem);
+  load_angular_discretization_data(angle_elem);
+  load_solver_data(solver_elem);
+  load_bc_ic_data(bc_ic_elem);
+   
+  return;
 }
 
 // ##########################################################
@@ -409,10 +354,7 @@ TEMPERATURE_IC_TYPE Input_Reader::get_temperature_ic_type(void) const
 double Input_Reader::get_region_temperature(const int reg_num) const
 {
   if(reg_num > m_number_regions)
-  {
-    std::cerr << "Asking for a region temperature in a region greater than n_regions" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT ,  "Asking for a region temperature in a region greater than n_regions" );
   
   return m_region_temperature[reg_num];
 }
@@ -449,9 +391,9 @@ double Input_Reader::get_right_bc_end_time(void) const
 
 double Input_Reader::get_region_radiation_temperature(const int reg_num) const
 {
-  std::cerr << "Asking for a region radiation temperature in a region greater than n_regions" << std::endl;
-  exit(EXIT_FAILURE);
-  
+  if(reg_num > m_number_regions)
+    throw Dark_Arts_Exception( INPUT ,  "Asking for a region radiation temperature in a region greater than n_regions" );
+    
   return m_region_radiation_temperature[reg_num];
 }
 
@@ -514,19 +456,13 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
   if(num_regions_elem)
     m_number_regions = atoi(num_regions_elem->GetText());
   else
-  {
-    std::cerr << "Error.  Missing Number of regions element";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In REGIONS element: Missing Number of regions element");
   
   TiXmlElement* num_materials_elem = region_element->FirstChildElement( "Number_of_materials");
   if(num_regions_elem)
     m_number_materials = atoi(num_materials_elem->GetText());
   else
-  {
-    std::cerr << "Error.  Missing Number of materials element";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In REGIONS element:  Missing Number of materials element");
   
   m_cells_per_region.resize(m_number_regions,0);
   m_region_material_numbers.resize(m_number_regions,0);
@@ -538,10 +474,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
   
   TiXmlElement* region_id = region_element->FirstChildElement( "Region");
   if(!region_id)
-  {
-    std::cerr << "Missing Individual Region Elements" << std::endl;
-    exit(EXIT_FAILURE);
-  } 
+    throw Dark_Arts_Exception( INPUT , "In REGIONS element: Missing Individual Region Elements");
+    
   /// loop over the specified number of regions
   for(int i=0; i<m_number_regions ; i++)
   {
@@ -549,9 +483,11 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     int reg_num = atoi(region_id->GetText());
     if(reg_num != i)
     {
-      std::cerr << "Error.  Expected Region: " << i << " Got Region: " << reg_num << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err << "In REGIONS element: Expected Region: " <<  i  << " Got Region: " <<  reg_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
+      
     TiXmlElement* n_cells = region_id->FirstChildElement( "N_cells" );
     TiXmlElement* x_left = region_id->FirstChildElement("Left_bound");
     TiXmlElement* x_right = region_id->FirstChildElement("Right_bound");
@@ -560,8 +496,9 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     
     if(!n_cells || !x_left || !x_right || !spacing || !mat_number)
     {
-      std::cerr << "Error.  Region: " << reg_num << " is missing required elements" << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err; 
+      err << "In REGIONS block, Region: " << reg_num << " is missing required elements";
+      throw Dark_Arts_Exception( INPUT , err.str() );      
     }
     
     /// store all region specific data    
@@ -569,16 +506,18 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     m_cells_per_region[i] = atoi(n_cells->GetText());
     if(m_cells_per_region[i] < 0)
     {
-      std::cerr << "Error.  Region " << i << " Number of Cells must be a positive integer" << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "In REGIONS element: Region " << i << " Number of Cells must be a positive integer";
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     
     /// check material number, must be in range: 0 ... n_mat - 1
     m_region_material_numbers[i] = atoi(mat_number->GetText());
     if( (m_region_material_numbers[i] < 0) ||(m_region_material_numbers[i] > (m_number_materials-1)))
     {
-      std::cerr << "Error.  Region " << i << " Material number out of range" << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "Error.  Region " << i << " Material number out of range" ;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     
     /// get grid spacing type and check against the supported values
@@ -592,8 +531,9 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
 
     if(m_region_spacing_type[i] == INVALID_GRID_SPACING)
     {
-      std::cerr << "Error.  Region " << i << " Invalid Grid Spacing" << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err << "In REGIONS element: Region " << i << " Invalid Grid Spacing";
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     
     /// load in scaling factor for logarithmic grid spacing and check that it is greter than 1
@@ -603,28 +543,31 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
       TiXmlElement* min_dx = spacing->FirstChildElement("Min_cell_size");
       if(!space_factor)
       {
-        std::cerr << "Error.  Region " << i << " Missing size factor for logarithmic grid spacing" << std::endl;
-        exit(EXIT_FAILURE);        
+        std::stringstream err;
+        err << "In REGIONS element: Region " << i << " Missing size factor for logarithmic grid spacing" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );       
       }
       if(!min_dx)
       {
-        std::cerr << "Error.  Region " << i << " Missing sminimum cell size for logarithmic spacing" << std::endl;
-        exit(EXIT_FAILURE);        
+        std::stringstream err;
+        err << "In REGIONS element:  Region " << i << " Missing minimum cell size for logarithmic spacing" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );        
       }
       
       m_region_spacing_constant[i] = atof( space_factor->GetText() );
       if(m_region_spacing_constant[i] < 0.)
       {
-        std::cerr << "Error.  Region " << i << " Log spacing factors must be > 0" << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "In REGIONS element:   Region " << i << " Log spacing factors must be > 0" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_region_min_size[i] = atof( min_dx->GetText() );
       if(m_region_min_size[i] < 0.)
       {
-        std::cerr << "Error.  Region " << i << " Minimum cell spacing must be > 0" << std::endl;
-        exit(EXIT_FAILURE);
-      }
-      
+        std::stringstream err;
+        err << "In REGIONS element: Region " << i << " Minimum cell spacing must be > 0" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
+      }      
     }
     
     /// get left and right values of region, check that x_L < x_R
@@ -632,17 +575,15 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     m_region_right_bounds[i] = atof(x_right->GetText() ) ;
     if(m_region_left_bounds[i] > m_region_right_bounds[i] )
     {
-      std::cerr << "Error.  Region " << i << " x_L > x_R" << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err << "In REGIONS element:  Region " << i << " x_L > x_R" ;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
       
     /// go to the next region
     region_id = region_id->NextSiblingElement( "Region");
     if( (region_id == 0) && (i< m_number_regions - 1))
-    {
-      std::cerr << "Insufficient number of Region elements for the number of regions" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception( INPUT , "In REGIONS block: Insufficient number of Region elements for the number of regions" );
   }
     
   return 0;
@@ -669,8 +610,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
   if(!units_elem)
   {
-    std::cerr << "Missing required Units block in MATERIALS.\n";
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception( INPUT , "In MATERIALS block: Missing required Units block in MATERIALS.");
   }
   else
   {
@@ -696,8 +636,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     }
     else
     {
-      std::cerr << "Invalid units type.\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception( INPUT , "In MATERIALS block:Invalid units type.");
     }
   }
   
@@ -705,17 +644,14 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   for(int mat_cnt = 0; mat_cnt < m_number_materials ; mat_cnt++)
   {    
     if(!mat_descr)
-    {
-      std::cerr << "Error.  Missing Material element in MATERIALS block.  Expected: " << m_number_materials 
-                << "found: " << mat_cnt << std::endl;
-      exit(EXIT_FAILURE);
+    {      
+      std::stringstream err;
+      err << "Missing Material element in MATERIALS block.  Expected: " << m_number_materials  << "found: " << mat_cnt;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }    
     int mat_num = atoi( mat_descr->GetText() );
     if(mat_num != mat_cnt)
-    {
-      std::cerr << "Error.  Materials not entered in order" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception( INPUT , "In MATERIALS block: Materials not entered in order" );
     
     TiXmlElement* scat_opacity_type = mat_descr->FirstChildElement( "Scattering_Opacity_type");
     TiXmlElement* abs_opacity_type = mat_descr->FirstChildElement( "Absorption_Opacity_type");
@@ -724,28 +660,33 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     TiXmlElement* temp_source_type = mat_descr->FirstChildElement( "Temperature_Fixed_Source_type");
     if(!scat_opacity_type)
     {
-      std::cerr << "Missing scattering opacity type in material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "In MATERIALS block: Missing scattering opacity type in material " << mat_num;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     if(!abs_opacity_type)
     {
-      std::cerr << "Missing absorption opacity type in material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "In MATERIALS block: Missing absorption opacity type in material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     if(!cv_type)
     {
-      std::cerr << "Missing cv type in material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "In MATERIALS block: Missing cv type in material " << mat_num;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     if(!rad_source_type)
     {
-      std::cerr << "Missing radiation source type in material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "In MATERIALS block: Missing radiation source type in material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
     if(!temp_source_type)
     {
-      std::cerr << "Missing temperautre source type in material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);
+      std::stringstream err;
+      err      << "In MATERIALS block: Missing temperautre source type in material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );
     }
         
     std::string scat_opacity_str = scat_opacity_type->GetText();
@@ -767,8 +708,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* const_val = abs_opacity_type->FirstChildElement( "Constant_value" );
       if(!const_val)
       {
-        std::cerr << "Missing constant_value tag for material: " << mat_num << " absorption opacity\n" ;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err      << "In MATERIALS block:Missing constant_value tag for material: " << mat_num << " absorption opacity" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_abs_opacity_double_constants_1[mat_num] = atof( const_val->GetText() ); 
     }
@@ -780,18 +722,21 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* denom_offset_val = abs_opacity_type->FirstChildElement( "Denominator_offset" );
       if(!mult_val)
       {
-        std::cerr << "Missing Multiplier tag for material " << mat_num << " RATIONAL absorption opacity\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Multiplier tag for material " << mat_num << " RATIONAL absorption opacity";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       if(!denom_power_val)
       {
-        std::cerr << "Missing Denominator_power tag for material " << mat_num << " RATIONAL absorption opacity\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Denominator_power tag for material " << mat_num << " RATIONAL absorption opacity";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       if(!denom_offset_val)
       {
-        std::cerr << "Missing Denominator_offset tag for material " << mat_num << " RATIONAL absorption opacity\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Denominator_offset tag for material " << mat_num << " RATIONAL absorption opacity";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_abs_opacity_double_constants_1[mat_num] = atof(mult_val->GetText() );
       m_abs_opacity_double_constants_2[mat_num] = atof(denom_offset_val->GetText() );
@@ -803,16 +748,18 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* abs_op_file = abs_opacity_type->FirstChildElement( "File_name" );
       if(!abs_op_file)
       {
-        std::cerr << "Missing File_name tag for material " << mat_num << " TABLE_LOOKUP absorption opacity " << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing File_name tag for material " << mat_num << " TABLE_LOOKUP absorption opacity " ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_abs_opacity_str[mat_num] = abs_op_file->GetText();
     }
     
     if(m_material_absorption_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
     {
-      std::cerr << "Error.  Invalid absorption opacity type for material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);    
+      std::stringstream err;
+      err  << "In MATERIALS block: Invalid absorption opacity type for material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() ); 
     }
     
     /// set-up / scan for scattering opacity data
@@ -822,8 +769,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* const_val = scat_opacity_type->FirstChildElement( "Constant_value" );
       if(!const_val)
       {
-        std::cerr << "Missing constant_value tag for material: " << mat_num << " scattering opacity\n" ;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing constant_value tag for material: " << mat_num << " scattering opacity" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_scat_opacity_double_constants_1[mat_num] = atof( const_val->GetText() ); 
     }
@@ -835,18 +783,21 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* denom_offset_val = scat_opacity_type->FirstChildElement( "Denominator_offset" );
       if(!mult_val)
       {
-        std::cerr << "Missing Multiplier tag for material " << mat_num << " RATIONAL scattering opacity\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Multiplier tag for material " << mat_num << " RATIONAL scattering opacity";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       if(!denom_power_val)
       {
-        std::cerr << "Missing Denominator_power tag for material " << mat_num << " RATIONAL scattering opacity\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Denominator_power tag for material " << mat_num << " RATIONAL scattering opacity";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       if(!denom_offset_val)
       {
-        std::cerr << "Missing Denominator_offset tag for material " << mat_num << " RATIONAL scattering opacity\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Denominator_offset tag for material " << mat_num << " RATIONAL scattering opacity";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_scat_opacity_double_constants_1[mat_num] = atof(mult_val->GetText() );
       m_scat_opacity_double_constants_2[mat_num] = atof(denom_offset_val->GetText() );
@@ -858,16 +809,18 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* scat_op_file = scat_opacity_type->FirstChildElement( "File_name" );
       if(!scat_op_file)
       {
-        std::cerr << "Missing File_name tag for material " << mat_num << " TABLE_LOOKUP scattering opacity " << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing File_name tag for material " << mat_num << " TABLE_LOOKUP scattering opacity " ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_scat_opacity_str[mat_num] = scat_op_file->GetText();
     }
     
     if(m_material_scattering_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
     {
-      std::cerr << "Error.  Invalid absorption opacity type for material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);    
+      std::stringstream err;
+      err  << "In MATERIALS block:  Invalid absorption opacity type for material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );   
     }
     
     if(rad_source_str == "NO_SOURCE")
@@ -875,8 +828,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
    
     if(m_material_radiation_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
-      std::cerr << "Error.  Invalid radiation source type for material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);    
+      std::stringstream err;
+      err  << "In MATERIALS block: Invalid radiation source type for material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );   
     }
     
     if(temp_source_str == "NO_SOURCE")
@@ -884,8 +838,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
    
     if(m_material_temperature_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
-      std::cerr << "Error.  Invalid temperature source type for material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);    
+      std::stringstream err;
+      err  << "In MATERIALS block: Invalid temperature source type for material " << mat_num;
+      throw Dark_Arts_Exception( INPUT , err.str() );   
     }
     
     if(cv_str == "CONSTANT_CV")
@@ -894,21 +849,24 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* cv_const = cv_type->FirstChildElement( "Cv_constant" );
       if(!cv_const)
       {
-        std::cerr << "Error.  Missing Cv_constant tag in material " << mat_num << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block:   Missing Cv_constant tag in material " << mat_num;
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_cv_constants[mat_num] = atof(cv_const->GetText() );
       if(m_cv_constants[mat_num] < 0. )
       {
-        std::cerr << "Invalid Cv in material "<< mat_num << " values must be positive floats\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err  << "In MATERIALS block:  Invalid Cv in material "<< mat_num << " values must be positive floats";
+        throw Dark_Arts_Exception( INPUT , err.str() );
       }
     }
     
     if(m_material_cv_type[mat_num] == INVALID_CV_TYPE)
     {
-      std::cerr << "Error.  Invalid cv type for material " << mat_num << std::endl;
-      exit(EXIT_FAILURE);    
+      std::stringstream err;
+      err  << "In MATERIALS block:  Invalid cv type for material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err.str() );  
     }
     
     mat_descr = mat_descr->NextSiblingElement("Material");
@@ -928,35 +886,22 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   TiXmlElement* start_meth_elem = time_elem->FirstChildElement( "Starting_method");
   
   if(!dt_min_elem)
-  {
-    std::cerr << "Error.  Missing Dt_min element in TIME input block" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block: Missing Dt_min element in TIME input block" );
+    
   if(!dt_max_elem)
-  {
-    std::cerr << "Error.  Missing Dt_max element in TIME input block" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block: Missing Dt_max element in TIME input block" );
+    
   if(!t_start_elem)
-  {
-    std::cerr << "Error.  Missing T_start element in TIME input block" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:   Missing T_start element in TIME input block");
+    
   if(!t_end_elem)
-  {
-    std::cerr << "Error.  Missing T_end element in TIME input block" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  Missing T_end element in TIME input block" );
+    
   if(!solver_elem)
-  {
-    std::cerr << "Error.  Missing Time_solver element in TIME input block" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  Missing Time_solver element in TIME input block" );
+    
   if(!start_meth_elem)
-  {
-    std::cerr << "Error.  Missing Starting_method element in TIME input block" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  Missing Starting_method element in TIME input block" );
   
   m_dt_min = atof(dt_min_elem->GetText() );
   m_dt_max = atof(dt_max_elem->GetText() );
@@ -964,20 +909,13 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   m_t_end = atof(t_end_elem->GetText() );
   
   if( (m_dt_min < 0.) || (m_dt_max < 0.) )
-  {
-    std::cerr << "Error.  Time step sizes must be positive floats" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  Time step sizes must be positive floats" );
+    
   if( m_dt_min > m_dt_max )
-  {
-    std::cerr << "Error.  Minimum time step must be greater than maximum time step" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  Minimum time step must be greater than maximum time step" );
+    
   if(m_t_start > m_t_end)
-  {
-    std::cerr << "Error.  t_end must be greater than t_start " << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  t_end must be greater than t_start ");
   
   std::string stepper_str = solver_elem->GetText();
   std::string starter_str = start_meth_elem->GetText();
@@ -995,18 +933,13 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     m_time_starting_method = RAMP;
     
   if(m_time_step_scheme == INVALID_TIME_SOLVER)
-  {
-    std::cerr << "Error.  Invalid time stepping scheme" << std::endl;
-    exit(EXIT_FAILURE);  
-  }
+    throw Dark_Arts_Exception( INPUT , "In TIME block:  Invalid time stepping scheme" );
   
   switch (m_time_starting_method)
   {
     case INVALID_STARTING_METHOD:
     {
-      std::cerr << "Error.  Invalid time iteration starting scheme" << std::endl;
-      exit(EXIT_FAILURE);  
-    
+      throw Dark_Arts_Exception( INPUT , "In TIME block:  Invalid time iteration starting scheme" );      
       break;
     }
     case EXPONENTIAL:
@@ -1014,17 +947,11 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
       /// Get increase factor
       TiXmlElement* exp_incr_fact = start_meth_elem->FirstChildElement( "Increase_factor");
       if(!exp_incr_fact)
-      {
-        std::cerr << "Error.  Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception( INPUT , "In TIME block: Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" );
      
       m_exponential_ratio = atof( exp_incr_fact->GetText() );
       if(m_exponential_ratio < 1.)
-      {
-        std::cerr << "Error.  Starting time step increase must be greater than 1.0" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception( INPUT , "In TIME block: Starting time step increase must be greater than 1.0");
     
       break;
     }
@@ -1032,78 +959,55 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     {
       TiXmlElement* ramp_steps = start_meth_elem->FirstChildElement( "Ramp_steps" );
       if(!ramp_steps)
-      {
-        std::cerr << "Error.  RAMP time starter requires Ramp_steps element\n" ;
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception( INPUT , "In TIME block:  RAMP time starter requires Ramp_steps element" );
       
-      m_ramp_steps = atoi(ramp_steps->GetText() );
-      
+      m_ramp_steps = atoi(ramp_steps->GetText() );      
       if(m_ramp_steps < 1)
-      {
-        std::cerr << "Error.  RAMP starter requires at least one time step before full time step can be taken\n";
-        exit(EXIT_FAILURE);
-      }      
+        throw Dark_Arts_Exception( INPUT , "In TIME block: RAMP starter requires at least one time step before full time step can be taken");
+        
       break;
     }
     case VECTOR:
     {
       TiXmlElement* n_stages = start_meth_elem->FirstChildElement( "N_vector_stages" );
       if(!n_stages)
-      {
-        std::cerr << "Error.  VECTOR time starter requires N_stages element" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception( INPUT , "In TIME block:   VECTOR time starter requires N_stages element" );
+        
       int num_vec_stages = atoi(n_stages->GetText() );
       if(num_vec_stages < 1)
-      {
-        std::cerr << "Error.  Must have at least 1 stage of small time steps with VECTOR time starter" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception( INPUT , "In TIME block:   Must have at least 1 stage of small time steps with VECTOR time starter" );
       
       m_vector_start_sizes.resize(num_vec_stages , 0.);
       m_vector_start_step_numbers.resize(num_vec_stages , 0);
       
       TiXmlElement* vector_stage = start_meth_elem->FirstChildElement("Vector_stage");
-
       for(int i=0; i<num_vec_stages ; i++)
       {
         if(!vector_stage)
         {
-          std::cerr << "Error.  Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
-          std::cerr << "Only found: " << i << " Vector_stage elements" << std::endl;
-          exit(EXIT_FAILURE);
+          std::stringstream err;
+          err << "In TIME block: Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
+          err << "Only found: " << i << " Vector_stage elements" ;
+          throw Dark_Arts_Exception( INPUT , err.str() ); 
         }
         
         int curr_stage = atoi(vector_stage->GetText() );
         if(curr_stage < 0 || curr_stage == num_vec_stages)
-        {
-          std::cerr << "Error.  Vector_stage number must be between 0 and n_stages - 1" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          throw Dark_Arts_Exception( INPUT , "In TIME block: Vector_stage number must be between 0 and n_stages - 1" );
       
         TiXmlElement* stage_steps = vector_stage->FirstChildElement("Stage_steps");
         TiXmlElement* stage_factor = vector_stage->FirstChildElement("Stage_size");
-
         if(!stage_steps || !stage_factor)
-        {
-          std::cerr << "Expect a Stage_steps and Stage_size element in each Vector_stage element" << std::endl;
-          exit(EXIT_FAILURE);
-        }
+          throw Dark_Arts_Exception( INPUT , "In TIME block: Expect a Stage_steps and Stage_size element in each Vector_stage element" );
         
         int stages = atoi( stage_steps->GetText() );
-        double size_factor = atof( stage_factor->GetText() );
-        
+        double size_factor = atof( stage_factor->GetText() );        
         if(stages < 1)
-        {
-          std::cerr << "Error. Stage_steps must be an integer greater than 1" << std::endl;
-          exit(EXIT_FAILURE);       
-        }
+          throw Dark_Arts_Exception( INPUT , "In TIME block:  Stage_steps must be an integer greater than 1");
+          
         if(size_factor <= 0.  || size_factor >= 1.)
-        {
-          std::cerr << "Error.  Stage_size must be a double between 0 and 1 " << std::endl;
-          exit(EXIT_FAILURE);      
-        }
+          throw Dark_Arts_Exception( INPUT , "In TIME block: Stage_size must be a double between 0 and 1 " );
+          
         m_vector_start_step_numbers[curr_stage] = stages;
         m_vector_start_sizes[curr_stage] = size_factor;      
         
@@ -1126,37 +1030,23 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   TiXmlElement* opacity_interp_point_type_elem = spatial_element->FirstChildElement( "Opacity_interpolation_point_type");
 
   if(!trial_space_elem)
-  {
-    std::cerr << "Error.  Missing DFEM_degree element from SPATIAL_DISCRETIZATION block" << std::endl;
-    exit(EXIT_FAILURE);  
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing DFEM_degree element");
+    
   if(!int_type_elem)
-  {
-    std::cerr << "Error.  Missing Integration_type element from SPATIAL_DISCRETIZATION block" << std::endl;
-    exit(EXIT_FAILURE);  
-  }  
-  if(!dfem_interp_point_type_elem)
-  {
-    std::cerr << "Error.  Missing DFEM_interpolation_point_type element from SPATIAL_DISCRETIZATION block" << std::endl;
-    exit(EXIT_FAILURE);  
-  }  
-  if(!opacity_treatment_elem)
-  {
-    std::cerr << "Error.  Missing Opacity_treatment element from SPATIAL_DISCRETIZATION block" << std::endl;
-    exit(EXIT_FAILURE);  
-  }  
-  if(!opacity_interp_point_type_elem)
-  {
-    std::cerr << "Error.  Missing Opacity_interp_point_type_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
-    exit(EXIT_FAILURE);  
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Integration_type element");
   
+  if(!dfem_interp_point_type_elem)
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block:  Missing DFEM_interpolation_point_type element");
+    
+  if(!opacity_treatment_elem)
+    throw Dark_Arts_Exception(INPUT,  "Missing Opacity_treatment element from SPATIAL_DISCRETIZATION block" );
+    
+  if(!opacity_interp_point_type_elem)
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interp_point_type_elem element ");
+    
   m_dfem_trial_space_degree = atoi( trial_space_elem->GetText() );
   if(m_dfem_trial_space_degree < 1)
-  {
-    std::cerr << "Error.  Trial space degree must be a positive integrer greater than 0" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Trial space degree must be a positive integrer greater than 0" );
   
   std::string int_type_str = int_type_elem->GetText();
   transform(int_type_str.begin() , int_type_str.end() , int_type_str.begin() , toupper);
@@ -1168,10 +1058,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     m_integration_type = EXACT;
     
   if( m_integration_type == INVALID_MATRIX_INTEGRATION)
-  {
-    std::cerr << "Invalid matrix integration strategy" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block:Invalid matrix integration strategy" );
   
   std::string dfem_intep_type_str = dfem_interp_point_type_elem->GetText();
   transform(dfem_intep_type_str.begin() , dfem_intep_type_str.end() , dfem_intep_type_str.begin() , toupper);
@@ -1183,10 +1070,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     m_dfem_interpolation_point_type = EQUAL_SPACED;
     
   if( m_dfem_interpolation_point_type == INVALID_QUADRATURE_TYPE)
-  {
-    std::cerr << "Invalid DFEM interpolation point type" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block:Invalid DFEM interpolation point type" );
   
   std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
   transform(opacity_intep_type_str.begin() , opacity_intep_type_str.end() , opacity_intep_type_str.begin() , toupper);
@@ -1198,10 +1082,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     m_opacity_interpolation_point_type = EQUAL_SPACED;
     
   if( m_dfem_interpolation_point_type == INVALID_QUADRATURE_TYPE)
-  {
-    std::cerr << "Invalid DFEM interpolation point type" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Invalid opacity interpolation point type" );
   
   std::string opacity_treat_str = opacity_treatment_elem->GetText();
   transform(opacity_treat_str.begin() , opacity_treat_str.end() , opacity_treat_str.begin() , toupper);
@@ -1213,30 +1094,19 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     m_opacity_treatment = INTERPOLATING;
     
   if(m_opacity_treatment == INVALID_OPACITY_TREATMENT)
-  {
-    std::cerr << "Errror. Invalid opacity treatment" << std::endl;
-    exit(EXIT_FAILURE);    
-  }
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Invalid opacity treatment" );
   
   /// if not using self lumping treatment, need to get degree of opacity spatial treatment
   if(m_opacity_treatment != SLXS)
   {
     TiXmlElement* opacity_degree_elem = spatial_element->FirstChildElement( "Opacity_polynomial_degree");
     if(!opacity_degree_elem)
-    {
-      std::cerr << "Error.  Missing Opacity_degree_elem element from SPATIAL_DISCRETIZATION block" << std::endl;
-      exit(EXIT_FAILURE);  
-    }
+      throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block:  Missing Opacity_degree_elem element");
     
     m_opacity_polynomial_degree = atoi( opacity_degree_elem->GetText() );
     if(m_opacity_polynomial_degree < 0)
-    {
-      std::cerr << "Error.  Invalid opacity polynomial" << std::endl;
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Invalid opacity polynomial" );
   }
-  
-
   
   return 0;  
 }
@@ -1250,42 +1120,24 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   
   
   if(!n_angle_elem)
-  {
-    std::cerr << "Error.  Missing Number_of_angles element" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:  Missing Number_of_angles element" );
   
   if(!n_group_elem)
-  {
-    std::cerr << "Error.  Missing Number_of_groups element" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:Missing Number_of_groups element");
   
   if(!quad_type_elem)
-  {
-    std::cerr << "Error.  Missing Quadrature_type element" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block: Missing Quadrature_type element");
   
-   if(!n_legendre_mom_elem)
-  {
-    std::cerr << "Error.  Missing Number_of_legendre_moments element" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  if(!n_legendre_mom_elem)
+    throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:Missing Number_of_legendre_moments element");
   
   m_number_angles = atoi( n_angle_elem->GetText() );
   if( m_number_angles < 0 || ((m_number_angles % 2) != 0) )
-  {
-    std::cerr << "Error.  Number of Angles must be a positive, even integer" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block: Number of Angles must be a positive, even integer" );
   
   m_number_groups = atoi(n_group_elem->GetText() ) ;
   if( m_number_groups < 1)
-  {
-    std::cerr << "Error.  Number of groups must be an integer > 0" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block: Number of groups must be an integer > 0");
   
   m_group_lower_bounds.resize(m_number_groups,0.);
   m_group_upper_bounds.resize(m_number_groups,0.);
@@ -1298,16 +1150,15 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     {    
       if(!grp_bounds)
       {
-        std::cerr << "Error.  Missing Group_Boundaries element in ANGULAR_DISCRETIZATION block.  Expected: " << m_number_groups + 1 
-                  << " found: " << edge_cnt << std::endl;
-        exit(EXIT_FAILURE);
-      }    
+        std::stringstream err;
+        err << "In ANGULAR_DISCRETIZATION block: Missing Group_Boundaries element " << m_number_groups + 1 
+            << " found: " << edge_cnt ;
+        throw Dark_Arts_Exception( INPUT, err.str() );
+      }
       int edge_num = atoi( grp_bounds->GetText() );
       if(edge_num != edge_cnt)
-      {
-        std::cerr << "Error.  Group Bounds not entered in order" << std::endl;
-        exit(EXIT_FAILURE);
-      }
+      throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:  Group Bounds not entered in order");
+      
       TiXmlElement* grp_edge_val = grp_bounds->FirstChildElement("Edge_Value");
       double edge = atof( grp_edge_val->GetText() );
       
@@ -1326,15 +1177,17 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     {
       if( m_group_lower_bounds[g] > m_group_lower_bounds[g-1] )
       {
-        std::cerr << "Frequency groups lower energy bounds are not in descending order\n" ;
-        std::cerr << "Problem lies between group: " << g << " and group: " << g-1 << std::endl ;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "Frequency groups lower energy bounds are not in descending order\n" ;
+        err << "Problem lies between group: " << g << " and group: " << g-1;
+        throw Dark_Arts_Exception(INPUT, err.str() );
       }
       if( m_group_upper_bounds[g] >  m_group_upper_bounds[g-1] )
       {
-        std::cerr << "Frequency group upper energy bounds are not in descending order\n";
-        std::cerr << "Problem lies between group: " << g << " and group: " << g-1 << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "Frequency group upper energy bounds are not in descending order\n";
+        err << "Problem lies between group: " << g << " and group: " << g-1;
+        throw Dark_Arts_Exception(INPUT, err.str() );
       }
     }
   }
@@ -1348,17 +1201,11 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     m_angular_quadrature_type = LOBATTO_ANGLE;
 
   if(m_angular_quadrature_type == INVALID_ANGULAR_QUADRATURE_TYPE)
-  {
-    std::cerr << "Error. Invalid Quadrature_type in ANGULAR_DISCRETIZATION" << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In ANGULAR_DISCRETIZATION block: Invalid Quadrature_type ");
   
   m_n_leg_moments = atoi( n_legendre_mom_elem->GetText() );
   if(m_n_leg_moments < 1)
-  {
-    std::cerr << "Error.  Number of legendre moments must be >= 1\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In ANGULAR_DISCRETIZATION block:   Number of legendre moments must be >= 1");
     
   return 0;
 }
@@ -1369,23 +1216,14 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");  
   
   if(!solver_type_elem)
-  {
-    std::cerr << "Missing WG_Solver_type element\n" ;
-    exit(EXIT_FAILURE);  
-  }
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Solver_type element") ;
   
   if(!wg_tolerance_elem)
-  {
-    std::cerr << "Missing WG_Tolerance element\n" ;
-    exit(EXIT_FAILURE);  
-  }
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Tolerance element" );
    
   m_wg_tolerance = atof( wg_tolerance_elem->GetText() );
   if( (m_wg_tolerance < 1.E-15) || (m_wg_tolerance> 1.E-4))
-  {
-    std::cerr << "Invalid within group tolerance.  Must be greater 1E-15 and less than 1E-4\n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid within group tolerance.  Must be greater 1E-15 and less than 1E-4");
     
   std::string solve_type_str = solver_type_elem->GetText();
   // change to all upper case 
@@ -1400,25 +1238,17 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     m_wg_solve_type = KRYLOV_DSA;
   
   if(m_wg_solve_type == INVALID_WG_SOLVE_TYPE)
-  {
-    std::cerr << "Invalid within group radiation solver type\n";
-    exit(EXIT_FAILURE);
-  }  
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element:Invalid within group radiation solver type");
   
   if( (m_wg_solve_type == FP_SWEEPS) || (m_wg_solve_type == FP_DSA))
   {
     TiXmlElement* num_sweep_elem = solver_type_elem->FirstChildElement( "Max_Within_Group_Sweeps");
     if(!num_sweep_elem)
-    {
-      std::cerr << "Missing Max_Within_Group_Sweeps element.\n" ;
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing Max_Within_Group_Sweeps element." );
+      
     m_max_num_sweeps = atoi( num_sweep_elem->GetText() );
     if(m_max_num_sweeps < 1)
-    {
-      std::cerr << "Must allow at least one sweep per within group solve\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: Must allow at least one sweep per within group solve");
   }
   
   /**
@@ -1430,29 +1260,18 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     
     /// only require the between group solver tolerance if number of groups is greater than 1
     if(!bg_tolerance_elem)
-    {
-      std::cerr << "MF problems require specification of between group tolerance, BG_Tolerance.  Element not found\n";
-      exit(EXIT_FAILURE);
-    }
-    
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: MF problems require specification of between group tolerance, BG_Tolerance.  Element not found");
+        
     m_bg_tolerance = atof(bg_tolerance_elem->GetText() );
     if( m_bg_tolerance < m_wg_tolerance)
-    {
-      std::cerr << "Invalid between group tolerance.  Must be greater than the within group scattering tolerance.\n";
-      exit(EXIT_FAILURE);
-    }
-    if( m_bg_tolerance > 1.E-4)
-    {
-      std::cerr << "Invalid between group tolerance.  Must be less than 1.0E-4.\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid between group tolerance.  Must be greater than the within group scattering tolerance.");
     
+    if( m_bg_tolerance > 1.E-4)
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid between group tolerance.  Must be less than 1.0E-4");
+        
     TiXmlElement* mf_ard_solve_elem = solver_element->FirstChildElement( "MF_Solver_Type" );
     if(!mf_ard_solve_elem)
-    {
-      std::cerr<< "MF_Solver_Type element not found in multi-frequency problem\n";
-      exit(EXIT_FAILURE);
-    } 
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element:MF_Solver_Type element not found in multi-frequency problem");
     
     std::string ard_solve_type_str = mf_ard_solve_elem->GetText();
     // change to all upper case 
@@ -1465,63 +1284,43 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       m_ard_solve_type = KRYLOV_LMFGA;
     
     if(m_ard_solve_type == INVALID_ARD_SOLVE_TYPE)
-    {
-      std::cerr << "Invalid ARD_SOLVE_TYPE found\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element:Invalid ARD_SOLVE_TYPE found");
     
     if( (m_ard_solve_type == FP_NO_ACCEL) || (m_ard_solve_type == FP_LMFGA) )
     {
       TiXmlElement* fp_ard_iter_elem = mf_ard_solve_elem->FirstChildElement("Max_Iterations");
       
       if(!fp_ard_iter_elem)
-      {
-        std::cerr << "Fixed point ARD solvers require Max_Iterations element\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In SOLVER element:Fixed point ARD solvers require Max_Iterations element");
       
       m_max_ard_iterations = atoi( fp_ard_iter_elem->GetText() );
       if(m_max_ard_iterations < 1)
-      {
-        std::cerr << "Require at least 1 iteration for FP ARD solver schemes\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In SOLVER element:Require at least 1 iteration for FP ARD solver schemes");
     }
   }
   
   /// get thermal convergence tolerance
   TiXmlElement* thermal_tolerance_elem = solver_element->FirstChildElement( "Thermal_Tolerance");
   if(!thermal_tolerance_elem)
-  {
-    std::cerr << "Thermal_Tolerance element required \n";
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element:Thermal_Tolerance element required");
+   
   m_thermal_tolerance = atof( thermal_tolerance_elem->GetText() );
   if(m_thermal_tolerance < 1.E-14)
-  {
-    std::cerr << "Too small of thermal tolerance. \n" ; 
-    exit(EXIT_FAILURE);    
-  }
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element:Too small of thermal tolerance.") ; 
+    
   if( m_number_groups > 1)
   {
     if( m_bg_tolerance < m_wg_tolerance)
-    {
-      std::cerr << "Between group tolerance must be greater within group tolerance \n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: Between group tolerance must be greater within group tolerance ");
+      
     if( m_thermal_tolerance < m_bg_tolerance)
-    {
-      std::cerr << "Thermal tolerance must be greater than between group absorption/re-emission tolerance \n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element: Thermal tolerance must be greater than between group absorption/re-emission tolerance ");
   }
   else
   {
     if(m_thermal_tolerance < m_wg_tolerance)
-    {
-      std::cerr << "Grey problem.  Within group tolerance must be smaller than thermal iteration tolerance\n";
-      exit(EXIT_FAILURE);    
-    }
+      throw Dark_Arts_Exception(INPUT, "In SOLVER element:Grey problem.  Within group tolerance must be smaller than thermal iteration tolerance");
+
   }
   
   return 0;
@@ -1535,28 +1334,17 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   TiXmlElement* rad_right_bc_type_elem = bc_ic_element->FirstChildElement( "Right_Radiation_BC_Type");
   
   if(!temp_ic_type_elem)
-  {
-    std::cerr << "Missing Temperature_IC_Type element\n" ;
-    exit(EXIT_FAILURE);
-  }
-  
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element: Missing Temperature_IC_Type element" );
+   
   if(!rad_ic_type_elem)
-  {
-    std::cerr << "Missing Radiation_IC_Type element\n" ;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Radiation_IC_Type element" );
+  
   
   if(!rad_left_bc_type_elem)
-  {
-    std::cerr << "Missing Left_Radiation_BC_Type element\n" ;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Left_Radiation_BC_Type element") ;
   
   if(!rad_right_bc_type_elem)
-  {
-    std::cerr << "Missing _Right_Radiation_BC_Type element\n" ;
-    exit(EXIT_FAILURE);
-  }
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing _Right_Radiation_BC_Type element") ;
   
   /// Get IC strings and set IC types
   std::string temp_ic_str = temp_ic_type_elem->GetText();
@@ -1610,8 +1398,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   /// Handle left radiation boundary condition
   if( m_rad_bc_left == INVALID_RADIATION_BC_TYPE)
   {
-    std::cerr << "Left radiation BC type not recognized\n";
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Left radiation BC type not recognized");
   }
   else if( m_rad_bc_left == VACUUM_BC)
   {
@@ -1629,10 +1416,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     {
       TiXmlElement* rad_left_bc_energy_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
       if(!rad_left_bc_energy_dependence_elem)
-      {
-        std::cerr << "Missing BC_Energy_Dependence element in Left Incident_BC block\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element: Missing BC_Energy_Dependence element in Left Incident_BC block");
+        
       /// get energy/frequency distribution dependence, check for valid input
       std::string left_energy_dep_str = rad_left_bc_energy_dependence_elem->GetText();
       transform(left_energy_dep_str.begin() , left_energy_dep_str.end() , left_energy_dep_str.begin() , toupper);
@@ -1642,43 +1427,25 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       }
       
       if(m_left_bc_energy_dependence == INVALID_BC_ENERGY_DEPENDENCE)
-      {
-        std::cerr << "Invalid BC_ENERGY_DEPENDENCE for left BC\n";
-        exit(EXIT_FAILURE);
-      }  
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid BC_ENERGY_DEPENDENCE for left BC");
     }
     
     if(!rad_left_bc_value_elem)
-    {
-      std::cerr << "Missing Incident_Energy element in Left Incident_BC block\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Incident_Energy element in Left Incident_BC block");
     
     if(!rad_left_bc_value_type_elem)
-    {
-      std::cerr << "Missing BC_Value_Type element in Left Incident_BC type\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Value_Type element in Left Incident_BC type");
     
     if(!rad_left_bc_angle_incidence_elem)
-    {
-      std::cerr << "Missing BC_Angle_Dependence element in Left Incident_BC block\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Angle_Dependence element in Left Incident_BC block");
 
     if(!rad_left_bc_time_dependence_elem)
-    {
-      std::cerr << "Missing BC_Time_Dependence element in Left Incident_BC block\n";
-      exit(EXIT_FAILURE);
-    } 
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Time_Dependence element in Left Incident_BC block");
     
     /// get value for and error check incident energy value
     m_left_bc_value = atof( rad_left_bc_value_elem->GetText() ); 
     if(m_left_bc_value < 0.)
-    {
-      std::cerr << "Invalid value for Left Incident_Energy.  Must be > 0\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Left Incident_Energy.  Must be > 0");
     
     std::string left_value_type_str = rad_left_bc_value_type_elem->GetText();
     transform(left_value_type_str.begin() , left_value_type_str.end() , left_value_type_str.begin() , toupper);
@@ -1692,10 +1459,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     
     if(m_rad_bc_left_value_type == INVALID_INCIDENT_BC_VALUE_TYPE)
-    {
-      std::cerr << "Invalid BC_Value_Type element value for left boundary condition\n" ;
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid BC_Value_Type element value for left boundary condition") ;
 
     /// get angular dependence, and check for validity
     std::string left_bc_incidence_str = rad_left_bc_angle_incidence_elem->GetText();
@@ -1714,10 +1478,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     
     if(m_left_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
-    {
-      std::cerr << "Must specify angular dependence of Planckian BC on left edge\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Must specify angular dependence of Planckian BC on left edge");
     
     /// get left BC time dependence
     std::string left_time_dependence_str = rad_left_bc_time_dependence_elem->GetText();
@@ -1733,8 +1494,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(m_left_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
     {
-      std::cerr << "Invalid left BC time dependence for left boundary\n";
-      exit(EXIT_FAILURE);
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid left BC time dependence for left boundary");
     }
     else if(m_left_bc_time_dependence == BC_CONSTANT)
     {
@@ -1748,24 +1508,16 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       TiXmlElement* bc_left_end_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_Turn_Off" );
       
       if(!bc_left_start_elem || !bc_left_end_elem)
-      {
-        std::cerr << "BC_Burst in left BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Burst in left BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements");
       
       m_bc_left_start_time = atof( bc_left_start_elem->GetText() );
       m_bc_left_end_time = atof( bc_left_end_elem->GetText() );
       
       if(m_bc_left_end_time < m_bc_left_start_time)
-      {
-        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off in left BC block\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Turn_Off must be later (in time) than BC_Turn_Off in left BC block");
+        
       if( (m_bc_left_start_time < m_t_start) || (m_bc_left_end_time > m_t_end) )
-      {
-        std::cerr << "BC Turn_On / Turn_Off time must be within total problem times in left BC \n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC Turn_On / Turn_Off time must be within total problem times in left BC");
     }
   }
   else if( m_rad_bc_left== REFLECTIVE_BC)
@@ -1792,31 +1544,21 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     TiXmlElement* rad_right_bc_value_type_elem = rad_right_bc_type_elem->FirstChildElement("BC_Value_Type");
     
     if(!rad_right_bc_value_elem)
-    {
-      std::cerr << "Missing Incident_Energy element in Right Incident_BC block\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Incident_Energy element in Right Incident_BC block");
+      
     if(!rad_right_bc_angle_incidence_elem)
-    {
-      std::cerr << "Missing BC_Angle_Dependence element in Right Incident_BC block\n";
-      exit(EXIT_FAILURE);
-    }
-    
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Angle_Dependence element in Right Incident_BC block");
+        
     if(!rad_right_bc_value_type_elem)
-    {
-      std::cerr << "Missing BC_Value_Type for right INCIDENT_BC\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Value_Type for right INCIDENT_BC");
     
     if( m_number_groups > 1)
     {
       TiXmlElement* rad_right_bc_energy_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
 
       if(!rad_right_bc_energy_dependence_elem)
-      {
-        std::cerr << "Missing BC_Energy_Dependence element in Right Incident_BC block\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Energy_Dependence element in Right Incident_BC block");
+        
       /// get energy/frequency distribution dependence, check for valid input
       std::string right_energy_dep_str = rad_right_bc_energy_dependence_elem->GetText();
       transform(right_energy_dep_str.begin() , right_energy_dep_str.end() , right_energy_dep_str.begin() , toupper);
@@ -1826,32 +1568,22 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       }
       
       if(m_right_bc_energy_dependence == INVALID_BC_ENERGY_DEPENDENCE)
-      {
-        std::cerr << "Invalid BC_ENERGY_DEPENDENCE for right BC\n";
-        exit(EXIT_FAILURE);
-      }  
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid BC_ENERGY_DEPENDENCE for right BC");
     }
     
     if(!rad_right_bc_time_dependence_elem)
-    {
-      std::cerr << "Missing BC_Time_Dependence element in Right Incident_BC block\n";
-      exit(EXIT_FAILURE);
-    } 
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Time_Dependence element in Right Incident_BC block");
     
     /// get value for and error check incident energy value
     m_right_bc_value = atof( rad_right_bc_value_elem->GetText() ); 
     if(m_right_bc_value < 0.)
-    {
-      std::cerr << "Invalid value for Right Incident_Energy.  Must be > 0\n";
-      exit(EXIT_FAILURE);
-    }   
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Right Incident_Energy.  Must be > 0");
     
     std::string right_value_type_str = rad_right_bc_value_type_elem->GetText();
     transform(right_value_type_str.begin() , right_value_type_str.end() , right_value_type_str.begin() , toupper);
     if(right_value_type_str == "INCIDENT_CURRENT")
     {
-      m_rad_bc_right_value_type = INCIDENT_CURRENT;
-      
+      m_rad_bc_right_value_type = INCIDENT_CURRENT;      
     }
     else if(right_value_type_str == "INCIDENT_TEMPERATURE")
     {
@@ -1859,10 +1591,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     
     if(m_rad_bc_right_value_type == INVALID_INCIDENT_BC_VALUE_TYPE)
-    {
-      std::cerr << "Invalid BC_Value_Type element value for right boundary\n" ;
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:nvalid BC_Value_Type element value for right boundary" );
 
     /// get angular dependence, and check for validity
     std::string right_bc_incidence_str = rad_right_bc_angle_incidence_elem->GetText();
@@ -1881,10 +1610,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     
     if(m_right_bc_angle_dependence == INVALID_BC_ANGLE_DEPENDENCE)
-    {
-      std::cerr << "Must specify angular dependence of Incident_BC on right edge\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Must specify angular dependence of Incident_BC on right edge");
     
     /// get right BC time dependence
     std::string right_time_dependence_str = rad_right_bc_time_dependence_elem->GetText();
@@ -1900,9 +1626,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if(m_right_bc_time_dependence == INVALID_BC_TIME_DEPENDENCE)
     {
-      std::cerr << "Invalid right BC time dependence\n";
-      exit(EXIT_FAILURE);
-    }
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid right BC time dependence");
+    }  
     else if(m_right_bc_time_dependence == BC_CONSTANT)
     {
       /// assume dirichlet conditions last forever
@@ -1915,46 +1640,34 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       TiXmlElement* bc_right_end_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_Turn_Off" );
       
       if(!bc_right_start_elem || !bc_right_end_elem)
-      {
-        std::cerr << "BC_Burst in right BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Burst in right BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements");
+      
       
       m_bc_right_start_time = atof( bc_right_start_elem->GetText() );
       m_bc_right_end_time = atof( bc_right_end_elem->GetText() );
       
       if(m_bc_right_end_time < m_bc_right_start_time)
-      {
-        std::cerr << "BC_Turn_Off must be later (in time) than BC_Turn_Off\n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Turn_Off must be later (in time) than BC_Turn_Off");
+        
       if( (m_bc_right_start_time < m_t_start) || (m_bc_right_end_time > m_t_end) )
-      {
-        std::cerr << "BC Turn_On / Turn_Off time must be within total problem times \n";
-        exit(EXIT_FAILURE);
-      }
+        throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC Turn_On / Turn_Off time must be within total problem times");
     }    
   }
-  else if( m_rad_bc_right == REFLECTIVE_BC)
-  {
-    std::cerr << "Cannot use reflective boundary condition on right edge.  Only left edge\n";
-    exit(EXIT_FAILURE);
-  } 
+  else if( m_rad_bc_right == REFLECTIVE_BC) 
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element: Cannot use reflective boundary condition on right edge.  Only left edge");
 
    
   /// do not allow refelective condition and krylov solving
   if( (m_rad_bc_left == REFLECTIVE_BC) 
     && ( (m_wg_solve_type == KRYLOV_SWEEPS) || (m_wg_solve_type == KRYLOV_DSA) ) )
-  {
-    std::cerr << "A refelective radiation boundary condition is not allowed with Krylov WGRS\n";
-    exit(EXIT_FAILURE);  
-  } 
+    {
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:A refelective radiation boundary condition is not allowed with Krylov WGRS");
+    }
     
   /// get radiation initial conditions
   if( m_radiation_ic_type == INVALID_RADIATION_IC_TYPE)
   {
-    std::cerr << "Radiation IC type not recognized\n";
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Radiation IC type not recognized");
   }
   else if( m_radiation_ic_type == PLANCKIAN_IC )
   {
@@ -1964,37 +1677,36 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     {
       if(!rad_ic_reg_elem)
       {
-        std::cerr << "Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions << std::endl;
-        exit(EXIT_FAILURE);
-      }
-      if( atoi(rad_ic_reg_elem->GetText()) != reg)
-      {
-        std::cerr << "Temperature IC for regions not in order\n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "In BC_IC element:Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
+        throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       
+      if( atoi(rad_ic_reg_elem->GetText()) != reg)
+        throw Dark_Arts_Exception(INPUT,  "In BC_IC block: Temperature IC for regions not in order");      
       
       TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_Temperature");
       if(!rad_temp_value)
       {
-        std::cerr << "Missing required Radiation_Temperature element for region: " << reg << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "In BC_IC block: Missing required Radiation_Temperature element for region: " << reg ;
+        throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       m_region_radiation_temperature[reg] = atof( rad_temp_value->GetText() );
       if(m_region_radiation_temperature[reg] < 0.)
       {
-        std::cerr << "Invalid radiation temperature in region: " << reg << " , must be >= 0. \n";
-        exit(EXIT_FAILURE);
-      }
-      
+        std::stringstream err;
+        err << "Invalid radiation temperature in region: " << reg << " , must be >= 0. ";
+        throw Dark_Arts_Exception(INPUT,  err.str() );
+      }      
       rad_ic_reg_elem->NextSiblingElement("Region");
     }
-  }  
+  }
+  
   /// Get temperature initial conditions
   if( m_temperature_ic_type == INVALID_TEMPERATURE_IC_TYPE)
   {
-    std::cerr << "Temperature IC type not recognized\n";
-    exit(EXIT_FAILURE);
+    throw Dark_Arts_Exception(INPUT,   "In BC_IC block: Temperature IC type not recognized");
   }
   else if( m_temperature_ic_type == CONSTANT_TEMPERATURE_IC )
   {
@@ -2004,26 +1716,26 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     {
       if(!temp_ic_reg_elem)
       {
-        std::cerr << "Missing a region material temperature for every region.  Found: " << reg << " Need: " << m_number_regions << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "Missing a region material temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
+        throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       if( atoi(temp_ic_reg_elem->GetText()) != reg)
-      {
-        std::cerr << "Temperature IC for regions not in order\n";
-        exit(EXIT_FAILURE);
-      }      
+        throw Dark_Arts_Exception(INPUT, "In BC_IC block: Temperature IC for regions not in order" );
       
       TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_Temperature");
       if(!temp_value)
       {
-        std::cerr << "Missing required Material_Temperature element for region: " << reg << std::endl;
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "Missing required Material_Temperature element for region: " << reg ;
+        throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       m_region_temperature[reg] = atof( temp_value->GetText() );
       if(m_region_temperature[reg] < 0.)
       {
-        std::cerr << "Invalid material temperature in region: " << reg << " , must be >= 0. \n";
-        exit(EXIT_FAILURE);
+        std::stringstream err;
+        err << "Invalid material temperature in region: " << reg << " , must be >= 0. ";
+        throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       
       temp_ic_reg_elem->NextSiblingElement("Region");

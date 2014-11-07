@@ -11,6 +11,7 @@ static char help[] = "A character array that PETSc might be expecting";
 #include "Temperature_Data.h"
 #include "Materials.h"
 
+#include "Dark_Arts_Exception.h"
 
 
 int main(int argc, char** argv)
@@ -32,17 +33,15 @@ int main(int argc, char** argv)
     std::cout << "argv[" << i << "] = " << argv[i] << '\n'; 
 
   /// DARK_ARTS objects follow
-  Input_Reader input_reader;
-  bool input_parsed = false;
-    
-  input_parsed = input_reader.read_xml(argv[1]);
-    
-  if(!input_parsed)
-  {
-    std::cerr << "Error reading input" << std::endl;
-    exit(EXIT_FAILURE);
+  Input_Reader input_reader;    
+  try{
+    input_reader.read_xml(argv[1]);
   }
-  
+  catch(const Dark_Arts_Exception& da_exception )
+  {
+    da_exception.message() ;
+  }
+     
   std::cout << "Input File Read" << std::endl;
   
   /// Initialize a Quadrule object to be able to get all of the quadrature we need

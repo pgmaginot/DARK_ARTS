@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include "Inputs_Allowed.h"
+#include "Dark_Arts_Exception.h"
 
 /** @file   Input_Reader.h
   *   @author pmaginot
@@ -21,7 +22,7 @@ public:
   virtual ~Input_Reader(){}
   
   //! read the supplied input file, start populating data objects
-  bool read_xml(std::string xmlFile);
+  void read_xml(std::string xmlFile);
   
   /// Functions called by Fem_Quadrature class to access input data
   int get_dfem_degree(void) const;
