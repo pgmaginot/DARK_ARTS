@@ -60,6 +60,8 @@ string(TOLOWER ${LC_PROJECT_NAME} LC_PROJECT_NAME)
 set(CMAKE_MODULE_PATH
     ${PROJECT_SOURCE_DIR}/cmake/Modules
     ${CMAKE_MODULE_PATH})
+    
+MESSAGE(STATUS "This is the value of PROJECT_SORUCE_DIR: ${PROJECT_SOURCE_DIR} ")
 
 #==============================================================================
 # inlcude the Cmake Module that are located in the project
@@ -102,7 +104,7 @@ INCLUDE_DIRECTORIES ( "${EIGEN_PATH}" )
 option(SORTED "Sort the folder groups into another level of include/ and src/ folders" ON)
 option(VERBOSE "Turn on verbose Makefile" OFF)
 option(USE_OPENGL "Turn of visualization with OpenGL" OFF)
-option(BUILD_TESTS "Make Test executables" OFF)
+option(BUILD_TESTS "Make Test executables" ON)
 
 if(VERBOSE)
     set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -232,8 +234,6 @@ if(XCODE)
 endif()
 
 
-
-
 #==============================================================================
 # TESTING
 #-------------------------------------------
@@ -241,8 +241,6 @@ if(BUILD_TESTS)
 	enable_testing()
 	add_subdirectory(testing)
 endif()
-
-
 
 
 #==============================================================================

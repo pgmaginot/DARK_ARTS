@@ -58,7 +58,7 @@ endif()
 # Default to building shared libraries, mark options as advanced because
 # most user should not have to touch them.
 option(BUILD_SHARED_LIBS "Build ${CMAKE_PROJECT_NAME} shared libraries" ON)
-option(BUILD_STATIC_LIBS "Build ${CMAKE_PROJECT_NAME} static libraries" OFF)
+option(BUILD_STATIC_LIBS "Build ${CMAKE_PROJECT_NAME} static libraries" ON)
 mark_as_advanced(BUILD_SHARED_LIBS BUILD_STATIC_LIBS)
 
 
@@ -84,7 +84,7 @@ endif()
 # We need to define that we're building ${CMAKE_PROJECT_NAME}
 #
 
-option(BUILD_TESTS "Build all the tests of the project" OFF)
+option(BUILD_TESTS "Build all the tests of the project" ON)
 ADD_FEATURE(BUILD_TESTS "Build all the tests of the project")
 mark_as_advanced(BUILD_TESTS)
 
@@ -96,7 +96,7 @@ if(NOT ${CMAKE_VERSION} VERSION_GREATER 2.7)
   set(ENABLE_TESTING OFF CACHE INTERNAL "Testing NOT supported on CMake <2.8"
     FORCE)
 else()
-  option(ENABLE_TESTING "Enable and define all the tests of the project" OFF)
+  option(ENABLE_TESTING "Enable and define all the tests of the project" ON)
   ADD_FEATURE(ENABLE_TESTING "Enable and define all the tests of the project")
   mark_as_advanced(ENABLE_TESTING)
 endif()

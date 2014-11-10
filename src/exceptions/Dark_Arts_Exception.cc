@@ -50,6 +50,14 @@ void Dark_Arts_Exception::message(void) const
   std::cerr << error_message << std::endl;
   PetscFinalize();
   exit(EXIT_FAILURE);
+  return;
+}
+
+void Dark_Arts_Exception::testing_message(void) const
+{
+  std::cout << "At least one test failed! " << std::endl;
+  std::cout << error_message << std::endl;
+  return;
 }
   
 

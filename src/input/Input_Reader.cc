@@ -12,7 +12,9 @@ void Input_Reader::read_xml(std::string xmlFile)
 {  
   TiXmlDocument doc( xmlFile.c_str() );
   
-  if( doc.LoadFile() )
+  bool loaded = doc.LoadFile();
+  
+  if( loaded  )
   {
     std::cout << "Found input file: " << xmlFile << std::endl << std::endl;
   }
@@ -1676,18 +1678,22 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   else if( m_radiation_ic_type == PLANCKIAN_IC )
   {
     m_region_radiation_temperature.resize(m_number_regions,0.);
-    TiXmlElement* rad_ic_reg_elem = rad_ic_type_elem->FirstChildElement( "Region");
+    TiXmlElement* rad_ic_reg_elem = rad_ic_type_elem->FirstChildElement("Region");
     for(int reg = 0; reg < m_number_regions; reg++)
     {
       if(!rad_ic_reg_elem)
       {
         std::stringstream err;
-        err << "In BC_IC element:Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
+        err << "In BC_IC element: Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
         throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       
-      if( atoi(rad_ic_reg_elem->GetText()) != reg)
-        throw Dark_Arts_Exception(INPUT,  "In BC_IC block: Temperature IC for regions not in order");      
+      if( atoi( rad_ic_reg_elem->GetText() ) != reg)
+      {
+        std::stringstream err;
+        err << "Expecting Region " << reg << " Radiation Temperature Found: " << atoi( rad_ic_reg_elem->GetText() ) ;
+        throw Dark_Arts_Exception(INPUT,  err.str() );
+      }
       
       TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_Temperature");
       if(!rad_temp_value)
@@ -1696,14 +1702,19 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         err << "In BC_IC block: Missing required Radiation_Temperature element for region: " << reg ;
         throw Dark_Arts_Exception(INPUT,  err.str() );
       }
+      
       m_region_radiation_temperature[reg] = atof( rad_temp_value->GetText() );
+      
+      
       if(m_region_radiation_temperature[reg] < 0.)
       {
         std::stringstream err;
         err << "Invalid radiation temperature in region: " << reg << " , must be >= 0. ";
         throw Dark_Arts_Exception(INPUT,  err.str() );
-      }      
-      rad_ic_reg_elem->NextSiblingElement("Region");
+      }   
+      
+      rad_ic_reg_elem = rad_ic_reg_elem->NextSiblingElement("Region");
+      
     }
   }
   
@@ -1724,8 +1735,12 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         err << "Missing a region material temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
         throw Dark_Arts_Exception(INPUT,  err.str() );
       }
-      if( atoi(temp_ic_reg_elem->GetText()) != reg)
-        throw Dark_Arts_Exception(INPUT, "In BC_IC block: Temperature IC for regions not in order" );
+      if( atoi( temp_ic_reg_elem->GetText() ) != reg)
+      {
+        std::stringstream err;
+        err << "Expecting Region " << reg << " Found: " << atoi( temp_ic_reg_elem->GetText() ) ;
+        throw Dark_Arts_Exception(INPUT,  err.str() );
+      }
       
       TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_Temperature");
       if(!temp_value)
@@ -1742,7 +1757,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       
-      temp_ic_reg_elem->NextSiblingElement("Region");
+      temp_ic_reg_elem = temp_ic_reg_elem->NextSiblingElement("Region");
     }
   }  
   

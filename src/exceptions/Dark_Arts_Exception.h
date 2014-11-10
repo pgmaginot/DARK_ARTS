@@ -15,6 +15,7 @@ public:
   virtual ~Dark_Arts_Exception(){}
 
   void message(void) const;
+  void testing_message(void) const;
   
 private:
   std::string error_message;

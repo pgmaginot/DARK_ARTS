@@ -1,0 +1,11 @@
+1) This is a text file that lists and details all tests that have been created thus far.
+2) All unit testing is carried out in dark_arts_local/testing/folder_name
+3) folder_name corresponds to the folder in src/ which we are testing components of
+4) All test input files are written in dark_arts_local/testing/TestingInputs
+
+cells/
+LogSpacingTest - 2Region_Log_Spacing.xml - LogSpacing.cc
+--Test of log spacing.  Cell sizes increase by a factor of 2 from L to R in region 1, and decrease by a factor of 4 from left to right in region 2.
+--- Cell spacing widths should be:  1 , 2 , 4 , 8, 16 , 4 , 1 , 0.25
+
+
