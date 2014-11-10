@@ -53,6 +53,7 @@ public:
   double get_time_start_exponential_ratio(void) const;
   /// if STARTING_METHOD == VECTOR, need vector of time step sizes and vector of the number of steps for each time step size
   void get_time_start_vectors(std::vector<double>& step_size_in_vector_stage, std::vector<int>& steps_in_vector_stage) const;
+  int get_number_of_vector_stages(void) const;
   /// if STARTING_METHOD == RAMP, need number of time steps to do before hitting full time step
   int get_number_of_ramp_steps(void) const;
   
@@ -181,6 +182,7 @@ protected:
   std::vector<int> m_vector_start_step_numbers;
   double m_exponential_ratio = -1.;
   int m_ramp_steps = -1;
+  int m_num_vec_stages = -1;
   
   /// radiation solver type data
   /// within group solve type

@@ -30,15 +30,15 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   STARTING_METHOD starting_method = input_reader.get_starting_time_method();
   if(starting_method == RAMP)
   {
-    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Ramp() );
+    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Ramp( input_reader) );
   }
   else if(starting_method == EXPONENTIAL)
   {
-    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Exponential() );
+    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Exponential( input_reader) );
   }
   else if(starting_method == VECTOR)
   {
-    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Vector() );
+    m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Vector( input_reader ) );
   }
 }
 

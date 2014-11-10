@@ -1,6 +1,9 @@
 #ifndef V_DT_Calculator_h
 #define V_DT_Calculator_h
 
+#include "Input_Reader.h"
+#include "Dark_Arts_Exception.h"
+
 
 /** @file   V_DT_Calculator.h
   *   @author pmaginot
@@ -11,11 +14,17 @@
 class V_DT_Calculator
 {
 public:
-  V_DT_Calculator(){}
+  V_DT_Calculator(const Input_Reader& input_reader);
     
   virtual ~V_DT_Calculator(){}
 
   virtual double calculate_dt(const int step) = 0;
+  
+protected:
+  const double m_dt_min;
+  const double m_dt_max;  
+  
+  void check_dt(const double dt , const int step);
 };
 
 #endif

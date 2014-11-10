@@ -11,11 +11,15 @@
 class DT_Calculator_Ramp : public V_DT_Calculator
 {
 public:
-  DT_Calculator_Ramp(){}
+  DT_Calculator_Ramp(const Input_Reader& input_reader);
     
   virtual ~DT_Calculator_Ramp(){}
 
   double calculate_dt(const int step) override;
+  
+protected:
+  const int m_n_ramp_steps;
+  const double m_slope;
 };
 
 #endif

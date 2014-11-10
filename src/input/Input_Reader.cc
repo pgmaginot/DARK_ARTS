@@ -187,6 +187,11 @@ void Input_Reader::get_time_start_vectors(std::vector<double>& step_size_in_vect
   return;
 }
 
+int Input_Reader::get_number_of_vector_stages(void) const
+{
+  return m_num_vec_stages;
+}
+
 int Input_Reader::get_number_of_ramp_steps(void) const
 {
   return m_ramp_steps;
@@ -973,43 +978,43 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
       if(!n_stages)
         throw Dark_Arts_Exception( INPUT , "In TIME block:   VECTOR time starter requires N_stages element" );
         
-      int num_vec_stages = atoi(n_stages->GetText() );
-      if(num_vec_stages < 1)
+      m_num_vec_stages = atoi(n_stages->GetText() );
+      if(m_num_vec_stages < 1)
         throw Dark_Arts_Exception( INPUT , "In TIME block:   Must have at least 1 stage of small time steps with VECTOR time starter" );
       
-      m_vector_start_sizes.resize(num_vec_stages , 0.);
-      m_vector_start_step_numbers.resize(num_vec_stages , 0);
+      m_vector_start_sizes.resize(m_num_vec_stages , 0.);
+      m_vector_start_step_numbers.resize(m_num_vec_stages , 0);
       
       TiXmlElement* vector_stage = start_meth_elem->FirstChildElement("Vector_stage");
-      for(int i=0; i<num_vec_stages ; i++)
+      for(int i=0; i<m_num_vec_stages ; i++)
       {
         if(!vector_stage)
         {
           std::stringstream err;
-          err << "In TIME block: Expected " << num_vec_stages << " Vector_stage elements" << std::endl;
+          err << "In TIME block: Expected " << m_num_vec_stages << " Vector_stage elements" << std::endl;
           err << "Only found: " << i << " Vector_stage elements" ;
           throw Dark_Arts_Exception( INPUT , err.str() ); 
         }
         
         int curr_stage = atoi(vector_stage->GetText() );
-        if(curr_stage < 0 || curr_stage == num_vec_stages)
+        if(curr_stage < 0 || curr_stage == m_num_vec_stages)
           throw Dark_Arts_Exception( INPUT , "In TIME block: Vector_stage number must be between 0 and n_stages - 1" );
       
         TiXmlElement* stage_steps = vector_stage->FirstChildElement("Stage_steps");
-        TiXmlElement* stage_factor = vector_stage->FirstChildElement("Stage_size");
+        TiXmlElement* stage_factor = vector_stage->FirstChildElement("Stage_divisor");
         if(!stage_steps || !stage_factor)
-          throw Dark_Arts_Exception( INPUT , "In TIME block: Expect a Stage_steps and Stage_size element in each Vector_stage element" );
+          throw Dark_Arts_Exception( INPUT , "In TIME block: Expect a Stage_steps and Stage_divisor element in each Vector_stage element" );
         
         int stages = atoi( stage_steps->GetText() );
-        double size_factor = atof( stage_factor->GetText() );        
+        double divisor = atof( stage_factor->GetText() );        
         if(stages < 1)
           throw Dark_Arts_Exception( INPUT , "In TIME block:  Stage_steps must be an integer greater than 1");
           
-        if(size_factor <= 0.  || size_factor >= 1.)
-          throw Dark_Arts_Exception( INPUT , "In TIME block: Stage_size must be a double between 0 and 1 " );
+        if(divisor < 1. )
+          throw Dark_Arts_Exception( INPUT , "In TIME block: Stage_divisor must be a double greater than 1. " );
           
         m_vector_start_step_numbers[curr_stage] = stages;
-        m_vector_start_sizes[curr_stage] = size_factor;      
+        m_vector_start_sizes[curr_stage] = divisor;      
         
         vector_stage = vector_stage->NextSiblingElement( "Vector_stage");
       }

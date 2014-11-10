@@ -11,11 +11,17 @@
 class DT_Calculator_Exponential : public V_DT_Calculator
 {
 public:
-  DT_Calculator_Exponential(){}
+  DT_Calculator_Exponential(const Input_Reader& input_reader);
     
   virtual ~DT_Calculator_Exponential(){}
 
   double calculate_dt(const int step) override;
+
+protected:
+  const double m_ratio;
+  const int m_step_max;
+  
 };
+
 
 #endif
