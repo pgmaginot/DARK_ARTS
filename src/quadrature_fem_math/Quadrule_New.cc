@@ -54,6 +54,8 @@
 //    Output, double WEIGHT[ORDER], the weights.
 //
 {
+  throw Dark_Arts_Exception(SUPPORT_OBJECT , "legendre_dr_compute does not work correctly, weights not correct.  Don't use!");
+
   double d1=0.;
   double d2pn=0.;
   double d3pn=0.;

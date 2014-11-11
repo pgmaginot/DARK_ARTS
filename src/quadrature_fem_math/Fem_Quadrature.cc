@@ -22,7 +22,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
     {
       case GAUSS:
       {
-        quad_fun.legendre_dr_compute( m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
+        quad_fun.legendre_ek_compute( m_n_interpolation_points , m_dfem_interpolation_points, m_dfem_interpolation_weights);
         break;
       }
       case LOBATTO:
@@ -82,7 +82,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       {
         case GAUSS:
         {
-          quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          quad_fun.legendre_ek_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
           break;
         }
         case LOBATTO:
@@ -111,7 +111,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       {
         case GAUSS:
         {
-          quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+          quad_fun.legendre_ek_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
           break;
         }
         case LOBATTO:
@@ -133,7 +133,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
     }
     else{
       /// moment preserving, use Gauss quad to maximize accuracy
-      quad_fun.legendre_dr_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
+      quad_fun.legendre_ek_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
     }
     
     /// Get the quadrature points we are going to use to form the matrices
@@ -174,7 +174,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       {
         case GAUSS:
         {
-          quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
+          quad_fun.legendre_ek_compute( m_n_integration_points , m_integration_points, m_integration_weights);
           break;
         }
         case LOBATTO:
@@ -196,7 +196,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
     }
     else
     {  
-      quad_fun.legendre_dr_compute( m_n_integration_points , m_integration_points, m_integration_weights);
+      quad_fun.legendre_ek_compute( m_n_integration_points , m_integration_points, m_integration_weights);
     }
     
     /// Evaluate DFEM basis functions at matrix integration points

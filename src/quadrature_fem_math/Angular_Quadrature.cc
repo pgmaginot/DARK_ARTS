@@ -26,7 +26,7 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
     
     if(quad_type == GAUSS_ANGLE)
     {
-      quad_fun.legendre_dr_compute( m_n_dir, m_mu, m_w );
+      quad_fun.legendre_ek_compute( m_n_dir, m_mu, m_w );
     }
     else if(quad_type == LOBATTO_ANGLE)
     {
