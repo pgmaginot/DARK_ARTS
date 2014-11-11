@@ -12,37 +12,22 @@ int main(int argc, char** argv)
   int val = 0;
   
   /// expected spacing we should be able to see
-  const int expected_n_cells = 8;
+  const int expected_n_cells = 5;
+  const double dx = (22.-1.)/double(expected_n_cells);
   std::vector<double> expected_left_edges(expected_n_cells,0.);
   std::vector<double> expected_cell_widths(expected_n_cells,0.);
-  std::vector<int> expected_mat_number(expected_n_cells,-1);
   
-  expected_left_edges[0] = 0.;
-  expected_left_edges[1] = 1.;
-  expected_left_edges[2] = 3.;
-  expected_left_edges[3] = 7.;
-  expected_left_edges[4] = 15.;
-  expected_left_edges[5] = 31.;
-  expected_left_edges[6] = 35.;
-  expected_left_edges[7] = 36.;
+  expected_left_edges[0] = 1.;
+  expected_left_edges[1] = 1. + dx;
+  expected_left_edges[2] = 1. + 2.*dx;
+  expected_left_edges[3] = 22. - 2.*dx;
+  expected_left_edges[4] = 22. - dx;
   
-  expected_cell_widths[0] = 1.;
-  expected_cell_widths[1] = 2.;
-  expected_cell_widths[2] = 4.;
-  expected_cell_widths[3] = 8.;
-  expected_cell_widths[4] = 16.;
-  expected_cell_widths[5] = 4.;
-  expected_cell_widths[6] = 1.;
-  expected_cell_widths[7] = 0.25;  
-  
-  expected_mat_number[0] = 0;
-  expected_mat_number[1] = 0;
-  expected_mat_number[2] = 0;
-  expected_mat_number[3] = 0;
-  expected_mat_number[4] = 0;
-  expected_mat_number[5] = 1;
-  expected_mat_number[6] = 1;
-  expected_mat_number[7] = 1;
+  expected_cell_widths[0] = dx;
+  expected_cell_widths[1] = dx;
+  expected_cell_widths[2] = dx;
+  expected_cell_widths[3] = dx;
+  expected_cell_widths[4] = dx;
   
   Input_Reader input_reader;    
     
@@ -54,7 +39,6 @@ int main(int argc, char** argv)
     da_exception.testing_message();
     val = -1;
   }
-  std::cout << "Completed reading input file\n";
   
   Cell_Data cell_data( input_reader ); 
   try{
@@ -70,7 +54,6 @@ int main(int argc, char** argv)
     {
       double cell_width = cell_data.get_cell_width( i ) ;
       double left_edge = cell_data.get_cell_left_edge( i ) ;
-      int mat_num = cell_data.get_cell_material_number( i ) ;
       
       if( fabs(cell_width - expected_cell_widths[i] ) > 0.01 )
       {
@@ -85,19 +68,13 @@ int main(int argc, char** argv)
         err << "Cell " << i << " left edge expected to be: " << expected_left_edges[i] << " actually is: " << left_edge ;
         throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() ) ; 
       }   
-      if( (mat_num - expected_mat_number[i]) != 0 )
-      {
-        std::stringstream err;
-        err << "Cell " << i << " Material number supposed to be: " << expected_mat_number[i] << " actually is: " << mat_num ;
-        throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() ) ; 
-      }   
     }
   }
   catch(const Dark_Arts_Exception& da_exception )
   {
     da_exception.testing_message();
+    val = -1;
   }
-
   
   // Return 0 if tests passed, somethnig else if failing
   return val;

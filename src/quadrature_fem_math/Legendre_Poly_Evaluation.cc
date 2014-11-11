@@ -8,10 +8,22 @@
 // Public functions 
 // ##########################################################
 
+/**
+  \fn get_evaluated_legendre_polynomials - evaluate Legendre polynomails at point x.  Results stored in a vector, \param evals
+   with all the Legendre evaluations at a given point stored consecutively .   \param start is the offset in the vector
+   Should be noted that get_legendre_polynomials is at the mercy of the calling function to avoid overwriting / messing up data
+   \param n is the degree of the highest legendre polynomial considered
+*/
 void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
   const double x, const int n, const int start, std::vector<double>& evals)
 {
   try{
+    if(x < -1.)
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Trying to evalaute Legendre polynomial for x<-1");
+      
+    if(x > 1.)
+      throw Dark_Arts_Exception(SUPPORT_OBJECT , "Trying to evaluate Legendre polynomial for x > 1");
+      
     if(n < 0)
     {
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Trying to calculate negative legendre moment" );
@@ -29,10 +41,10 @@ void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
     {
       evals[start] = 1.;
       evals[start+1] = x;
-      double dbl_n = 2.;
+      double dbl_n = 1.;
       for(int k=2; k < (n+1); k++)
       {
-        evals[start+k] = (2.*dbl_n + 1.)*x*evals[k-1] - dbl_n*evals[k-2];
+        evals[start+k] = (2.*dbl_n + 1.)*x*evals[start + k-1] - dbl_n*evals[ start + k-2];
         evals[start+k] /= dbl_n + 1.;
         dbl_n += 1.;
       }
@@ -44,30 +56,4 @@ void Legendre_Poly_Evaluation::get_evaluated_legendre_polynomials(
   }
   
   return;
-}
-
-void Legendre_Poly_Evaluation::get_legendre_polynomials_explicitly(
-  const double x, const int n, const int start, std::vector<double>& evals)
-{
-  return;
-}
-
-// ##########################################################
-// Private functions 
-// ##########################################################
-
-double Legendre_Poly_Evaluation::evaluate_binomial_coefficient(const int n, const int k)
-{
-  const double dbl_n = double(n);
-  double i_dbl= 1.;
-  
-  double ans = 1.;
-  
-  for(int i=0;i<k ;i++)
-  {
-    ans *= (dbl_n + 1. - i_dbl)/i_dbl;
-    i_dbl += 1.;
-  }
-  
-  return ans;
 }

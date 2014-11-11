@@ -660,11 +660,11 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     if(mat_num != mat_cnt)
       throw Dark_Arts_Exception( INPUT , "In MATERIALS block: Materials not entered in order" );
     
-    TiXmlElement* scat_opacity_type = mat_descr->FirstChildElement( "Scattering_Opacity_type");
-    TiXmlElement* abs_opacity_type = mat_descr->FirstChildElement( "Absorption_Opacity_type");
+    TiXmlElement* scat_opacity_type = mat_descr->FirstChildElement( "Scattering_opacity_type");
+    TiXmlElement* abs_opacity_type = mat_descr->FirstChildElement( "Absorption_opacity_type");
     TiXmlElement* cv_type = mat_descr->FirstChildElement( "Cv_type");
-    TiXmlElement* rad_source_type = mat_descr->FirstChildElement( "Radiation_Fixed_Source_type");
-    TiXmlElement* temp_source_type = mat_descr->FirstChildElement( "Temperature_Fixed_Source_type");
+    TiXmlElement* rad_source_type = mat_descr->FirstChildElement( "Radiation_fixed_source_type");
+    TiXmlElement* temp_source_type = mat_descr->FirstChildElement( "Temperature_fixed_source_type");
     if(!scat_opacity_type)
     {
       std::stringstream err;
@@ -1034,7 +1034,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   TiXmlElement* int_type_elem = spatial_element->FirstChildElement( "Integration_type");
   TiXmlElement* dfem_interp_point_type_elem = spatial_element->FirstChildElement( "DFEM_interpolation_point_type");
   TiXmlElement* opacity_treatment_elem = spatial_element->FirstChildElement( "Opacity_treatment");
-  TiXmlElement* opacity_interp_point_type_elem = spatial_element->FirstChildElement( "Opacity_interpolation_point_type");
+  
 
   if(!trial_space_elem)
     throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing DFEM_degree element");
@@ -1047,10 +1047,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if(!opacity_treatment_elem)
     throw Dark_Arts_Exception(INPUT,  "Missing Opacity_treatment element from SPATIAL_DISCRETIZATION block" );
-    
-  if(!opacity_interp_point_type_elem)
-    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interp_point_type_elem element ");
-    
+        
   m_dfem_trial_space_degree = atoi( trial_space_elem->GetText() );
   if(m_dfem_trial_space_degree < 1)
     throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Trial space degree must be a positive integrer greater than 0" );
@@ -1078,15 +1075,6 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if( m_dfem_interpolation_point_type == INVALID_QUADRATURE_TYPE)
     throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block:Invalid DFEM interpolation point type" );
-  
-  std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
-  transform(opacity_intep_type_str.begin() , opacity_intep_type_str.end() , opacity_intep_type_str.begin() , toupper);
-  if(opacity_intep_type_str == "GAUSS")
-    m_opacity_interpolation_point_type = GAUSS;
-  else if(opacity_intep_type_str == "LOBATTO")
-    m_opacity_interpolation_point_type = LOBATTO;
-  else if(opacity_intep_type_str == "EQUAL_SPACED")
-    m_opacity_interpolation_point_type = EQUAL_SPACED;
     
   if( m_dfem_interpolation_point_type == INVALID_QUADRATURE_TYPE)
     throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Invalid opacity interpolation point type" );
@@ -1102,11 +1090,28 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     
   if(m_opacity_treatment == INVALID_OPACITY_TREATMENT)
     throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Invalid opacity treatment" );
+    
+  if( (m_opacity_treatment == SLXS) && (m_integration_type != SELF_LUMPING) )    
+    throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: SLXS opacity treatment can only be used with SELF_LUMPING integration" );
+    
   
   /// if not using self lumping treatment, need to get degree of opacity spatial treatment
   if(m_opacity_treatment != SLXS)
-  {
-    TiXmlElement* opacity_degree_elem = spatial_element->FirstChildElement( "Opacity_polynomial_degree");
+  { 
+    TiXmlElement* opacity_interp_point_type_elem = opacity_treatment_elem->FirstChildElement( "Opacity_interpolation_point_type");
+    if(!opacity_interp_point_type_elem)
+      throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interp_point_type_elem element ");
+      
+    std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
+    transform(opacity_intep_type_str.begin() , opacity_intep_type_str.end() , opacity_intep_type_str.begin() , toupper);
+    if(opacity_intep_type_str == "GAUSS")
+      m_opacity_interpolation_point_type = GAUSS;
+    else if(opacity_intep_type_str == "LOBATTO")
+      m_opacity_interpolation_point_type = LOBATTO;
+    else if(opacity_intep_type_str == "EQUAL_SPACED")
+      m_opacity_interpolation_point_type = EQUAL_SPACED;
+    
+    TiXmlElement* opacity_degree_elem = opacity_treatment_elem->FirstChildElement( "Opacity_polynomial_degree");
     if(!opacity_degree_elem)
       throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block:  Missing Opacity_degree_elem element");
     
@@ -1152,7 +1157,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   /// load group bounds
   if( m_number_groups > 1)
   {
-    TiXmlElement* grp_bounds = angle_element->FirstChildElement("Group_Boundaries");
+    TiXmlElement* grp_bounds = angle_element->FirstChildElement("Group_boundaries");
     for(int edge_cnt = 0; edge_cnt <= m_number_groups ; edge_cnt++)
     {    
       if(!grp_bounds)
@@ -1166,7 +1171,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
       if(edge_num != edge_cnt)
       throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:  Group Bounds not entered in order");
       
-      TiXmlElement* grp_edge_val = grp_bounds->FirstChildElement("Edge_Value");
+      TiXmlElement* grp_edge_val = grp_bounds->FirstChildElement("Edge_value");
       double edge = atof( grp_edge_val->GetText() );
       
       /// the lower the group number, the higher the average frequency group energy (by convention)
@@ -1176,7 +1181,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
       if(edge_cnt > 0)
         m_group_lower_bounds[edge_cnt - 1] = edge;      
     
-      grp_bounds = grp_bounds->NextSiblingElement("Group_Boundaries");
+      grp_bounds = grp_bounds->NextSiblingElement("Group_boundaries");
     }
     
     /// check that these are logical values
@@ -1219,8 +1224,8 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
 
 int Input_Reader::load_solver_data(TiXmlElement* solver_element)
 {
-  TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_Solver_type");
-  TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_Tolerance");  
+  TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_solver_type");
+  TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_tolerance");  
   
   if(!solver_type_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Solver_type element") ;
@@ -1249,7 +1254,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   
   if( (m_wg_solve_type == FP_SWEEPS) || (m_wg_solve_type == FP_DSA))
   {
-    TiXmlElement* num_sweep_elem = solver_type_elem->FirstChildElement( "Max_Within_Group_Sweeps");
+    TiXmlElement* num_sweep_elem = solver_type_elem->FirstChildElement( "Max_within_group_sweeps");
     if(!num_sweep_elem)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing Max_Within_Group_Sweeps element." );
       
@@ -1263,7 +1268,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   */
   if(m_number_groups > 1)
   {
-    TiXmlElement* bg_tolerance_elem = solver_element->FirstChildElement( "BG_Tolerance");
+    TiXmlElement* bg_tolerance_elem = solver_element->FirstChildElement( "BG_tolerance");
     
     /// only require the between group solver tolerance if number of groups is greater than 1
     if(!bg_tolerance_elem)
@@ -1276,7 +1281,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     if( m_bg_tolerance > 1.E-4)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid between group tolerance.  Must be less than 1.0E-4");
         
-    TiXmlElement* mf_ard_solve_elem = solver_element->FirstChildElement( "MF_Solver_Type" );
+    TiXmlElement* mf_ard_solve_elem = solver_element->FirstChildElement( "MF_solver_type" );
     if(!mf_ard_solve_elem)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element:MF_Solver_Type element not found in multi-frequency problem");
     
@@ -1295,7 +1300,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     
     if( (m_ard_solve_type == FP_NO_ACCEL) || (m_ard_solve_type == FP_LMFGA) )
     {
-      TiXmlElement* fp_ard_iter_elem = mf_ard_solve_elem->FirstChildElement("Max_Iterations");
+      TiXmlElement* fp_ard_iter_elem = mf_ard_solve_elem->FirstChildElement("Max_iterations");
       
       if(!fp_ard_iter_elem)
         throw Dark_Arts_Exception(INPUT, "In SOLVER element:Fixed point ARD solvers require Max_Iterations element");
@@ -1307,7 +1312,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   }
   
   /// get thermal convergence tolerance
-  TiXmlElement* thermal_tolerance_elem = solver_element->FirstChildElement( "Thermal_Tolerance");
+  TiXmlElement* thermal_tolerance_elem = solver_element->FirstChildElement( "Thermal_tolerance");
   if(!thermal_tolerance_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element:Thermal_Tolerance element required");
    
@@ -1335,10 +1340,10 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
 
 int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
 {
-  TiXmlElement* temp_ic_type_elem = bc_ic_element->FirstChildElement( "Temperature_IC_Type");
-  TiXmlElement* rad_ic_type_elem = bc_ic_element->FirstChildElement( "Radiation_IC_Type");
-  TiXmlElement* rad_left_bc_type_elem = bc_ic_element->FirstChildElement( "Left_Radiation_BC_Type");
-  TiXmlElement* rad_right_bc_type_elem = bc_ic_element->FirstChildElement( "Right_Radiation_BC_Type");
+  TiXmlElement* temp_ic_type_elem = bc_ic_element->FirstChildElement( "Temperature_ic_type");
+  TiXmlElement* rad_ic_type_elem = bc_ic_element->FirstChildElement( "Radiation_ic_type");
+  TiXmlElement* rad_left_bc_type_elem = bc_ic_element->FirstChildElement( "Left_radiation_bc_type");
+  TiXmlElement* rad_right_bc_type_elem = bc_ic_element->FirstChildElement( "Right_radiation_bc_type");
   
   if(!temp_ic_type_elem)
     throw Dark_Arts_Exception(INPUT, "In BC_IC element: Missing Temperature_IC_Type element" );
@@ -1368,6 +1373,10 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   {
     m_radiation_ic_type = PLANCKIAN_IC;
   }  
+  else if(rad_ic_str == "CONSTANT_SPACE_ANGLE_POLY_IC")
+  {
+    m_radiation_ic_type = CONSTANT_SPACE_ANGLE_POLY_IC;
+  }
   
   /// Get BC strings and set BC types
   std::string rad_bc_left_str = rad_left_bc_type_elem->GetText();
@@ -1414,14 +1423,14 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   else if( m_rad_bc_left == INCIDENT_BC )
   {
     /// get all required elements
-    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_Energy");
-    TiXmlElement* rad_left_bc_angle_incidence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Angle_Dependence");
-    TiXmlElement* rad_left_bc_time_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Time_Dependence");
-    TiXmlElement* rad_left_bc_value_type_elem = rad_left_bc_type_elem->FirstChildElement("BC_Value_Type");
+    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_energy");
+    TiXmlElement* rad_left_bc_angle_incidence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_angle_dependence");
+    TiXmlElement* rad_left_bc_time_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_time_dependence");
+    TiXmlElement* rad_left_bc_value_type_elem = rad_left_bc_type_elem->FirstChildElement("BC_value_type");
     
     if( m_number_groups > 1 )
     {
-      TiXmlElement* rad_left_bc_energy_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
+      TiXmlElement* rad_left_bc_energy_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_energy_dependence");
       if(!rad_left_bc_energy_dependence_elem)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element: Missing BC_Energy_Dependence element in Left Incident_BC block");
         
@@ -1511,8 +1520,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     else if(m_left_bc_time_dependence == BC_BURST)
     {
-      TiXmlElement* bc_left_start_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_Turn_On" );
-      TiXmlElement* bc_left_end_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_Turn_Off" );
+      TiXmlElement* bc_left_start_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_turn_on" );
+      TiXmlElement* bc_left_end_elem = rad_left_bc_time_dependence_elem->FirstChildElement( "BC_turn_off" );
       
       if(!bc_left_start_elem || !bc_left_end_elem)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Burst in left BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements");
@@ -1544,10 +1553,10 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   else if( m_rad_bc_right == INCIDENT_BC )
   {
     /// get all required elements
-    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "Incident_Energy");
-    TiXmlElement* rad_right_bc_angle_incidence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Angle_Dependence");
-    TiXmlElement* rad_right_bc_time_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Time_Dependence");
-    TiXmlElement* rad_right_bc_value_type_elem = rad_right_bc_type_elem->FirstChildElement("BC_Value_Type");
+    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "Incident_energy");
+    TiXmlElement* rad_right_bc_angle_incidence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_angle_dependence");
+    TiXmlElement* rad_right_bc_time_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_time_dependence");
+    TiXmlElement* rad_right_bc_value_type_elem = rad_right_bc_type_elem->FirstChildElement("BC_value_type");
     
     if(!rad_right_bc_value_elem)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Incident_Energy element in Right Incident_BC block");
@@ -1560,7 +1569,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     
     if( m_number_groups > 1)
     {
-      TiXmlElement* rad_right_bc_energy_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_Energy_Dependence");
+      TiXmlElement* rad_right_bc_energy_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_energy_dependence");
 
       if(!rad_right_bc_energy_dependence_elem)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Energy_Dependence element in Right Incident_BC block");
@@ -1642,8 +1651,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     else if(m_right_bc_time_dependence == BC_BURST)
     {
-      TiXmlElement* bc_right_start_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_Turn_On" );
-      TiXmlElement* bc_right_end_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_Turn_Off" );
+      TiXmlElement* bc_right_start_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_turn_on" );
+      TiXmlElement* bc_right_end_elem = rad_right_bc_time_dependence_elem->FirstChildElement( "BC_turn_off" );
       
       if(!bc_right_start_elem || !bc_right_end_elem)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Burst in right BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements");
@@ -1671,11 +1680,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     
   /// get radiation initial conditions
-  if( m_radiation_ic_type == INVALID_RADIATION_IC_TYPE)
-  {
-    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Radiation IC type not recognized");
-  }
-  else if( m_radiation_ic_type == PLANCKIAN_IC )
+  if( m_radiation_ic_type == PLANCKIAN_IC )
   {
     m_region_radiation_temperature.resize(m_number_regions,0.);
     TiXmlElement* rad_ic_reg_elem = rad_ic_type_elem->FirstChildElement("Region");
@@ -1695,7 +1700,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       
-      TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_Temperature");
+      TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_temperature");
       if(!rad_temp_value)
       {
         std::stringstream err;
@@ -1716,6 +1721,14 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       rad_ic_reg_elem = rad_ic_reg_elem->NextSiblingElement("Region");
       
     }
+  }
+  else if( m_radiation_ic_type == CONSTANT_SPACE_ANGLE_POLY_IC)
+  {
+  
+  }
+  else
+  {
+    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Radiation IC type not recognized");
   }
   
   /// Get temperature initial conditions
@@ -1742,7 +1755,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         throw Dark_Arts_Exception(INPUT,  err.str() );
       }
       
-      TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_Temperature");
+      TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_temperature");
       if(!temp_value)
       {
         std::stringstream err;

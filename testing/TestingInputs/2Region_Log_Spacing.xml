@@ -3,7 +3,7 @@
 <INPUT_FILE>
   <REGIONS>
     <Number_of_regions> 2 </Number_of_regions>
-    <Number_of_materials> 1 </Number_of_materials>
+    <Number_of_materials> 2 </Number_of_materials>
       <Region> 0 
         <N_cells> 5 </N_cells>
         <Left_bound> 0.0 </Left_bound>
@@ -22,7 +22,7 @@
           <Log_space_factor> 0.25 </Log_space_factor>
           <Min_cell_size> 0.1 </Min_cell_size>
         </Spacing>
-        <Material_number> 0 </Material_number>
+        <Material_number> 1 </Material_number>
       </Region>
   </REGIONS>
   
@@ -30,16 +30,29 @@
     <!-- CM_SH_KEV or  UNITY-->
     <Units> CM_SH_KEV </Units>
     <Material> 0
-      <Scattering_Opacity_type> Constant_xs 
+      <Scattering_opacity_type> Constant_xs 
         <Constant_value> 1.0 </Constant_value>
-      </Scattering_Opacity_type>      
-      <Absorption_Opacity_type> Constant_xs 
+      </Scattering_opacity_type>      
+      <Absorption_opacity_type> Constant_xs 
         <Constant_value> 0.9 </Constant_value>
-      </Absorption_Opacity_type>
-      <Radiation_Fixed_Source_type> No_source </Radiation_Fixed_Source_type>
-      <Temperature_Fixed_Source_type> No_source </Temperature_Fixed_Source_type>      
+      </Absorption_opacity_type>
+      <Radiation_fixed_source_type> No_source </Radiation_fixed_source_type>
+      <Temperature_fixed_source_type> No_source </Temperature_fixed_source_type>      
       <Cv_type> Constant_cv 
         <Cv_constant> 1.0 </Cv_constant>
+      </Cv_type>
+    </Material>
+    <Material> 1
+      <Scattering_opacity_type> Constant_xs 
+        <Constant_value> 2.0 </Constant_value>
+      </Scattering_opacity_type>      
+      <Absorption_opacity_type> Constant_xs 
+        <Constant_value> 0.1 </Constant_value>
+      </Absorption_opacity_type>
+      <Radiation_fixed_source_type> No_source </Radiation_fixed_source_type>
+      <Temperature_fixed_source_type> No_source </Temperature_fixed_source_type>      
+      <Cv_type> Constant_cv 
+        <Cv_constant> 3.0 </Cv_constant>
       </Cv_type>
     </Material>
   </MATERIALS>
@@ -72,9 +85,10 @@
     <DFEM_degree> 3 </DFEM_degree>
     <Integration_type> Self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Lobatto </DFEM_interpolation_point_type>
-    <Opacity_treatment> Interpolating </Opacity_treatment>
-    <Opacity_interpolation_point_type> Lobatto </Opacity_interpolation_point_type>
-    <Opacity_polynomial_degree> 3 </Opacity_polynomial_degree>    
+    <Opacity_treatment> Interpolating 
+      <Opacity_interpolation_point_type> Lobatto </Opacity_interpolation_point_type>
+      <Opacity_polynomial_degree> 3 </Opacity_polynomial_degree>   
+    </Opacity_treatment>    
   </SPATIAL_DISCRETIZATION>
   
   <ANGULAR_DISCRETIZATION>
@@ -86,45 +100,45 @@
   
   <SOLVER>
     <!-- Valid options are FP_SWEEPS, FP_DSA, KRYLOV_SWEEPS, KRYLOV_DSA   -->
-    <WG_Solver_type> FP_SWEEPS 
-      <Max_Within_Group_Sweeps> 10 </Max_Within_Group_Sweeps>
-    </WG_Solver_type>
-    <WG_Tolerance> 1.0E-12 </WG_Tolerance>
-    <Thermal_Tolerance> 1.0E-10 </Thermal_Tolerance>
+    <WG_solver_type> FP_SWEEPS 
+      <Max_within_group_sweeps> 10 </Max_within_group_sweeps>
+    </WG_solver_type>
+    <WG_tolerance> 1.0E-12 </WG_tolerance>
+    <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
   </SOLVER>
   
   <BC_IC>
-   <Temperature_IC_Type> CONSTANT_TEMPERATURE_IC 
+   <Temperature_ic_type> CONSTANT_TEMPERATURE_IC 
     <Region> 0
-      <Material_Temperature> 0.5 </Material_Temperature>
+      <Material_temperature> 0.5 </Material_temperature>
     </Region>
     <Region> 1
-      <Material_Temperature> 0.5 </Material_Temperature>
+      <Material_temperature> 0.5 </Material_temperature>
     </Region>
-   </Temperature_IC_Type>
+   </Temperature_ic_type>
    
-   <Radiation_IC_Type> PLANCKIAN_IC 
+   <Radiation_ic_type> PLANCKIAN_IC 
     <Region> 0
-      <Radiation_Temperature> 0.5 </Radiation_Temperature>
+      <Radiation_temperature> 0.5 </Radiation_temperature>
     </Region>
     
     <Region> 1
-      <Radiation_Temperature> 0.5 </Radiation_Temperature>
+      <Radiation_temperature> 0.5 </Radiation_temperature>
     </Region>    
-   </Radiation_IC_Type>
+   </Radiation_ic_type>
    
    <!-- Valid options are INCIDENT_BC, VACUUM_BC, REFLECTIVE_BC   -->
-   <Left_Radiation_BC_Type> INCIDENT_BC 
+   <Left_radiation_bc_type> INCIDENT_BC 
     <!-- INCIDENT_CURRENT , INCIDENT_TEMPERATURE --> 
-    <BC_Value_Type> INCIDENT_CURRENT </BC_Value_Type>
+    <BC_value_type> INCIDENT_CURRENT </BC_value_type>
     <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
-    <BC_Angle_Dependence> BC_GLANCE </BC_Angle_Dependence>   
-    <Incident_Energy> 10 </Incident_Energy>    
-    <BC_Time_Dependence> BC_CONSTANT </BC_Time_Dependence>
-   </Left_Radiation_BC_Type>
+    <BC_angle_dependence> BC_GLANCE </BC_angle_dependence>   
+    <Incident_energy> 10 </Incident_energy>    
+    <BC_time_dependence> BC_CONSTANT </BC_time_dependence>
+   </Left_radiation_bc_type>
    
    <!-- Valid options are PLANCKIAN_BC, VACUUM   -->
-   <Right_Radiation_BC_Type> VACUUM_BC </Right_Radiation_BC_Type>
+   <Right_radiation_bc_type> VACUUM_BC </Right_radiation_bc_type>
    
    
   </BC_IC>

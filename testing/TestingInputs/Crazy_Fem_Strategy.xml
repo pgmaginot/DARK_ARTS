@@ -5,17 +5,17 @@
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
       <Region> 0 
-        <N_cells> 10 </N_cells>
+        <N_cells> 1 </N_cells>
         <Left_bound> 0.0 </Left_bound>
-        <Right_bound> 5.0 </Right_bound>
-        <Spacing> Equal </Spacing>
-        <Material_number> 0 </Material_number>
-      </Region>
+        <Right_bound> 1.0 </Right_bound>
+        <Spacing> Equal   </Spacing>
+        <Material_number> 0 </Material_number>  
+      </Region>  
   </REGIONS>
   
   <MATERIALS>
     <!-- CM_SH_KEV or  UNITY-->
-    <Units> UNITY </Units>
+    <Units> Unity </Units>
     <Material> 0
       <Scattering_opacity_type> Constant_xs 
         <Constant_value> 1.0 </Constant_value>
@@ -37,53 +37,51 @@
     <T_start> 0.0 </T_start>
     <T_end> 1.0 </T_end>
     <Time_solver> Implicit_euler </Time_solver>
+    <!--
+      <Starting_method> Exponential </Starting_method>
+    <Increase_factor> 1.25 </Increase_factor>
+    -->
     
-    <Starting_method> Exponential 
-      <Increase_factor> 1.25 </Increase_factor>
+    <Starting_method> Vector 
+      <N_vector_stages> 2 </N_vector_stages>
+      <Vector_stage> 0 
+        <Stage_steps> 8 </Stage_steps>
+        <Stage_divisor> 10 </Stage_divisor>
+      </Vector_stage>
+      <Vector_stage> 1 
+        <Stage_steps> 5 </Stage_steps>
+        <Stage_divisor> 5 </Stage_divisor>
+      </Vector_stage>
     </Starting_method>
-    
-   
-    
-   <!-- <Starting_method> Vector </Starting_method>
-    <N_vector_stages> 2 </N_vector_stages>
-    <Vector_stage> 0 
-      <Stage_steps> 8 </Stage_steps>
-      <Stage_size> 0.001> </Stage_size>
-    </Vector_stage>
-    <Vector_stage> 1 
-      <Stage_steps> 5 </Stage_steps>
-      <Stage_size> 0.01> </Stage_size>
-    </Vector_stage>  -->
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
-    <DFEM_degree> 2 </DFEM_degree>
-    <Integration_type> TRAD_lumping </Integration_type>
+    <DFEM_degree> 3 </DFEM_degree>
+    <Integration_type> Exact </Integration_type>
     <DFEM_interpolation_point_type> Lobatto </DFEM_interpolation_point_type>
-    <Opacity_treatment> Interpolating 
-      <Opacity_interpolation_point_type> Lobatto </Opacity_interpolation_point_type>
-      <Opacity_polynomial_degree> 2 </Opacity_polynomial_degree>    
+    <Opacity_treatment> INTERPOLATING 
+      <Opacity_interpolation_point_type> Equal_Spaced </Opacity_interpolation_point_type>
+      <Opacity_polynomial_degree> 4 </Opacity_polynomial_degree>
     </Opacity_treatment>
   </SPATIAL_DISCRETIZATION>
   
   <ANGULAR_DISCRETIZATION>
-    <Number_of_angles> 2 </Number_of_angles>
+    <Number_of_angles> 8 </Number_of_angles>
     <Number_of_groups> 3 </Number_of_groups>
-    <Quadrature_type> Gauss_angle </Quadrature_type>    
-    <Number_of_legendre_moments> 1 </Number_of_legendre_moments>
-    <!-- Give group edges in order from edge 0 to Number_of_groups, in ascending order -->
     <Group_boundaries> 0
-      <Edge_value> 0. </Edge_value>
+      <Edge_value> 3. </Edge_value>
     </Group_boundaries>
     <Group_boundaries> 1
       <Edge_value> 2. </Edge_value>
     </Group_boundaries>
     <Group_boundaries> 2
-      <Edge_value> 3. </Edge_value>
+      <Edge_value> 1. </Edge_value>
     </Group_boundaries>
     <Group_boundaries> 3
-      <Edge_value> 4. </Edge_value>
+      <Edge_value> 0. </Edge_value>
     </Group_boundaries>
+    <Quadrature_type> Gauss_angle </Quadrature_type>    
+    <Number_of_legendre_moments> 6 </Number_of_legendre_moments>
   </ANGULAR_DISCRETIZATION>
   
   <SOLVER>
@@ -106,33 +104,23 @@
    <Temperature_ic_type> CONSTANT_TEMPERATURE_IC 
     <Region> 0
       <Material_temperature> 0.5 </Material_temperature>
-    </Region>
+    </Region>   
    </Temperature_ic_type>
+   
    <Radiation_ic_type> PLANCKIAN_IC 
     <Region> 0
       <Radiation_temperature> 0.5 </Radiation_temperature>
-    </Region>
+    </Region> 
    </Radiation_ic_type>
    
-   <!-- Valid options are PLANCKIAN_BC, VACUUM, REFLECTIVE   -->
-   <Left_radiation_bc_type> INCIDENT_BC 
-    <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
-    <BC_value_type> INCIDENT_TEMPERATURE </BC_value_type>
-    <BC_angle_dependence> BC_NORMAL </BC_angle_dependence>   
-    <Incident_energy> 10 </Incident_energy>
-    <BC_energy_dependence> PLANCKIAN </BC_energy_dependence>
-    <!-- Valid options are BC_CONSTANT, BC_BURST  -->
-    <BC_time_dependence> BC_BURST 
-      <BC_turn_on>  0.1 </BC_turn_on>
-      <BC_turn_off> 0.5 </BC_turn_off>
-      
-    </BC_time_dependence>
+   <!-- Valid options are INCIDENT_BC, VACUUM_BC, REFLECTIVE_BC   -->
+   <Left_radiation_bc_type> REFLECTIVE_BC
    </Left_radiation_bc_type>
    
    <!-- Valid options are PLANCKIAN_BC, VACUUM   -->
    <Right_radiation_bc_type> VACUUM_BC </Right_radiation_bc_type>
    
-
+   
   </BC_IC>
 
 
