@@ -14,6 +14,7 @@ add_executable(${EXE_NAME} ${EXE_NAME}.cc)
 target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
 add_test(P4_NewtonCotes_Test ${EXE_NAME}  )
+set_tests_properties( P4_NewtonCotes_Test PROPERTIES LABELS "quadrature_fem_math; NewtonCotes")
 
 # ###############################################################
 
@@ -23,6 +24,7 @@ add_executable(${EXE_NAME} ${EXE_NAME}.cc)
 target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
 add_test(P3_Lobatto_Test ${EXE_NAME}  )
+set_tests_properties( P3_Lobatto_Test PROPERTIES LABELS "quadrature_fem_math; Lobatto")
 
 # ###############################################################
 
@@ -32,6 +34,7 @@ add_executable(${EXE_NAME} ${EXE_NAME}.cc)
 target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
 add_test(Legendre_Polynomial_Test ${EXE_NAME}  )
+set_tests_properties( Legendre_Polynomial_Test PROPERTIES LABELS "quadrature_fem_math; Legendre")
 
 # ###############################################################
 
@@ -41,6 +44,7 @@ add_executable(${EXE_NAME} ${EXE_NAME}.cc)
 target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
 add_test(Angle_Quadrature_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/One_Cell_Angle_Quadrature.xml )
+set_tests_properties( Angle_Quadrature_Test PROPERTIES LABELS "quadrature_fem_math; Angular")
 
 # ###############################################################
 
@@ -50,6 +54,7 @@ add_executable(${EXE_NAME} ${EXE_NAME}.cc)
 target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
 add_test(Crazy_Fem_Strategy_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/Crazy_Fem_Strategy.xml )
+set_tests_properties( Crazy_Fem_Strategy_Test PROPERTIES LABELS "quadrature_fem_math; Fem")
 
 # ###############################################################
 

@@ -101,9 +101,6 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
           break;
         }
       }
-      /// evaluate xs interpolatory polynomials at dfem integration points
-      evaluate_lagrange_func(m_xs_eval_points, m_integration_points, m_xs_poly_at_integration_points);
-      
     }
     else if(xs_treatment == SLXS)
     {
@@ -135,6 +132,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       /// moment preserving, use Gauss quad to maximize accuracy
       quad_fun.legendre_ek_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
     }
+ 
     
     /// Get the quadrature points we are going to use to form the matrices
     // m_int_method = input_reader.get_integration_method();
@@ -199,6 +197,9 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       quad_fun.legendre_ek_compute( m_n_integration_points , m_integration_points, m_integration_weights);
     }
     
+    /// evaluate xs polynomials at dfem integration points
+    evaluate_lagrange_func(m_xs_eval_points, m_integration_points, m_xs_poly_at_integration_points);
+    
     /// Evaluate DFEM basis functions at matrix integration points
     evaluate_lagrange_func(m_dfem_interpolation_points, m_integration_points,
       m_basis_at_integration_points);
@@ -230,8 +231,7 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
   catch(const Dark_Arts_Exception& da_exception)
   {
     da_exception.message();
-  }
-  
+  }  
 }
 
 int Fem_Quadrature::get_number_of_integration_points(void) const
@@ -281,10 +281,9 @@ int Fem_Quadrature::get_number_of_xs_point(void) const
   return m_n_xs_evaluation_points;
 }
 
-void Fem_Quadrature::get_xs_at_dfem_integration_points(
-  std::vector<double>& xs_at_dfem_integration_pts) const
+void Fem_Quadrature::get_xs_at_dfem_integration_points(std::vector<double>& xs_at_dfem_integration_pts) const
 {
-  xs_at_dfem_integration_pts = m_xs_poly_at_integration_points;
+  xs_at_dfem_integration_pts = m_xs_poly_at_integration_points;  
   return;
 }
 
@@ -298,6 +297,7 @@ void Fem_Quadrature::get_dfem_at_integration_points(std::vector<double>& dfem_at
   dfem_at_int_pts = m_basis_at_integration_points;
   return;
 }  
+
 void Fem_Quadrature::get_dfem_derivatives_at_integration_points(std::vector<double>& dfem_deriv_at_int_pts) const
 {
   dfem_deriv_at_int_pts = m_d_basis_d_s_at_integration_points;
@@ -370,34 +370,84 @@ void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_po
 void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& deriv_evals)
 {
-  /// taken from http://www.phys.ufl.edu/~coldwell/wsteve/FDERS/The%20Lagrange%20Polynomial.htm
+  /**
+    Lagrange polynomial, B_m(x) for interpolation point x_m, for a set of Np points, in C++ indexing is:
+    \f[
+      B_m(x) = \prod_{ \substack{ j=0 \\ j \neq m }} { \frac{ x - x_j  }{x_m - x_j} }
+    \f]
+    
+    Then:
+    
+    \f[
+      B_m'(x) = \left[ \prod_{ \substack{ j=0 \\ j \neq m }}^{N_p - 1} { \frac{1}{x_m - x_j} } \right]  
+          \left[ \sum_{ \substack{ j=0 \\ j\neq m}}^{N_p - 1}{ \prod  } \right]
+    \f]
+  
+  */
   const int n_eval_p = eval_points.size();
   const int n_interp_p = interp_points.size();
   
   deriv_evals.resize(n_eval_p*n_interp_p,0.);
   int cnt = 0;
-  for( int p=0;p<n_eval_p;p++)
+  // for( int p=0;p<n_eval_p;p++)
+  // {
+    // for(int m=0;m<n_interp_p; m++)
+    // {
+      // double sum_val = 0;
+      // for(int l=0; l<n_interp_p; l++)
+      // {
+        // if(m==l)
+          // continue;
+          
+        // double inner_mult = 1.;
+        // for(int j = 0; j < n_interp_p; j++)
+        // {
+          // if( (j==l) || (j==m) )
+            // continue;
+            
+          // inner_mult *= (eval_points[p] - interp_points[j])/(interp_points[m] - interp_points[j]);
+        // }
+        // sum_val += inner_mult/(interp_points[m] - interp_points[l]);
+     
+      // }  
+      // deriv_evals[cnt] = sum_val;
+      // cnt++;
+    // }
+  // }
+  for( int p=0;p<n_interp_p;p++)
   {
-    for(int m=0;m<n_interp_p; m++)
+    /// calculate denominator (constant wrt x) for this Lagrange polynomial
+    double denom = 1.;
+    for( int l=0 ; l<n_interp_p ; l++)
+    {
+      if(l == p)
+        continue;
+        
+      denom *= (interp_points[p] - interp_points[l]);
+    }
+    
+    /// calculate the derivative of the numerator of this largrange polynomial
+    for(int m=0;m<n_eval_p; m++)
     {
       double sum_val = 0;
+      ///
       for(int l=0; l<n_interp_p; l++)
       {
-        if(m==l)
+        if( l==p )
           continue;
-          
-        double inner_mult = 1.;
-        for(int j = 0; j < n_interp_p; j++)
+        
+        double prod = 1.;
+        for(int k = 0; k < n_interp_p ; k++)
         {
-          if( (j==l) || (j==m) )
+          if( (k==p) || (k==l) )
             continue;
             
-          inner_mult *= (eval_points[p] - interp_points[j])/(interp_points[m] - interp_points[j]);
+          prod *= eval_points[m] - interp_points[k];
         }
-        sum_val += inner_mult/(interp_points[m] - interp_points[l]);
-     
-      }  
-      deriv_evals[cnt] = sum_val;
+        sum_val += prod;
+      }     
+       
+      deriv_evals[cnt] = sum_val / denom;
       cnt++;
     }
   }
@@ -408,5 +458,11 @@ void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double
 void Fem_Quadrature::get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const
 {
   dfem_weights = m_dfem_interpolation_weights;
+  return;
+}
+
+void Fem_Quadrature::get_dfem_interpolation_point(std::vector<double>& dfem_pts) const
+{
+  dfem_pts = m_dfem_interpolation_points;
   return;
 }
