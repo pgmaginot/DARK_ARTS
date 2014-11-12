@@ -17,6 +17,13 @@ void V_DT_Calculator::check_dt(const double dt , const int step)
     err << "Minimum dt= " << m_dt_min;
     throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() ) ;
   }
+  if(dt > m_dt_max)
+  {
+    std::stringstream err;
+    err << "Calculated dt= : " << dt << "for step: " << step << std::endl;
+    err << "Maximum dt= " << m_dt_max;
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() ) ;
+  }
   
   return;
 }

@@ -389,31 +389,6 @@ void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double
   
   deriv_evals.resize(n_eval_p*n_interp_p,0.);
   int cnt = 0;
-  // for( int p=0;p<n_eval_p;p++)
-  // {
-    // for(int m=0;m<n_interp_p; m++)
-    // {
-      // double sum_val = 0;
-      // for(int l=0; l<n_interp_p; l++)
-      // {
-        // if(m==l)
-          // continue;
-          
-        // double inner_mult = 1.;
-        // for(int j = 0; j < n_interp_p; j++)
-        // {
-          // if( (j==l) || (j==m) )
-            // continue;
-            
-          // inner_mult *= (eval_points[p] - interp_points[j])/(interp_points[m] - interp_points[j]);
-        // }
-        // sum_val += inner_mult/(interp_points[m] - interp_points[l]);
-     
-      // }  
-      // deriv_evals[cnt] = sum_val;
-      // cnt++;
-    // }
-  // }
   for( int p=0;p<n_interp_p;p++)
   {
     /// calculate denominator (constant wrt x) for this Lagrange polynomial

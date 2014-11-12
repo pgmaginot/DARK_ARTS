@@ -36,6 +36,11 @@ int main(int argc, char** argv)
   std::vector<double> dfem_at_integration_pts(n_dfem_pt*n_int_pt,0.);
   std::vector<double> xs_at_integration_pts(n_xs_pt*n_int_pt,0.);
   std::vector<double> dfem_deriv_at_integration_pts(n_dfem_pt*n_int_pt,0.);
+  std::vector<double> dfem_at_left_edge(n_dfem_pt,0.);
+  std::vector<double> dfem_at_right_edge(n_dfem_pt,0.);
+  dfem_at_left_edge[0] = 1.;
+  dfem_at_right_edge[n_dfem_pt - 1] = 1.;
+  
   /// DFEM interpolation pts, XS interpolation pts , integration quadrature pts
   dfem_pts[0] =   -1.00000000 ;
   dfem_pts[1] =   -0.44721360 ;
@@ -199,6 +204,10 @@ int main(int argc, char** argv)
   std::vector<double> da_xs_at_int_pt;
   std::vector<double> da_dfem_deriv_at_int_pt;
   
+  std::vector<double> da_dfem_left;
+  std::vector<double> da_dfem_right;
+  fem_quadrature.get_dfem_at_edges(da_dfem_left,da_dfem_right);
+  
   fem_quadrature.get_dfem_interpolation_point(da_dfem_pt);
   fem_quadrature.get_xs_eval_points(da_xs_pt);
   fem_quadrature.get_dfem_integration_points(da_int_pt);
@@ -304,6 +313,43 @@ int main(int argc, char** argv)
     val = -1;
   }
   
+  try{
+    if( (da_dfem_left.size() - n_dfem_pt) != 0    )
+    {
+      std::stringstream err;
+      err << "Left dfem function evaluations length is: " << da_dfem_left.size() << " Expected to be of length: " << n_dfem_pt;
+      throw Dark_Arts_Exception(FEM , err.str() );
+    }
+    for(int i=0; i < n_dfem_pt ; i++)
+    {
+      if(fabs( da_dfem_left[i] - dfem_at_left_edge[i] ) > tol )
+        throw Dark_Arts_Exception(FEM , "dfem functions at left edge incorrect" );
+    }      
+  }
+  catch(const Dark_Arts_Exception& da)
+  {
+    da.testing_message();
+    val = -1;
+  }
+  
+  try{
+    if( (da_dfem_right.size() - n_dfem_pt) != 0    )
+    {
+      std::stringstream err;
+      err << "Right dfem function evaluations length is: " << da_dfem_right.size() << " Expected to be of length: " << n_dfem_pt;
+      throw Dark_Arts_Exception(FEM , err.str() );
+    }
+    for(int i=0; i < n_dfem_pt ; i++)
+    {
+      if(fabs( da_dfem_right[i] - dfem_at_right_edge[i] ) > tol )
+        throw Dark_Arts_Exception(FEM , "dfem functions at right edge incorrect" );
+    }      
+  }
+  catch(const Dark_Arts_Exception& da)
+  {
+    da.testing_message();
+    val = -1;
+  }
   
   // Return 0 if tests passed, something else if failing
   return val;

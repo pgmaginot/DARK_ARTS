@@ -6,4 +6,4 @@ target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_
 
 add_test(Unity_Grey_Planck_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/1Region_Equal_Spacing.xml )
 
-set_tests_properties( Unity_Grey_Planck_Test PROPERTIES LABELS "materials ; Equal")
+set_tests_properties( Unity_Grey_Planck_Test PROPERTIES LABELS "materials;Equal")
