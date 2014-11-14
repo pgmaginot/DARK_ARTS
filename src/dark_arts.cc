@@ -2,6 +2,7 @@ static char help[] = "A character array that PETSc might be expecting";
 #include <petscksp.h>
 
 #include "Input_Reader.h"
+#include "Output_Generator.h"
 #include "Fem_Quadrature.h"
 #include "Cell_Data.h"
 #include "Time_Data.h"

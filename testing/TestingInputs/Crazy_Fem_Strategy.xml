@@ -5,7 +5,7 @@
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
       <Region> 0 
-        <N_cells> 1 </N_cells>
+        <N_cells> 3 </N_cells>
         <Left_bound> 0.0 </Left_bound>
         <Right_bound> 1.0 </Right_bound>
         <Spacing> Equal   </Spacing>
