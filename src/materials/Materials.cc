@@ -344,6 +344,12 @@ void Materials::load_materials(const Input_Reader& input_reader)
     {
       m_cv_obj[mat_num] = std::shared_ptr<VCv> (new Cv_Constant( input_reader, mat_num)  ) ;
     }
+    else if(cv_type == RATIONAL_CV)
+    {
+      m_cv_obj[mat_num] = std::shared_ptr<VCv> (new Cv_Rational( input_reader, mat_num)  ) ;
+    }
+    else
+      throw Dark_Arts_Exception(SUPPORT_OBJECT , "Requesting to initialize an undefined VCv object");
     
     /// radiation source
     FIXED_SOURCE_TYPE rad_src_type = input_reader.get_radiation_source_type(mat_num);

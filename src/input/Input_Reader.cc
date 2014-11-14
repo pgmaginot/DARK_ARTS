@@ -625,6 +625,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   m_scat_opacity_double_constants_1.resize(m_number_materials);
   m_scat_opacity_double_constants_2.resize(m_number_materials);
   m_cv_constants.resize(m_number_materials);
+  m_cv_rational_powers.resize(m_number_materials);
+  m_cv_rational_offsets.resize(m_number_materials);
   
   m_scat_opacity_poly.resize(m_number_materials);
   m_abs_opacity_poly.resize(m_number_materials);
@@ -990,6 +992,45 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         err  << "In MATERIALS block:  Invalid Cv in material "<< mat_num << " values must be positive floats";
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
+    }
+    else if(cv_str == "RATIONAL_CV")
+    {
+      m_material_cv_type[mat_num] = RATIONAL_CV;
+      TiXmlElement* cv_const_rat = cv_type->FirstChildElement( "Rational_cv_constant" );
+      TiXmlElement* cv_offset = cv_type->FirstChildElement( "Rational_cv_offset" );
+      TiXmlElement* cv_power = cv_type->FirstChildElement( "Rational_cv_power" );
+      
+      if(!cv_const_rat || !cv_offset || !cv_power)
+      {
+        std::stringstream err;
+        err << "In material: " << mat_num << " Rational_Cv must have Rational_cv_constant, Rational_cv_offset, and Rational_cv_power elements";
+        throw Dark_Arts_Exception(INPUT, err.str() );
+      }
+      
+      m_cv_constants[mat_num] = atof(cv_const_rat->GetText() );
+      m_cv_rational_powers[mat_num] = atoi(cv_power->GetText() );
+      m_cv_rational_offsets[mat_num] = atof( cv_offset->GetText() );
+      
+      if( m_cv_constants[mat_num]  < 0.)
+      {
+        std::stringstream err;
+        err << "In material: " << mat_num << " Rational_Cv must have positive Rational_cv_constant";
+        throw Dark_Arts_Exception(INPUT, err.str() );
+      }
+      
+      if( m_cv_rational_powers[mat_num]  < 1)
+      {
+        std::stringstream err;
+        err << "In material: " << mat_num << " Rational_Cv must have positive integer Rational_cv_power";
+        throw Dark_Arts_Exception(INPUT, err.str() );
+      }
+      
+      if( m_cv_rational_offsets[mat_num]  < 0.)
+      {
+        std::stringstream err;
+        err << "In material: " << mat_num << " Rational_Cv must have positive Rational_cv_offset";
+        throw Dark_Arts_Exception(INPUT, err.str() );
+      }      
     }
     
     if(m_material_cv_type[mat_num] == INVALID_CV_TYPE)

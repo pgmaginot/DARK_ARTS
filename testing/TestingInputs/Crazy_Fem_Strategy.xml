@@ -17,16 +17,29 @@
     <!-- CM_SH_KEV or  UNITY-->
     <Units> Unity </Units>
     <Material> 0
-      <Scattering_opacity_type> Constant_xs 
-        <Constant_value> 1.0 </Constant_value>
+      <Scattering_opacity_type> Rational 
+        <Multiplier> 10. </Multiplier>
+        <Denominator_power> 3 </Denominator_power>
+        <Denominator_offset> 0.1 </Denominator_offset>
       </Scattering_opacity_type>      
-      <Absorption_opacity_type> Constant_xs 
-        <Constant_value> 0.9 </Constant_value>
+      <Absorption_opacity_type> Polynomial_Space 
+        <Highest_polynomial_degree> 2 </Highest_polynomial_degree>
+        <Degree_coefficient> 0 
+          <Coefficient_value> 3.5 </Coefficient_value>
+        </Degree_coefficient>
+        <Degree_coefficient> 1 
+          <Coefficient_value> 0.0</Coefficient_value>
+        </Degree_coefficient>
+        <Degree_coefficient> 2 
+          <Coefficient_value> 2.1 </Coefficient_value>
+        </Degree_coefficient>
       </Absorption_opacity_type>
       <Radiation_fixed_source_type> No_source </Radiation_fixed_source_type>
       <Temperature_fixed_source_type> No_source </Temperature_fixed_source_type>      
-      <Cv_type> Constant_cv 
-        <Cv_constant> 1.0 </Cv_constant>
+      <Cv_type> RATIONAL_CV
+        <Rational_cv_constant> 11.0 </Rational_cv_constant>
+        <Rational_cv_offset> 2.0 </Rational_cv_offset>
+        <Rational_cv_power> 1 </Rational_cv_power>
       </Cv_type>
     </Material>
   </MATERIALS>

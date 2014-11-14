@@ -18,3 +18,25 @@ target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_
 add_test(Materials_Interface_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/One_Cell_Angle_Quadrature.xml )
 
 set_tests_properties( Materials_Interface_Test PROPERTIES LABELS "materials")
+
+# #######################################################################################
+
+set(EXE_NAME Interpolating)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(Interpolating_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/Crazy_Fem_Strategy.xml )
+
+set_tests_properties( Interpolating_Test PROPERTIES LABELS "materials")
+
+# #######################################################################################
+
+set(EXE_NAME SLXS)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(SLXS_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/2Region_Log_Spacing.xml )
+
+set_tests_properties( SLXS_Test PROPERTIES LABELS "materials;SLXS")

@@ -7,9 +7,10 @@
 #include "XS_Treatment_Interpolating.h"
 
 XS_Treatment_Interpolating::XS_Treatment_Interpolating(const Fem_Quadrature& fem_quad) 
-{
-  m_n_xs_evals = fem_quad.get_number_of_xs_point();
-  m_n_integration_pts = fem_quad.get_number_of_integration_points();
+:
+m_n_xs_evals{fem_quad.get_number_of_xs_point() },
+m_n_integration_pts {fem_quad.get_number_of_integration_points()}
+{ 
   fem_quad.get_xs_at_dfem_integration_points(m_xs_at_dfem_integration_points);
 }
 
@@ -22,6 +23,9 @@ void XS_Treatment_Interpolating::calculate_xs_at_integration_points(
   const std::vector<double>& xs_evaluations, std::vector<double>& xs_at_dfem_integration_points)
 {  
   int cnt = 0;
+  for(int i = 0; i < m_n_integration_pts; i++)
+    xs_at_dfem_integration_points[i] = 0;
+    
   for(int xs_p=0; xs_p < m_n_xs_evals; xs_p++)
   {
     for(int dfem_int=0; dfem_int < m_n_integration_pts; dfem_int ++)

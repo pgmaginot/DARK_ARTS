@@ -33,7 +33,7 @@ Legendre_Polynomal_Test - Legendre_Polynomial.cc
 Angle_Quadrature_Test- Angle_Quadrature_Test.cc
 --Verify functions of Angular_Quadrature test (get_mu , get_w, get_n_grps, n_l_mom, sum_w)
 
-Crazy_Fem_Strategy_Test- Crazy_Fem_Strategy.cc
+Crazy_Fem_Strategy_Test- Crazy_Fem_Strategy.cc - Crazy_Fem_Strategy.xml
 -- cubic dfem trial space, lobatto DFEM points, Interpolatory opacity treatment with P4 Equally_Spaced points
 -- Exact matrix integration (via Gauss quadrature using (3 + 1 + 4) points),
 -- check that Fem_Quadrature pulls all of the correct quadrature points/weights
@@ -52,6 +52,18 @@ Unity_Grey_Planck_Test - Unity_Grey_Planck.cc
 Materials_Interface_Test - Materials_Interface.cc - One_Cell_Angle_Quadrature.xml
 -Test all materials interface functions
 -Test MOMENT_PRESERVING cross secction treatment
+-Sig_a : Rational
+-Sig_s : Polynomial space
+-Cv : constant_cv
 
-Interpolating_Test - Interpolating.cc - One_Cell_Angle_Quadrature.xml
+Interpolating_Test - Interpolating.cc - Crazy_Fem_Strategy.xml
 -Test INTERPOLATING cross section treatment
+-sig_a : polynomial_space
+-sig_s : Rational
+-Cv : rational_cv
+
+SLXS_Test - SLXS.cc - SLXS.cc - 2Region_Log_Spacing.xml
+-Test SLXS cross section treatment
+-sig_a : constant
+-sig_s: constant
+-Cv : Constant

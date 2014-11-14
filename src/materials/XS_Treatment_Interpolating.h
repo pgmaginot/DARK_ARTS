@@ -17,8 +17,8 @@ public:
     std::vector<double>& xs_at_dfem_integration_points) override;
     
 private:
-  int m_n_xs_evals = -1;
-  int m_n_integration_pts = -1;
+  const int m_n_xs_evals;
+  const int m_n_integration_pts;
   std::vector<double> m_xs_at_dfem_integration_points;
 };
 

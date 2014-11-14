@@ -85,6 +85,8 @@ public:
   UNITS_TYPE get_units_type(void) const;
   void get_scattering_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
   void get_absorption_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
+  int  get_rational_cv_power(const int mat_num) const { return m_cv_rational_powers[mat_num] ; }
+  double get_rational_cv_offset(const int mat_num) const { return m_cv_rational_offsets[mat_num] ;}
   
   /// Solver tolerances 
   WG_SOLVE_TYPE get_within_group_solve_type(void) const;
@@ -158,6 +160,8 @@ protected:
   UNITS_TYPE m_units_type = INVALID_UNITS_TYPE;
   std::vector< std::vector<double> > m_scat_opacity_poly;
   std::vector< std::vector<double> > m_abs_opacity_poly;
+  std::vector<int> m_cv_rational_powers;
+  std::vector<double> m_cv_rational_offsets;
   
   /// spatial discretization input block
   int m_dfem_trial_space_degree = -1;
