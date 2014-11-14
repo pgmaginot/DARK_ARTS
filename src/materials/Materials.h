@@ -18,6 +18,8 @@
 #include "Scattering_Opacity_Constant.h"
 #include "Absorption_Opacity_Table.h"
 #include "Scattering_Opacity_Table.h"
+#include "Absorption_Opacity_Polynomial_Space.h"
+#include "Scattering_Opacity_Polynomial_Space.h"
 #include "Source_I_Constant.h"
 #include "Source_T_Constant.h"
 #include "Cv_Constant.h"

@@ -32,27 +32,16 @@
   </MATERIALS>
   
   <TIME>
-    <Dt_min> 0.001 </Dt_min>
-    <Dt_max> 0.1 </Dt_max>
-    <T_start> 0.0 </T_start>
-    <T_end> 1.0 </T_end>
+    <Dt_min> 0.1 </Dt_min>
+    <Dt_max> 2.0 </Dt_max>
+    <T_start> 1.0 </T_start>
+    <T_end> 8.1 </T_end>
     <Time_solver> Implicit_euler </Time_solver>
-    <!--
-      <Starting_method> Exponential </Starting_method>
-    <Increase_factor> 1.25 </Increase_factor>
-    -->
     
-    <Starting_method> Vector 
-      <N_vector_stages> 2 </N_vector_stages>
-      <Vector_stage> 0 
-        <Stage_steps> 8 </Stage_steps>
-        <Stage_divisor> 10 </Stage_divisor>
-      </Vector_stage>
-      <Vector_stage> 1 
-        <Stage_steps> 5 </Stage_steps>
-        <Stage_divisor> 5 </Stage_divisor>
-      </Vector_stage>
+    <Starting_method> Exponential 
+      <Increase_factor> 2. </Increase_factor>
     </Starting_method>
+    
   </TIME>
   
   <SPATIAL_DISCRETIZATION>

@@ -9,12 +9,11 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
 :
 m_n_interpolation_points{ input_reader.get_dfem_degree() + 1},
 m_int_method{ input_reader.get_integration_method() },
-m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
+m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 },
+m_xs_extra_points{ 10}
 {
   try{
-    /// Get the DFEM interpolation points
-    // m_n_interpolation_points = input_reader.get_dfem_degree() + 1;
-    
+    /// Get the DFEM interpolation points    
     m_dfem_interpolation_points.resize(m_n_interpolation_points,0.);
     m_dfem_interpolation_weights.resize(m_n_interpolation_points,0.);
     const QUADRATURE_TYPE dfem_point_type = input_reader.get_dfem_interpolation_point_type();
@@ -103,30 +102,9 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
       }
     }
     else if(xs_treatment == SLXS)
-    {
-      switch(input_reader.get_dfem_interpolation_point_type())
-      {
-        case GAUSS:
-        {
-          quad_fun.legendre_ek_compute( m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-          break;
-        }
-        case LOBATTO:
-        {
-          quad_fun.lobatto_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-          break;
-        }
-        case EQUAL_SPACED:
-        {
-          quad_fun.ncc_compute(m_n_xs_evaluation_points , m_xs_eval_points, m_xs_eval_weights);
-          break;
-        }
-        case INVALID_QUADRATURE_TYPE:
-        {
-          throw Dark_Arts_Exception( FEM , "Bad Opacity Interpolation Point Type in Fem_Quadrature" );
-          break;
-        }
-      }
+    {    
+      m_xs_eval_points = m_dfem_interpolation_points;
+      m_xs_eval_weights = m_dfem_interpolation_weights; 
     }
     else{
       /// moment preserving, use Gauss quad to maximize accuracy
@@ -164,33 +142,11 @@ m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 }
     }
     
     m_integration_points.resize(m_n_integration_points,0.);
-    m_integration_weights.resize(m_n_integration_points,0.);
-    
+    m_integration_weights.resize(m_n_integration_points,0.);    
     if(m_int_method == SELF_LUMPING)
     {
-      switch(dfem_point_type)
-      {
-        case GAUSS:
-        {
-          quad_fun.legendre_ek_compute( m_n_integration_points , m_integration_points, m_integration_weights);
-          break;
-        }
-        case LOBATTO:
-        {
-          quad_fun.lobatto_compute(m_n_integration_points , m_integration_points, m_integration_weights);
-          break;
-        }
-        case EQUAL_SPACED:
-        {
-          quad_fun.ncc_compute(m_n_integration_points , m_integration_points, m_integration_weights);
-          break;
-        }
-        case INVALID_QUADRATURE_TYPE:
-        {
-          throw Dark_Arts_Exception( FEM , "Invalid integration points in Fem_Quadrature.cc " );
-          break;
-        }
-      }
+       m_integration_points = m_dfem_interpolation_points;
+       m_integration_weights = m_dfem_interpolation_weights;
     }
     else
     {  
@@ -274,11 +230,6 @@ void Fem_Quadrature::get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,
   dfem_at_left_edge = m_dfem_at_left_edge;
   dfem_at_right_edge = m_dfem_at_right_edge;
   return;
-}
-
-int Fem_Quadrature::get_number_of_xs_point(void) const
-{
-  return m_n_xs_evaluation_points;
 }
 
 void Fem_Quadrature::get_xs_at_dfem_integration_points(std::vector<double>& xs_at_dfem_integration_pts) const

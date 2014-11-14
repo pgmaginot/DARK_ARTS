@@ -27,7 +27,7 @@ public:
   
   int get_number_of_interpolation_points(void) const ;
   
-  int get_number_of_xs_point(void) const;
+  int get_number_of_xs_point(void) const{ return m_n_xs_evaluation_points; }
   
   /// accept/return vector of local quadrature points where xs will be evaluated
   void get_xs_eval_points(std::vector<double>& xs_eval_pts) const;
@@ -78,7 +78,7 @@ private:
   
   const int m_n_source_points;
   
-  const int m_xs_extra_points = 10;  
+  const int m_xs_extra_points;  
   
   
   /// number of quadrature points that will be used to evaluate DFEM matrices/integrals (L,M,R matrices)

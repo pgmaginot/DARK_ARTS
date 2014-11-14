@@ -303,6 +303,18 @@ void Input_Reader::get_scat_file_str(const int mat_num, std::string& filename) c
   return;
 }
 
+void Input_Reader::get_scattering_poly_coeff(const int mat_num , std::vector<double>& coeff) const
+{
+  coeff = m_scat_opacity_poly[mat_num];
+  return;
+}
+
+void Input_Reader::get_absorption_poly_coeff(const int mat_num , std::vector<double>& coeff) const
+{
+  coeff = m_abs_opacity_poly[mat_num];
+  return;
+}
+
 double Input_Reader::get_cv_constant(const int mat_num) const
 {
   return m_cv_constants[mat_num];
@@ -614,6 +626,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   m_scat_opacity_double_constants_2.resize(m_number_materials);
   m_cv_constants.resize(m_number_materials);
   
+  m_scat_opacity_poly.resize(m_number_materials);
+  m_abs_opacity_poly.resize(m_number_materials);
+  
   TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
   if(!units_elem)
   {
@@ -761,6 +776,60 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       }
       m_abs_opacity_str[mat_num] = abs_op_file->GetText();
     }
+    else if(abs_opacity_str == "POLYNOMIAL_SPACE")
+    {
+      m_material_absorption_opacity_type[mat_num] = POLYNOMIAL_SPACE;
+      TiXmlElement* abs_poly = abs_opacity_type->FirstChildElement( "Highest_polynomial_degree" );
+      if(!abs_poly)
+      {
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE absorption opacity " ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
+      }
+      m_abs_opacity_integer_constants[mat_num] = atoi( abs_poly->GetText() );
+      if(m_abs_opacity_integer_constants[mat_num] < 1)
+      {
+        std::stringstream err;
+        err  << "In MATERIALS block: Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE absorption opacity less than 1" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
+      }
+      
+      m_abs_opacity_poly[mat_num].resize(m_abs_opacity_integer_constants[mat_num] + 1,0.);
+      
+      TiXmlElement* poly_coeff = abs_opacity_type->FirstChildElement( "Degree_coefficient" );
+      for(int p = 0 ; p < m_abs_opacity_integer_constants[mat_num] + 1 ; p++)
+      {
+        if(!poly_coeff)
+        {
+          std::stringstream err;
+          err << "In MATERIALS block, missing polynomial coefficent for degree " << p << " term in material " << mat_num;
+          throw Dark_Arts_Exception( INPUT , err.str() );
+        }
+        
+        if( atoi( poly_coeff->GetText() ) != p)
+        {
+          std::stringstream err;
+          err << "In MATERIALS block, missing polynomial coefficents for material " << mat_num << "absorption opacity out of order";
+          throw Dark_Arts_Exception( INPUT , err.str() );
+        }
+        else
+        {
+          TiXmlElement* poly_val = poly_coeff->FirstChildElement( "Coefficient_value" );
+          if(!poly_val)
+          {
+            std::stringstream err;
+            err << "Missing value element in " << mat_num << " Polynomial aborption opactity term " << p << " Degree_coefficient block";
+            throw Dark_Arts_Exception(INPUT, err.str() );
+          }
+          else
+          {
+            m_abs_opacity_poly[mat_num][p] = atof( poly_val->GetText() );            
+          }
+        }
+        
+        poly_coeff = poly_coeff->NextSiblingElement( "Degree_coefficient" );
+      }
+    }
     
     if(m_material_absorption_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
     {
@@ -821,6 +890,60 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
       m_scat_opacity_str[mat_num] = scat_op_file->GetText();
+    }
+    else if(scat_opacity_str == "POLYNOMIAL_SPACE")
+    {
+      m_material_scattering_opacity_type[mat_num] = POLYNOMIAL_SPACE;
+      TiXmlElement* scat_poly = scat_opacity_type->FirstChildElement( "Highest_polynomial_degree" );
+      if(!scat_poly)
+      {
+        std::stringstream err;
+        err  << "In MATERIALS block: Missing Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE scattering opacity " ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
+      }
+      m_scat_opacity_integer_constants[mat_num] = atoi( scat_poly->GetText() );
+      if(m_scat_opacity_integer_constants[mat_num] < 1)
+      {
+        std::stringstream err;
+        err  << "In MATERIALS block: Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE scattering less than 1" ;
+        throw Dark_Arts_Exception( INPUT , err.str() );
+      }
+      
+      m_scat_opacity_poly[mat_num].resize(m_scat_opacity_integer_constants[mat_num] + 1,0.);
+      
+      TiXmlElement* poly_coeff = scat_opacity_type->FirstChildElement( "Degree_coefficient" );
+      for(int p = 0 ; p < m_scat_opacity_integer_constants[mat_num] + 1 ; p++)
+      {
+        if(!poly_coeff)
+        {
+          std::stringstream err;
+          err << "In MATERIALS block, missing polynomial coefficent for degree " << p << " term in material " << mat_num << " scattering opacity";
+          throw Dark_Arts_Exception( INPUT , err.str() );
+        }
+        
+        if( atoi( poly_coeff->GetText() ) != p)
+        {
+          std::stringstream err;
+          err << "In MATERIALS block, missing polynomial coefficients for material " << mat_num << "scattering opacity out of order";
+          throw Dark_Arts_Exception( INPUT , err.str() );
+        }
+        else
+        {
+          TiXmlElement* poly_val = poly_coeff->FirstChildElement( "Coefficient_value" );
+          if(!poly_val)
+          {
+            std::stringstream err;
+            err << "Missing value element in " << mat_num << " Polynomial scattering opactity term " << p << " Degree_coefficient block";
+            throw Dark_Arts_Exception(INPUT, err.str() );
+          }
+          else
+          {
+            m_scat_opacity_poly[mat_num][p] = atof( poly_val->GetText() );            
+          }
+        }
+        
+        poly_coeff = poly_coeff->NextSiblingElement( "Degree_coefficient" );
+      }
     }
     
     if(m_material_scattering_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
@@ -1098,18 +1221,24 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   /// if not using self lumping treatment, need to get degree of opacity spatial treatment
   if(m_opacity_treatment != SLXS)
   { 
-    TiXmlElement* opacity_interp_point_type_elem = opacity_treatment_elem->FirstChildElement( "Opacity_interpolation_point_type");
-    if(!opacity_interp_point_type_elem)
-      throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interp_point_type_elem element ");
-      
-    std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
-    transform(opacity_intep_type_str.begin() , opacity_intep_type_str.end() , opacity_intep_type_str.begin() , toupper);
-    if(opacity_intep_type_str == "GAUSS")
+  
+    if(m_opacity_treatment == INTERPOLATING)
+    {
+      TiXmlElement* opacity_interp_point_type_elem = opacity_treatment_elem->FirstChildElement( "Opacity_interpolation_point_type");
+      if(!opacity_interp_point_type_elem)
+        throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interp_point_type_elem element ");
+        
+      std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
+      transform(opacity_intep_type_str.begin() , opacity_intep_type_str.end() , opacity_intep_type_str.begin() , toupper);
+      if(opacity_intep_type_str == "GAUSS")
+        m_opacity_interpolation_point_type = GAUSS;
+      else if(opacity_intep_type_str == "LOBATTO")
+        m_opacity_interpolation_point_type = LOBATTO;
+      else if(opacity_intep_type_str == "EQUAL_SPACED")
+        m_opacity_interpolation_point_type = EQUAL_SPACED;
+    }
+    else if(m_opacity_treatment == MOMENT_PRESERVING)
       m_opacity_interpolation_point_type = GAUSS;
-    else if(opacity_intep_type_str == "LOBATTO")
-      m_opacity_interpolation_point_type = LOBATTO;
-    else if(opacity_intep_type_str == "EQUAL_SPACED")
-      m_opacity_interpolation_point_type = EQUAL_SPACED;
     
     TiXmlElement* opacity_degree_elem = opacity_treatment_elem->FirstChildElement( "Opacity_polynomial_degree");
     if(!opacity_degree_elem)

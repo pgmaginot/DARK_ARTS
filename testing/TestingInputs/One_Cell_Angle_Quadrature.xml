@@ -6,8 +6,8 @@
     <Number_of_materials> 1 </Number_of_materials>
       <Region> 0 
         <N_cells> 1 </N_cells>
-        <Left_bound> 0.0 </Left_bound>
-        <Right_bound> 1.0 </Right_bound>
+        <Left_bound> 1.0 </Left_bound>
+        <Right_bound> 3.0 </Right_bound>
         <Spacing> Equal   </Spacing>
         <Material_number> 0 </Material_number>  
       </Region>  
@@ -17,16 +17,24 @@
     <!-- CM_SH_KEV or  UNITY-->
     <Units> Unity </Units>
     <Material> 0
-      <Scattering_opacity_type> Constant_xs 
-        <Constant_value> 1.0 </Constant_value>
+      <Scattering_opacity_type> Polynomial_Space
+        <Highest_polynomial_degree> 1 </Highest_polynomial_degree>
+        <Degree_coefficient> 0 
+          <Coefficient_value> 1.0 </Coefficient_value>
+        </Degree_coefficient>
+        <Degree_coefficient> 1 
+          <Coefficient_value> 1.5 </Coefficient_value>
+        </Degree_coefficient>
       </Scattering_opacity_type>      
-      <Absorption_opacity_type> Constant_xs 
-        <Constant_value> 0.9 </Constant_value>
+      <Absorption_opacity_type> RATIONAL
+        <Multiplier> 2.2 </Multiplier>
+        <Denominator_power> 2 </Denominator_power>
+        <Denominator_offset> 0.0 </Denominator_offset>
       </Absorption_opacity_type>
       <Radiation_fixed_source_type> No_source </Radiation_fixed_source_type>
       <Temperature_fixed_source_type> No_source </Temperature_fixed_source_type>      
       <Cv_type> Constant_cv 
-        <Cv_constant> 1.0 </Cv_constant>
+        <Cv_constant> 1.5 </Cv_constant>
       </Cv_type>
     </Material>
   </MATERIALS>
@@ -57,9 +65,11 @@
   
   <SPATIAL_DISCRETIZATION>
     <DFEM_degree> 2 </DFEM_degree>
-    <Integration_type> Self_Lumping </Integration_type>
+    <Integration_type> Exact </Integration_type>
     <DFEM_interpolation_point_type> Equal_Spaced </DFEM_interpolation_point_type>
-    <Opacity_treatment> SLXS </Opacity_treatment>
+    <Opacity_treatment> MOMENT_PRESERVING 
+      <Opacity_polynomial_degree> 2 </Opacity_polynomial_degree>
+    </Opacity_treatment>
   </SPATIAL_DISCRETIZATION>
   
   <ANGULAR_DISCRETIZATION>

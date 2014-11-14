@@ -165,6 +165,7 @@ void Materials::get_sigma_a_boundary(const int grp, std::vector<double>& sig_a)
   /// calculate \f$ \sigma_s \f$ for all DFEM integration points, groups, and scattering moments for cell cell_num
 void Materials::get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s)
 {
+  
   for(int i=0; i < m_n_xs_quad; i++)
   {  
     m_mat_property_evals[i] = m_scat_opacities[m_current_material]->get_scattering_opacity(
@@ -304,6 +305,13 @@ void Materials::load_materials(const Input_Reader& input_reader)
       m_abs_opacities[mat_num] = std::shared_ptr<VAbsorption_Opacity> 
         (new Absorption_Opacity_Table( input_reader, mat_num ));
     }
+    else if(abs_op_type == POLYNOMIAL_SPACE)
+    {
+      m_abs_opacities[mat_num] = std::shared_ptr<VAbsorption_Opacity> 
+        (new Absorption_Opacity_Polynomial_Space( input_reader, mat_num ));
+    }
+    else
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Requesting to create an undefined VAbsorption_Opactiy object");
     
     /// scattering opacity
     OPACITY_TYPE scat_op_type = input_reader.get_scat_opacity_type(mat_num);
@@ -322,6 +330,13 @@ void Materials::load_materials(const Input_Reader& input_reader)
       m_scat_opacities[mat_num] = std::shared_ptr<VScattering_Opacity>
         (new Scattering_Opacity_Table( input_reader, mat_num)  ) ;
     }
+    else if(scat_op_type == POLYNOMIAL_SPACE)
+    {
+      m_scat_opacities[mat_num] = std::shared_ptr<VScattering_Opacity> 
+        (new Scattering_Opacity_Polynomial_Space( input_reader, mat_num ));
+    }
+    else
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Requesting to create an undefined VScattering_Opactiy object");
     
     /// cv
     CV_TYPE cv_type = input_reader.get_cv_type(mat_num);

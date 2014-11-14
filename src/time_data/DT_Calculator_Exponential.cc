@@ -4,7 +4,7 @@ DT_Calculator_Exponential::DT_Calculator_Exponential(const Input_Reader& input_r
   :
   V_DT_Calculator( input_reader ),
   m_ratio{input_reader.get_time_start_exponential_ratio() } ,
-  m_step_max{ int(floor( log(m_dt_max/m_dt_min) / log(m_ratio) )) }
+  m_step_max{ int(ceil( log(m_dt_max/m_dt_min) / log(m_ratio) )) }
 {
 
 }

@@ -83,6 +83,8 @@ public:
   double get_cv_constant(const int mat_num) const;  
   bool use_weird_units(void) const;
   UNITS_TYPE get_units_type(void) const;
+  void get_scattering_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
+  void get_absorption_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
   
   /// Solver tolerances 
   WG_SOLVE_TYPE get_within_group_solve_type(void) const;
@@ -154,6 +156,8 @@ protected:
   std::vector<double> m_cv_constants;
   bool m_weird_units = false;
   UNITS_TYPE m_units_type = INVALID_UNITS_TYPE;
+  std::vector< std::vector<double> > m_scat_opacity_poly;
+  std::vector< std::vector<double> > m_abs_opacity_poly;
   
   /// spatial discretization input block
   int m_dfem_trial_space_degree = -1;

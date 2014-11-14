@@ -24,8 +24,13 @@ enum STARTING_METHOD { RAMP, EXPONENTIAL , VECTOR , INVALID_STARTING_METHOD };
 enum GRID_SPACING {EQUAL , LOG, INVALID_GRID_SPACING};
 
 /// Introduced by the MATERIALS block
-
-enum OPACITY_TYPE { CONSTANT_XS, RATIONAL, TABLE_LOOKUP ,  INVALID_OPACITY_TYPE};
+/**
+  CONSTANT_XS - constant in space and temperature
+  RATIONAL - function of temperature only
+  TABLE_LOOKUP - function of temperature and group
+  POLYNOMIAL_SPACE - function of space
+*/
+enum OPACITY_TYPE { CONSTANT_XS, RATIONAL, TABLE_LOOKUP , POLYNOMIAL_SPACE , INVALID_OPACITY_TYPE};
 
 enum CV_TYPE { CONSTANT_CV , INVALID_CV_TYPE} ;
 
