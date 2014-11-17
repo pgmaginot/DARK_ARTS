@@ -10,14 +10,14 @@ set_tests_properties( ConstantTemperatureTest PROPERTIES LABELS "variable_storag
 
 # ###################################################################
 
-# set(EXE_NAME ConstantRadiation)
+set(EXE_NAME ConstantIntensityIC)
 
-# add_executable(${EXE_NAME} ${EXE_NAME}.cc)
-# target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
-# add_test(ConstantRadiationTest ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/2Region_Log_Spacing.xml )
+add_test(ConstantIntensityICTest ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/2Region_Log_Spacing.xml )
 
-# set_tests_properties( ConstantRadiationTest PROPERTIES LABELS "variable_storage;Radiation")
+set_tests_properties( ConstantIntensityICTest PROPERTIES LABELS "variable_storage;Radiation")
 
 # ###################################################################
 

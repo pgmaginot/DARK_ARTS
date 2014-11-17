@@ -69,10 +69,7 @@ int main(int argc, char** argv)
         for(int el = 0 ; el < n_p ; el++)
         {
           if( fabs( local_t_vec(el) - t) > tol )
-          {
             throw Dark_Arts_Exception(VARIABLE_STORAGE , "IC temperature different than expected");
-            val = -1;
-          }
         }
         
         local_t_vec = Eigen::VectorXd::Zero(n_p);
@@ -80,10 +77,7 @@ int main(int argc, char** argv)
         for(int el = 0 ; el < n_p ; el++)
         {
           if( fabs( local_t_vec(el) - t) > tol )
-          {
             throw Dark_Arts_Exception(VARIABLE_STORAGE , "Copied temperature different than expected");
-            val = -1;
-          }
         }
         
         local_t_vec = Eigen::VectorXd::Ones(n_p);
@@ -91,34 +85,53 @@ int main(int argc, char** argv)
         for(int el = 0 ; el < n_p ; el++)
         {
           if( fabs( local_t_vec(el) ) > tol )
-          {
             throw Dark_Arts_Exception(VARIABLE_STORAGE , "Zero temperature different than expected");
-            val = -1;
-          }
-        }       
+        }
         
         cell_cnt++;
       }
     }
     
     if(fabs(temperature_zero.calculate_average() ) > tol)
-    {
       throw Dark_Arts_Exception(VARIABLE_STORAGE , "Incorrect average for zero temperature");
-      val = -1;
-    }
     
     if(fabs(temperature_ic.calculate_average() - t_avg) > tol)
-    {
       throw Dark_Arts_Exception(VARIABLE_STORAGE , "Incorrect average for IC temperature");
-      val = -1;
-    }
     
     if(fabs(temperature_copy.calculate_average() - t_avg) > tol)
-    {
       throw Dark_Arts_Exception(VARIABLE_STORAGE , "Incorrect average for copied temperature");
-      val = -1;
+      
+            /// test out the set_cell_temperature functionality
+    cell_cnt = 0;
+    for(int reg=0; reg < 2 ; reg++)
+    {  
+      for(int cell = 0; cell < expected_n_cells[reg] ; cell++)
+      {
+        for(int el = 0; el < n_p ; el++)
+          local_t_vec(el) = double(cell_cnt) + double(el)*0.1;
+          
+        temperature_ic.set_cell_temperature(cell_cnt, local_t_vec);
+        cell_cnt++;
+      }
     }
-    
+     
+    cell_cnt = 0;
+    for(int cell = 0; cell < 8 ; cell++)
+    {
+      local_t_vec(0) = double(cell) + 0.1 ;
+      local_t_vec(1) = double(cell) + 0.1 ;
+      local_t_vec(2) = double(cell) + 0.1 ;
+      local_t_vec(3) = double(cell) + 0.1 ;
+          
+      temperature_ic.get_cell_temperature(cell_cnt, local_t_vec);
+      for(int el = 0; el < n_p ; el++)
+      {
+        double exp_val = double(cell_cnt) + 0.1*double(el);
+        if(fabs( local_t_vec(el) - exp_val) > tol)
+          throw Dark_Arts_Exception(VARIABLE_STORAGE , "Trouble setting and retrieving the correct/same temperature values");
+      }        
+      cell_cnt++;
+    }  
   }
   catch(const Dark_Arts_Exception& da_exception )
   {

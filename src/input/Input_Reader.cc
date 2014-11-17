@@ -73,50 +73,6 @@ void Input_Reader::read_xml(std::string xmlFile)
 // Const (get) Public functions 
 // ##########################################################
 
-int Input_Reader::get_dfem_degree(void) const
-{
-  return m_dfem_trial_space_degree;
-}
-
-QUADRATURE_TYPE Input_Reader::get_dfem_interpolation_point_type(void) const
-{
-  return m_dfem_interpolation_point_type;
-}
-
-int Input_Reader::get_opacity_degree(void) const 
-{
-  return m_opacity_polynomial_degree;
-}
-
-OPACITY_TREATMENT Input_Reader::get_opacity_treatment(void) const
-{
-  return m_opacity_treatment;
-}
-
-QUADRATURE_TYPE Input_Reader::get_opacity_interpolation_point_type(void) const
-{
-  return m_opacity_interpolation_point_type;
-}
-
-MATRIX_INTEGRATION Input_Reader::get_integration_method(void) const
-{
-  return m_integration_type;
-}
-
-int Input_Reader::get_n_regions(void) const
-{
-  return m_number_regions;
-}
-
-void Input_Reader::get_cells_per_region_vector(std::vector<int>& cell_per_region) const
-{
-  cell_per_region.resize(m_number_regions,0);
-  for(int i=0;i<m_number_regions;i++)
-    cell_per_region[i] = m_cells_per_region[i];
-    
-  return;
-}
-
 GRID_SPACING Input_Reader::get_region_spacing(int reg_num) const
 {   
   return m_region_spacing_type[reg_num];

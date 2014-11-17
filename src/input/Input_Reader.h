@@ -25,16 +25,16 @@ public:
   void read_xml(std::string xmlFile);
   
   /// Functions called by Fem_Quadrature class to access input data
-  int get_dfem_degree(void) const;
-  QUADRATURE_TYPE get_dfem_interpolation_point_type(void) const; 
-  int get_opacity_degree(void) const;
-  OPACITY_TREATMENT get_opacity_treatment(void) const;
-  QUADRATURE_TYPE get_opacity_interpolation_point_type(void) const;
-  MATRIX_INTEGRATION get_integration_method(void) const;
+  int get_dfem_degree(void) const {  return m_dfem_trial_space_degree; }
+  QUADRATURE_TYPE get_dfem_interpolation_point_type(void) const { return m_dfem_interpolation_point_type; } 
+  int get_opacity_degree(void) const { return m_opacity_polynomial_degree; }
+  OPACITY_TREATMENT get_opacity_treatment(void) const { return m_opacity_treatment; }
+  QUADRATURE_TYPE get_opacity_interpolation_point_type(void) const { return m_opacity_interpolation_point_type; }
+  MATRIX_INTEGRATION get_integration_method(void) const { return m_integration_type; }
   
   /// Functions called by Cell_Data class to access input data
-  int get_n_regions(void) const;
-  void get_cells_per_region_vector(std::vector<int>& cells_per_region) const;
+  int get_n_regions(void) const { return m_number_regions; }
+  void get_cells_per_region_vector(std::vector<int>& cells_per_region) const {cells_per_region = m_cells_per_region; return;}
   double get_region_left_bound(int reg_num) const;
   double get_region_right_bound(int reg_num) const;
   GRID_SPACING get_region_spacing(int reg_num) const;

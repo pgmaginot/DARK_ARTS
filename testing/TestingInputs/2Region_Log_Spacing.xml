@@ -28,7 +28,7 @@
   
   <MATERIALS>
     <!-- CM_SH_KEV or  UNITY-->
-    <Units> CM_SH_KEV </Units>
+    <Units> UNITY </Units>
     <Material> 0
       <Scattering_opacity_type> Constant_xs 
         <Constant_value> 1.3 </Constant_value>
@@ -111,11 +111,11 @@
    
    <Radiation_ic_type> PLANCKIAN_IC 
     <Region> 0
-      <Radiation_temperature> 0.5 </Radiation_temperature>
+      <Radiation_temperature> 0.4 </Radiation_temperature>
     </Region>
     
     <Region> 1
-      <Radiation_temperature> 0.5 </Radiation_temperature>
+      <Radiation_temperature> 0.98 </Radiation_temperature>
     </Region>    
    </Radiation_ic_type>
    

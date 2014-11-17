@@ -53,7 +53,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
       double iso_emission = 0.;
       for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
       {
-        double temp_eval = input_reader.get_region_temperature(reg);
+        double temp_eval = input_reader.get_region_radiation_temperature(reg);
         int n_cell_reg = cell_per_reg[reg];
         
         for(int grp = 0; grp < m_groups ; grp++)
@@ -67,7 +67,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
           {
             iso_emission = materials.get_grey_planck(temp_eval);
           }          
-          iso_emission /= ang_quad.get_sum_w();
+          /// planck function returns are per steradian
           
           for(int cell = 0; cell < n_cell_reg ; cell++)
           {

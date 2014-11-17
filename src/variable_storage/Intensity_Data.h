@@ -11,7 +11,7 @@
 class Intensity_Data
 {
 public:
-  /// Will set n_grp, n_el, n_dir, n_leg as static values
+  /// Will set n_grp, n_el, n_dir, n_leg, m_i will be zero
   Intensity_Data(const Cell_Data& cell_data, 
     const Angular_Quadrature& ang_quad,
     const Fem_Quadrature& fem_quad);
