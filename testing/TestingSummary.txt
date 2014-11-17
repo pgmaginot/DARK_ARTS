@@ -7,16 +7,19 @@
 7) run tests with a specific label: "ctest -L label_you_want"
 7a) folder names (in lower case) 'should' be defined for all tests, but sometimes the author is lazy...
 #################################################################################
+
 cells/  
+
 LogSpacingTest - 2Region_Log_Spacing.xml - LogSpacing.cc
 --Test of log spacing.  Cell sizes increase by a factor of 2 from L to R in region 1, and decrease by a factor of 4 from left to right in region 2.
 --- Cell spacing widths should be:  1 , 2 , 4 , 8, 16 , 4 , 1 , 0.25
 --Testing that two materials are assigned into the proper regions
 
-
 EqualSpacingTest - 1Region_Equal_Spacing.xml - EqualSpacing.cc
 --Test of equal spacing.  5 cells, x_left = 1.0; x_right = 22.0
+
 #################################################################################
+
 quadrature_fem_math/
 P3_Lobatto_Test - P3_Lobatto.cc
 --Testing Lobatto Quadrature evaluations (in Quadrule function)
@@ -38,14 +41,19 @@ Crazy_Fem_Strategy_Test- Crazy_Fem_Strategy.cc - Crazy_Fem_Strategy.xml
 -- Exact matrix integration (via Gauss quadrature using (3 + 1 + 4) points),
 -- check that Fem_Quadrature pulls all of the correct quadrature points/weights
 -- Check DFEM shape functions
+
 #################################################################################
+
 time_data/
+
 Vector_Time_Data_Test - Vector_Time_Data.cc - 1Region_Equal_Spacing.xml
 Ramp_Time_Data - Ramp_Time_Data.cc - 2Region_Log_Spacing.xml
 Exponential Time_Data_Test - Exponential_Time_Data.cc - Exponential_Time.xml
 
 #################################################################################
+
 materials/
+
 Unity_Grey_Planck_Test - Unity_Grey_Planck.cc
 -- check get_c(), get_planck_grey, get_planck_derivative_grey all work correctly
 
@@ -67,3 +75,15 @@ SLXS_Test - SLXS.cc - SLXS.cc - 2Region_Log_Spacing.xml
 -sig_a : constant
 -sig_s: constant
 -Cv : Constant
+
+#################################################################################
+
+variable_storage/
+
+ConstantTemperature
+-Test constant temperature IC
+-Test Temperature_Data_copy
+-Test "zero" temperature data constructor
+-Test numerical average temperature calculator
+
+

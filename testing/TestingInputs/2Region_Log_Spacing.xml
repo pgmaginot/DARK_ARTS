@@ -105,7 +105,7 @@
       <Material_temperature> 0.5 </Material_temperature>
     </Region>
     <Region> 1
-      <Material_temperature> 0.5 </Material_temperature>
+      <Material_temperature> 0.27 </Material_temperature>
     </Region>
    </Temperature_ic_type>
    

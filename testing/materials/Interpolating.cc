@@ -41,13 +41,13 @@ int main(int argc, char** argv)
   // sig_s(T) = 10/(T^3 + 0.1)
   // Cv(T) = 11/(T + 2)
   
-  const double dx = 1.0;
+  const double dx = 1./( double(cell_data.get_total_number_of_cells() ) );
   const double x_left = 0.;
   
   std::vector<double> sig_a_coeff(3,0.);  
-  sig_a_coeff[0] = 3.5;
-  sig_a_coeff[1] = 0.;
-  sig_a_coeff[2] = 2.1;
+  sig_a_coeff[0] = 3.500000000;
+  sig_a_coeff[1] = 0.000000000;
+  sig_a_coeff[2] = 2.100000000;
   
   const int cell_num = 0;  
   const int n_p = fem_quadrature.get_number_of_interpolation_points();  
@@ -106,76 +106,36 @@ int main(int argc, char** argv)
       expected_cv[int_pt] += cv[xs]*xs_at_dfem[cnt];
       cnt++;
     }
-  }
-  
+  }  
   materials.calculate_local_temp_and_position(cell_num , t_vec);
-  
-  // /// test edge values
-  // std::vector<double> calculated_cv_edge(2,0.);
-  // materials.get_cv_boundary(calculated_cv_edge);
-  // try{
-    // for(int i=0 ; i < 2 ; i++)
-    // {
-      // std::cout << "Calculated cv: " << calculated_cv_edge[i] << " Expected Cv: " << cv << std::endl;
-      // if( fabs( calculated_cv_edge[i] - cv ) > tol )
-        // throw Dark_Arts_Exception( SUPPORT_OBJECT, "Incorrect calculation of cv at edges" );
-    // }
-  // }
-  // catch(const Dark_Arts_Exception& da)
-  // {
-    // val = -1;
-    // da.testing_message();
-  // }
-  
-  // std::vector<double> expected_sig_s_edge(2,0.);
-  // std::vector<double> expected_sig_a_edge(2,0.);
-  // std::vector<double> calculated_sig_a_edge(2,0.);
-  // std::vector<double> calculated_sig_s_edge(2,0.);
-  
-  // expected_sig_s_edge[0] = sig_s_coeff[0] + x_left*sig_s_coeff[1];
-  // expected_sig_s_edge[1] = sig_s_coeff[0] + x_right*sig_s_coeff[1];
-  
-  // expected_sig_a_edge[0] = sig_a/(t_left*t_left);
-  // expected_sig_a_edge[1] = sig_a/(t_right*t_right);
-  // materials.get_sigma_a_boundary(0, calculated_sig_a_edge);
-  // materials.get_sigma_s_boundary(0, 0, calculated_sig_s_edge);
-  
-  // try{
-    // for(int i=0; i<2 ; i++)
-      // if(fabs(expected_sig_s_edge[i] - calculated_sig_s_edge[i]) > tol )
-        // throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_s");
-        
-    // for(int i=0; i<2 ; i++)
-      // if(fabs(expected_sig_a_edge[i] - calculated_sig_a_edge[i]) > tol )
-        // throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_a");
-  // }
-  // catch(const Dark_Arts_Exception& da)
-  // {
-    // val = -1;
-    // da.testing_message();
-  // }
-  
-  
+   
   /// get the values from Materials
   std::vector<double> calculated_cv_at_dfem_int_pts(n_int,0.);
-  std::vector<double> calcualted_sig_a_at_dfem_int_pts(n_int, 0.);
-  std::vector<double> calcualted_sig_s_at_dfem_int_pts(n_int, 0.);
+  std::vector<double> calculated_sig_a_at_dfem_int_pts(n_int, 0.);
+  std::vector<double> calculated_sig_s_at_dfem_int_pts(n_int, 0.);
   try{
     materials.get_cv(calculated_cv_at_dfem_int_pts);
-    materials.get_sigma_s(0,0,calcualted_sig_s_at_dfem_int_pts);  
-    materials.get_sigma_a(0,calcualted_sig_a_at_dfem_int_pts);
+    materials.get_sigma_s(0,0,calculated_sig_s_at_dfem_int_pts);  
+    materials.get_sigma_a(0,calculated_sig_a_at_dfem_int_pts);
     
     for(int i = 0; i < n_int ; i++)
     {
-      std::cout << " Expected sig_s: " << expected_sig_s[i] << " Calculated sig_s: " << calcualted_sig_s_at_dfem_int_pts[i] << std::endl;
-      if( fabs( expected_sig_s[i] - calcualted_sig_s_at_dfem_int_pts[i] ) > tol)
-        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating scattering cross section in space");
-        
-      if( fabs( expected_sig_a[i] - calcualted_sig_a_at_dfem_int_pts[i] ) > tol)
+      if( fabs( expected_sig_s[i] - calculated_sig_s_at_dfem_int_pts[i] ) > tol)
+      {
+        std::cout << " Expected sig_s: " << expected_sig_s[i] << " Calculated sig_s: " << calculated_sig_s_at_dfem_int_pts[i] << std::endl;
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating scattering cross section in space");           
+      }
+      if( fabs( expected_sig_a[i] - calculated_sig_a_at_dfem_int_pts[i] ) > tol)
+      {
+        std::cout << " Expected sig_a: " << expected_sig_a[i] << " Calculated sig_a: " << calculated_sig_a_at_dfem_int_pts[i] << std::endl;
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating absorption cross section in space");
+      }
         
       if( fabs( expected_cv[i] - calculated_cv_at_dfem_int_pts[i] ) > tol)
+      {        
+        std::cout << " Expected cv: " << expected_cv[i] << " Calculated cv: " << calculated_cv_at_dfem_int_pts[i] << std::endl;
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating Cv in space");
+      }
         
     }
   }

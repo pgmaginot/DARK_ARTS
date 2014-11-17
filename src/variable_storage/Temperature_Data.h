@@ -32,6 +32,7 @@ public:
   /// assignment operator
   Temperature_Data& operator= (const Temperature_Data& t_data);
   
+  /// calculate the numerical average of temperature in every cell.  NOT the volume average!
   double calculate_average(void);
   
 protected:
