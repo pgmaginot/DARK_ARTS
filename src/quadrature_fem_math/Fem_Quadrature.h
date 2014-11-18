@@ -63,6 +63,8 @@ public:
   
   void get_dfem_interpolation_point(std::vector<double>& dfem_pts) const;
   void get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const;
+  
+  double get_sum_of_dfem_interpolation_weights(void) const {return m_sum_dfem_weights;}
 private:
 
   void evaluate_lagrange_func(const std::vector<double>& interp_points, 
@@ -91,6 +93,8 @@ private:
     relevant only when OPACITY_SPATIAL_TREATMENT = INTERPOLATING
   */
   int m_n_xs_interpolation_points = -1;
+  
+  double m_sum_dfem_weights = 0.;
   
   /// Lagrange basis function interpolation points and associated weights
   std::vector<double> m_dfem_interpolation_points;

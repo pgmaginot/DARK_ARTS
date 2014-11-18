@@ -86,4 +86,23 @@ ConstantTemperature
 -Test "zero" temperature data constructor
 -Test numerical average temperature calculator
 
+ConstantIntensityIC
+-Test constant radiation temperature IC
+-Test that set/get pairs store and retieve the same 
+-Test "zero" intensity data constructor and ic intensity constructor
+
+IntensityMomentData
+-Test pass constant intensity ic, make sure the correct average is calculated
+-Get norm vector(one group)
+-Test zero constructor
+-Test copy constructor
+-get_cell_angle_integrated_intensity() const;
+-get_all_moments() const;
+-set_cell_angle_integrated_intensity();
+-clear_angle_integrated_intensity();
+-normalized_difference() const;
+-add_contribution();
+-get_phi_norm()
+
+
 

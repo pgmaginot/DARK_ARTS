@@ -30,14 +30,7 @@ public:
   
   /// assignment operator used during iteration processes
   Intensity_Moment_Data& operator= (const Intensity_Moment_Data& intensity_moment);
-  
-  /// Public accessor functions    
-  double get_angle_integrated_intensity(const int el, const int cell,
-    const int group, const int l_mom) const;
     
-  void get_cell_angle_integrated_intensity(const int cell, const int group, const int l_mom, 
-    std::vector<double>& loc_phi_vec) const;
-  
   /// return an Eigen compatible vector
   void get_cell_angle_integrated_intensity(const int cell, const int group, const int l_mom, 
     Eigen::VectorXd&  loc_phi_vec) const;
@@ -45,14 +38,7 @@ public:
   void get_all_moments(std::vector<Eigen::VectorXd>& local_phi, 
     const int cell, const int grp) const;
     
-  /// Public saver functions
-    
-  void set_angle_integrated_intensity(const int el, const int cell,
-    const int group, const int l_mom, const double val);
-    
-  void set_cell_angle_integrated_intensity(const int cell,
-    const int group, const int l_mom, const std::vector<double>& val);
-    
+  /// Public saver     
   void set_cell_angle_integrated_intensity(const int cell,
     const int group, const int l_mom, const Eigen::VectorXd& val);
     
@@ -87,6 +73,9 @@ private:
   
   std::vector<double> m_phi;
   
+  double get_angle_integrated_intensity(const int el, const int cell,
+    const int group, const int l_mom) const;
+  
   bool angle_integrated_range_check(const int el, const int cell, const int grp, const int l_mom) const;
     
   int angle_integrated_data_locator(const int el, const int cell, const int group, const int leg_mom) const;
@@ -96,7 +85,6 @@ private:
   void calculate_reference_phi_norms(const Intensity_Data& i_old, 
     const Angular_Quadrature& ang_quad, 
     const Fem_Quadrature& fem_quad);
-
 };
 
 #endif

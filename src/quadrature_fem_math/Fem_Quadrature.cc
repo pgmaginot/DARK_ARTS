@@ -41,6 +41,9 @@ m_xs_extra_points{ 10}
       }
     }  
     
+    for(int i = 0 ; i<m_n_interpolation_points ; i++)
+      m_sum_dfem_weights += m_dfem_interpolation_weights[i];
+    
     /** Get the points where we will evaluate material properties at
         These points are different than the points which will be integrated
     */

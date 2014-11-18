@@ -28,7 +28,7 @@ public:
   int get_number_of_groups(void) const;
   int get_number_of_leg_moments(void) const;
   double get_leg_poly(const int dir, const int mom) const;
-  double get_leg_moment_coeff(const int dir, const int mom) const;
+  double get_leg_moment_coeff_build(const int dir, const int mom) const;
   double get_mu(const int dir) const;
   double get_w(const int dir) const;
   double get_sum_w(void) const;
@@ -65,6 +65,7 @@ protected:
   
   /// legendre polynomials evaluated at discrete ordinates
   std::vector<double> m_legendre_poly;  
+  std::vector<double> m_legendre_poly_alone;
 
   /// frequency group bounds
   std::vector<double> m_grp_e_min;

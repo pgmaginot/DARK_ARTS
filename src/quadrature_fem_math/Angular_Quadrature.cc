@@ -23,6 +23,7 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
     
     const int n_leg_evals = m_n_legendre_moments * m_n_dir;
     m_legendre_poly.resize(n_leg_evals,0.);
+    m_legendre_poly_alone.resize(n_leg_evals,0.);
     
     if(quad_type == GAUSS_ANGLE)
     {
@@ -43,6 +44,7 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
     {
       leg_poly.get_evaluated_legendre_polynomials( m_mu[d] , m_n_legendre_moments - 1 , d*m_n_legendre_moments, m_legendre_poly );
     }
+    m_legendre_poly_alone = m_legendre_poly;
 
     /// add in \f$ \frac{2l + 1}{2} \f$
     int cnt = 0;
@@ -89,6 +91,11 @@ int Angular_Quadrature::get_number_of_leg_moments(void) const
 double Angular_Quadrature::get_leg_poly(const int dir, const int mom) const
 {
   return m_legendre_poly[m_n_legendre_moments*dir + mom];
+}
+
+double Angular_Quadrature::get_leg_moment_coeff_build(const int dir, const int mom) const
+{
+  return m_legendre_poly_alone[m_n_legendre_moments*dir + mom];
 }
 
 double Angular_Quadrature::get_mu(const int dir) const

@@ -35,7 +35,7 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const A
   m_small_ratio{1.0E-6},
   m_phi(m_phi_length,0.)
   { 
-    /// calculate 0th angular moment of each group of i_old to estimate scale for phi error comparison
+    /// initialize phi to whatever i_old would dictate, then calculate norm (on the fly)
     calculate_reference_phi_norms(i_old, ang_quad, fem_quad);
   }
   
@@ -101,6 +101,7 @@ void Intensity_Moment_Data::set_cell_angle_integrated_intensity(const int cell,
   return;
 }
 
+/// take in a contribution to m_phi, contrib, and add to the correct elements
 void Intensity_Moment_Data::add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib)
 {
   int val_loc = angle_integrated_data_locator(0,cell,grp,l_mom);
@@ -203,6 +204,7 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
     }
     
   */
+  
   double phi_new_this = 0.;
   double loc_err;
   for(int cell = 0; cell < m_cells; cell++)
@@ -224,7 +226,7 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
             loc_err = fabs( phi_new_this - phi_compare.get_angle_integrated_intensity(el,cell,grp,l_mom) );
           }
           
-          if(loc_err < err_phi.get_worst_err() )
+          if(loc_err > err_phi.get_worst_err() )
           {
             err_phi.set_error(cell, grp, l_mom, loc_err);
           }          
@@ -262,22 +264,39 @@ void Intensity_Moment_Data::calculate_reference_phi_norms(const Intensity_Data& 
   std::vector<double> w_dfem_points;
   fem_quad.get_dfem_interpolation_point_weights(w_dfem_points);
   
+  Eigen::VectorXd i_local(m_el_per_cell);  
+  Eigen::VectorXd phi_contrib_local(m_el_per_cell);  
+  
   for(int cell = 0; cell < m_cells; cell++)
   {
     for(int grp = 0; grp < m_groups ; grp++)
     {
       for(int dir = 0; dir < ang_quad.get_number_of_dir() ; dir++)
       {
+        i_old.get_cell_intensity(cell,grp,dir,i_local);  
+        /// calculate numerical average of scalar flux in this cell, and keep a running tally
         for(int el = 0; el < m_el_per_cell ; el++)
         {
-          m_norm_for_err[grp] += w_dfem_points[el]/2.*i_old.get_intensity(el,cell,grp,dir);
+          m_norm_for_err[grp] += w_dfem_points[el]*ang_quad.get_w(dir)*i_local(el);
         }
+        
+        if( (dir==0) )
+          std::cout << "Cell: " << cell << " isotropic intensity: " << i_local(0) << std::endl;
+          
+        /// now save flux moments of solution
+        for(int l = 0; l< m_leg; l++)
+        {
+          phi_contrib_local = ang_quad.get_w(dir)*ang_quad.get_leg_moment_coeff_build(dir,l)* i_local;
+          add_contribution(cell,grp,l,phi_contrib_local );
+        }        
       }
     }
   }
   
+  const double div = m_small_ratio/( fem_quad.get_sum_of_dfem_interpolation_weights() * double(m_cells) );
+  /// numerical average of phi across all cells
   for(int g=0; g<m_groups; g++)
-    m_norm_for_err[g] = fabs(m_norm_for_err[g])*m_small_ratio/( double(m_cells) );
+    m_norm_for_err[g] = fabs(m_norm_for_err[g])*div;
 
   return;
 }

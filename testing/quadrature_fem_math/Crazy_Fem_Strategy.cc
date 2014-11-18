@@ -29,6 +29,7 @@ int main(int argc, char** argv)
   const int n_dfem_pt = 4;
   const int n_xs_pt = 5;
   const int n_int_pt = 8;
+  const double sum_dfem_weights = 2.;
   
   std::vector<double> dfem_pts(n_dfem_pt,0.);
   std::vector<double> xs_pts(n_xs_pt,0.);
@@ -222,6 +223,10 @@ int main(int argc, char** argv)
       if(fabs(da_dfem_pt[i] - dfem_pts[i] ) > tol)
         throw Dark_Arts_Exception(FEM , "DFEM interpolation points not correct" );
     }
+    
+    if( fabs(fem_quadrature.get_sum_of_dfem_interpolation_weights() - sum_dfem_weights ) > tol )
+      throw Dark_Arts_Exception(FEM, "DFEM interpolation points weights are not summing to 2");
+    
   }
   catch(const Dark_Arts_Exception& da)
   {

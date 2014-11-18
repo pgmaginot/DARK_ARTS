@@ -6,6 +6,7 @@
 #include "Input_Reader.h"
 #include "Cell_Data.h"
 #include "Intensity_Data.h"
+#include "Intensity_Moment_Data.h"
 #include "Angular_Quadrature.h"
 #include "Materials.h"
 #include "Fem_Quadrature.h"
@@ -21,9 +22,8 @@ int main(int argc, char** argv)
   std::vector<int> expected_n_cells(2,0);
   expected_n_cells[0] = 5;
   expected_n_cells[1] = 3;
-  const double sn_w = 2.;
-  const double I_0 = pow(0.4, 4 )/sn_w;
-  const double I_1 = pow(0.98,4 )/sn_w;
+  const double phi_0 = pow(0.4, 4 );
+  const double phi_1 = pow(0.98,4 );
   
   Input_Reader input_reader;    
     
@@ -41,69 +41,153 @@ int main(int argc, char** argv)
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);    
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
   Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
-      
-  const int n_p = fem_quadrature.get_number_of_interpolation_points();
-  Eigen::VectorXd local_i_vec;
-  Eigen::VectorXd local_zero_vec;
   
   Intensity_Data intensity_ic(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);
-  Intensity_Data intensity_zero(cell_data, angular_quadrature, fem_quadrature);
+  
+  Intensity_Moment_Data phi_ic(cell_data,angular_quadrature, fem_quadrature, intensity_ic);
+  
+  
   
   int cell_cnt = 0;
-  const int n_dir = angular_quadrature.get_number_of_dir();
+  const int n_l_mom = angular_quadrature.get_number_of_leg_moments();
   const int n_grp = 1;
+  const int n_p = fem_quadrature.get_number_of_interpolation_points();
+  
+  
+  Eigen::VectorXd local_phi_vec(n_p);
+  
+  std::vector<Eigen::VectorXd> all_flux_moment(n_l_mom , Eigen::VectorXd(n_p) );
+  
   try
   {
     for(int reg=0; reg < 2 ; reg++)
     {
-      double I;
+      double phi;
       if( reg==0)
-        I = I_0;
+        phi = phi_0;
       else
-        I = I_1;
+        phi = phi_1;
         
       for(int cell = 0; cell < expected_n_cells[reg] ; cell++)
       {
-        for(int dir = 0; dir < n_dir ; dir++)
+        phi_ic.get_all_moments(all_flux_moment,cell_cnt , 0 );
+        for(int leg = 0; leg < n_l_mom ; leg++)
         {       
-          local_i_vec = Eigen::VectorXd::Zero(n_p);
-          local_zero_vec = Eigen::VectorXd::Ones(n_p);
-          intensity_ic.get_cell_intensity( cell_cnt, n_grp-1 , dir, local_i_vec);
-          intensity_zero.get_cell_intensity(cell_cnt,n_grp-1,dir,local_zero_vec);
-          for(int el = 0 ; el < n_p ; el++)
+          phi_ic.get_cell_angle_integrated_intensity(cell_cnt,n_grp-1,leg,local_phi_vec); 
+          for(int el = 0; el < n_p ; el++)
           {
-            if( fabs( local_i_vec(el) - I) > tol )
-              throw Dark_Arts_Exception(VARIABLE_STORAGE , "IC intensity different than expected");
-              
-            if( fabs(local_zero_vec(el) ) > tol )
-              throw Dark_Arts_Exception(VARIABLE_STORAGE , "Zero intensity different than expected");
-          }
-          
-          local_zero_vec(0) = double(cell_cnt) + 10.*double(dir+1) + 0.1; 
-          local_zero_vec(1) = double(cell_cnt) + 10.*double(dir+1) + 0.2; 
-          local_zero_vec(2) = double(cell_cnt) + 10.*double(dir+1) + 0.3; 
-          local_zero_vec(3) = double(cell_cnt) + 10.*double(dir+1) + 0.4; 
-          intensity_zero.set_cell_intensity(cell_cnt,n_grp-1,dir,local_zero_vec);
+            if(leg ==0)
+            {
+              if( fabs(local_phi_vec(el) - phi) > tol )
+                throw Dark_Arts_Exception( VARIABLE_STORAGE , "Incorrect intensity_moment_data initial condition");
+                
+              if( fabs(all_flux_moment[leg](el) - phi) > tol )
+                throw Dark_Arts_Exception( VARIABLE_STORAGE , "Incorrect intensity_moment_data when retireving all flux moments");
+            }
+            else
+            {
+              if(fabs( local_phi_vec(el) ) > tol )
+                throw Dark_Arts_Exception( VARIABLE_STORAGE , "Incorrect intensity_moment_data should be isotropic");
+                
+              if( fabs(all_flux_moment[leg](el) ) > tol )
+                throw Dark_Arts_Exception( VARIABLE_STORAGE , "Incorrect zero intensity_moment_data when retireving all flux moments");
+            }            
+          }          
         }
         cell_cnt++;
       }
     }
     
-    std::cout << "Checking Set/Get\n";
+    /// test the average
+    std::vector<double> ref_norm(n_grp,0.);
+    phi_ic.get_phi_norm(ref_norm);
     
-    /// check the set get's again, independently
-    for(int d = (n_dir - 1); d > -1 ; d--)
+    double expected_norm = (5.*phi_0 + 3.*phi_1)/8. *1.0E-6;
+    std::cout << "Calculated norm for difference calculations: " << ref_norm[0] << " Expected norm for difference calculations: " << expected_norm << std::endl;
+    if(fabs( expected_norm - ref_norm[0] )/expected_norm > tol )
     {
-      for(int cell = 0; cell < 8 ; cell++)
-      {
-        intensity_zero.get_cell_intensity(cell,n_grp-1,d,local_zero_vec);
+      throw Dark_Arts_Exception( VARIABLE_STORAGE , "Not calculating expected phi_norm" );
+    }
+    
+    Intensity_Moment_Data blank_phi(cell_data, angular_quadrature, fem_quadrature, ref_norm);
+    for(int cell = 0; cell < 8 ; cell++)
+    {
+      blank_phi.get_all_moments(all_flux_moment,cell , 0 );
+      for(int leg = 0; leg < n_l_mom ; leg++)
+      {       
+        blank_phi.get_cell_angle_integrated_intensity(cell,n_grp-1,leg,local_phi_vec); 
         for(int el = 0; el < n_p ; el++)
         {
-          if( fabs(local_zero_vec(el) - (double(cell) + 10.*double(d+1) + 0.1*double(el+1) ) ) > tol)
-            throw Dark_Arts_Exception(VARIABLE_STORAGE , "Set/get problems"); 
-        }      
+          if(fabs( local_phi_vec(el) ) > tol )
+            throw Dark_Arts_Exception( VARIABLE_STORAGE , "Incorrect intensity_moment_data.  Should be isotropic");
+                
+          if( fabs(all_flux_moment[leg](el) ) > tol )
+            throw Dark_Arts_Exception( VARIABLE_STORAGE , "Incorrect zero intensity_moment_data when retireving all flux moments");
+        }
       }
     }
+    
+    Err_Phi err_phi;
+    /// difference should be the maximum of phi_0 and phi_1
+    phi_ic.normalized_difference(blank_phi, err_phi);
+    
+    std::cout << "Worst error:  " << err_phi.get_worst_err() << " phi_1: " << phi_1 << std::endl;
+    if( fabs( err_phi.get_worst_err() - 1.) > tol)
+      throw Dark_Arts_Exception(VARIABLE_STORAGE, "Did not find correct error magnitude");
+      
+    if( err_phi.get_legendre_moment_with_worst_err() != 0)
+      throw Dark_Arts_Exception(VARIABLE_STORAGE, "Largest error found in not scalar flux moment for isotropic intensity");
+      
+    if(err_phi.get_group_with_worst_err() != 0 )
+      throw Dark_Arts_Exception(VARIABLE_STORAGE, "Largest error not in group 0 for a grey problem");
+      
+    blank_phi = phi_ic;
+    
+    err_phi.clear();
+    phi_ic.normalized_difference(blank_phi, err_phi);
+    if( fabs(err_phi.get_worst_err() ) > tol )
+      throw Dark_Arts_Exception( VARIABLE_STORAGE, "Should calculate zoer error if assignment operator works correctly for Intensity_Moment_Data");
+    
+    phi_ic.clear_angle_integrated_intensity();
+    for(int cell = 0; cell < 8 ; cell++)
+    {
+      for(int leg = 0; leg < n_l_mom ; leg++)
+      {       
+        phi_ic.get_cell_angle_integrated_intensity(cell,n_grp-1,leg,local_phi_vec); 
+        for(int el = 0; el < n_p ; el++)
+        {
+          if(fabs( local_phi_vec(el) ) > tol )
+            throw Dark_Arts_Exception( VARIABLE_STORAGE , "clear_angle_integrated_intensity did not work correctly");
+        }
+      }
+    }
+  
+    /// manufacture an angular solution in cell 0, grp 0
+    const int n_dir = angular_quadrature.get_number_of_dir();
+    
+    std::vector<double> phi_moment(n_l_mom,0.);    
+    phi_moment[0] = 1.;
+    phi_moment[1] = 0.1;
+    phi_moment[2] = 2.2;
+    phi_moment[3] = 0.5;
+    phi_moment[4] = 0.;
+    
+    for(int l_mom = 0; l_mom < n_l_mom ; l_mom++)
+    {
+      for(int el = 0; el<n_p ; el++)
+        local_phi_vec(el) = phi_moment[l_mom];
+
+      phi_ic.set_cell_angle_integrated_intensity(0,0,l_mom ,local_phi_vec);        
+    }
+    
+    Intensity_Moment_Data i_copy_constructor(phi_ic);
+    for(int l_mom = 0; l_mom < n_l_mom ; l_mom++)
+    {
+      phi_ic.get_cell_angle_integrated_intensity(0,0,l_mom ,local_phi_vec);  
+      if(fabs( local_phi_vec(0) - phi_moment[l_mom] ) > tol)
+        throw Dark_Arts_Exception(VARIABLE_STORAGE , "Error with set/get or copy constructor");
+    }
+    
   } 
   catch(const Dark_Arts_Exception& da_exception )
   {

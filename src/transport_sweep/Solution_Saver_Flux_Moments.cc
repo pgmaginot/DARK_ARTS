@@ -18,7 +18,8 @@ void Solution_Saver_Flux_Moments::save_local_solution(Intensity_Moment_Data& phi
 {
   for(int l_mom=0;l_mom<m_n_l_mom;l_mom++)
   {
-    m_loc_val = m_quad_ref.get_w(dir)*m_quad_ref.get_leg_poly(dir,l_mom)*local_intensity;
+    /// m_loc_val is an Eigen vector that is the contribution to the l_mom Legendre moment
+    m_loc_val = m_quad_ref.get_w(dir)*m_quad_ref.get_leg_moment_coeff_build(dir,l_mom)*local_intensity;
     phi_new.add_contribution(cell,grp,l_mom,m_loc_val  );
   }
   
