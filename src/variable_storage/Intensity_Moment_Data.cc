@@ -279,10 +279,6 @@ void Intensity_Moment_Data::calculate_reference_phi_norms(const Intensity_Data& 
         {
           m_norm_for_err[grp] += w_dfem_points[el]*ang_quad.get_w(dir)*i_local(el);
         }
-        
-        if( (dir==0) )
-          std::cout << "Cell: " << cell << " isotropic intensity: " << i_local(0) << std::endl;
-          
         /// now save flux moments of solution
         for(int l = 0; l< m_leg; l++)
         {
