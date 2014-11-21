@@ -14,9 +14,15 @@ LogSpacingTest - 2Region_Log_Spacing.xml - LogSpacing.cc
 --Test of log spacing.  Cell sizes increase by a factor of 2 from L to R in region 1, and decrease by a factor of 4 from left to right in region 2.
 --- Cell spacing widths should be:  1 , 2 , 4 , 8, 16 , 4 , 1 , 0.25
 --Testing that two materials are assigned into the proper regions
+--Dump Cell_Data to file so that it can be read by LogSpacingRefinementTest
 
 EqualSpacingTest - 1Region_Equal_Spacing.xml - EqualSpacing.cc
 --Test of equal spacing.  5 cells, x_left = 1.0; x_right = 22.0
+
+LogSpacingRefinementTest - LogSpacingRefinement.cc - 2Region_Log_Spacing_Refinement.xml
+-Read mesh created by LogSpacingTest
+-Refine by LogSpacingTest mesh by a factor of 4, verify correctness
+-Dump refined mesh to .xml file
 
 #################################################################################
 
@@ -42,6 +48,17 @@ Crazy_Fem_Strategy_Test- Crazy_Fem_Strategy.cc - Crazy_Fem_Strategy.xml
 -- check that Fem_Quadrature pulls all of the correct quadrature points/weights
 -- Check DFEM shape functions
 
+Exact_Integration_Test - Exact_Integration.cc - One_Cell_Angle_Quadrature.xml
+-Check mass matrix integration of quadratic dfem with equally spaced DFEM interpolation points, and exact matrix integration
+
+Gauss_Self_Lumping_Test - Gauss_Self_Lumping.cc - Gauss_Self_Lumping.xml
+-P4 self lumping Gauss
+
+Lobatto_Self_Lumping_Test - Lobatto_Self_Lumping.cc - 1Region_Equal_Spacing.xml
+-P3 self lumping Lobatto
+
+Traditional_Lumping_Test - Traditional_Lumping.cc - Exponential_Time.xml
+-P3 equal spacing, traditional lumping
 #################################################################################
 
 time_data/
@@ -80,18 +97,18 @@ SLXS_Test - SLXS.cc - SLXS.cc - 2Region_Log_Spacing.xml
 
 variable_storage/
 
-ConstantTemperature
+ConstantTemperatureTest - ConstantTemperature.cc - 2Region_Log_Spacing.xml
 -Test constant temperature IC
 -Test Temperature_Data_copy
 -Test "zero" temperature data constructor
 -Test numerical average temperature calculator
 
-ConstantIntensityIC
+ConstantIntensityICTest - ConstantIntensityIC.cc - 2Region_Log_Spacing.xml
 -Test constant radiation temperature IC
 -Test that set/get pairs store and retieve the same 
 -Test "zero" intensity data constructor and ic intensity constructor
 
-IntensityMomentData
+IntensityMomentDataTest - IntensityMomentData.cc - 2Region_Log_Spacing.xml
 -Test pass constant intensity ic, make sure the correct average is calculated
 -Get norm vector(one group)
 -Test zero constructor
@@ -103,6 +120,11 @@ IntensityMomentData
 -normalized_difference() const;
 -add_contribution();
 -get_phi_norm()
+
+OutputTrialTest - OutputTrial.cc 1Region_Equal_Spacing.xml
+-write sample .xml and .txt files for dumping Intensity, Intensty_Moment and Temperature data objects
+-visual comparison for correctness
+
 
 
 

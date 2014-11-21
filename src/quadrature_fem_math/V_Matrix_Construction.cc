@@ -10,9 +10,9 @@
 V_Matrix_Construction::V_Matrix_Construction(const Fem_Quadrature& fem_quadrature, Materials& materials)
 :
   m_materials(materials),
-  m_n_quad_pts{ fem_quadrature.get_number_of_interpolation_points() }, 
-  m_n_basis_pts{ fem_quadrature.get_number_of_integration_points() } ,
-  m_n_source_quad_pts{ fem_quadrature.get_number_of_source_points() }
+  m_n_basis_pts( fem_quadrature.get_number_of_interpolation_points() ), 
+  m_n_quad_pts( fem_quadrature.get_number_of_integration_points() ) ,
+  m_n_source_quad_pts( fem_quadrature.get_number_of_source_points() )
 {    
   m_xs_evals.resize(m_n_quad_pts,0.);
   m_source_evals.resize(m_n_source_quad_pts,0.);
@@ -62,7 +62,7 @@ void V_Matrix_Construction::construct_r_sigma_s(std::vector<Eigen::MatrixXd>& r_
 void V_Matrix_Construction::construct_pos_gradient_matrix(Eigen::MatrixXd& l_pos)
 {
   double temp_sum = 0.;
-  for(int i=0; i<m_n_basis_pts;i++)
+  for(int i=0; i< m_n_basis_pts ;i++)
   {
     for(int j=0; j<m_n_basis_pts;j++)
     {
@@ -112,7 +112,7 @@ void V_Matrix_Construction::construct_neg_upwind_vector(Eigen::VectorXd& f_neg)
 {
   for(int j=0; j<m_n_basis_pts;j++)
   {
-    f_neg(j) = m_basis_at_right_edge[j];
+    f_neg(j) = -m_basis_at_right_edge[j];
   }
   return;
 }   

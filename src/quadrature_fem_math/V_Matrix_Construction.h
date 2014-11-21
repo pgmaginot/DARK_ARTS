@@ -74,11 +74,12 @@ protected:
     Store the evaluated basis functions and quadrature rules from
     Fem_Quadrature objects
   */
+  /// number of DFEM basis functions (1 basis function per interpoaltion/basis point
+  const int m_n_basis_pts ;
 
   /// DFEM matrix quadrature
   const int m_n_quad_pts ;
-  /// number of DFEM basis functions (1 basis function per interpoaltion/basis point
-  const int m_n_basis_pts ;
+
   
   /// source moment quadrature (may be different / more exact than matrix quadrature
   const int m_n_source_quad_pts;

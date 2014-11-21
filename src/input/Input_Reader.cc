@@ -16,56 +16,26 @@ void Input_Reader::read_xml(std::string xmlFile)
   
   if( loaded  )
   {
-    std::cout << "Found input file: " << xmlFile << std::endl << std::endl;
+    std::cout << "Found input file: " << xmlFile << std::endl;
   }
   else{
+    std::cout << "Looking for file: " << xmlFile << std::endl;
     throw Dark_Arts_Exception( INPUT , "Error reading input file, file non-existent or XML error" );
   }
   
-  TiXmlElement* inp_block = doc.FirstChildElement( "INPUT_FILE" );
+  TiXmlElement* restart_elem = doc.FirstChildElement( "RESTART_FILE" );  
   
-  if( !inp_block )
-    throw Dark_Arts_Exception( INPUT ,  "INPUT_FILE block not found. " );
-  
-  //! Every Input File Is Required To Have These Blocks
-  TiXmlElement* reg_elem = inp_block->FirstChildElement( "REGIONS" );
-  TiXmlElement* mat_elem = inp_block->FirstChildElement( "MATERIALS" );
-  TiXmlElement* time_elem = inp_block->FirstChildElement( "TIME" );
-  TiXmlElement* discr_elem = inp_block->FirstChildElement( "SPATIAL_DISCRETIZATION" );
-  TiXmlElement* angle_elem = inp_block->FirstChildElement( "ANGULAR_DISCRETIZATION" );
-  TiXmlElement* solver_elem = inp_block->FirstChildElement( "SOLVER" );
-  TiXmlElement* bc_ic_elem = inp_block->FirstChildElement( "BC_IC" );
-  
-  if(!reg_elem)
-    throw Dark_Arts_Exception( INPUT , "REGIONS block not found.");
-  
-  if(!mat_elem)
-    throw Dark_Arts_Exception( INPUT , "MATERIALS block not found.");
-    
-  if(!time_elem)
-    throw Dark_Arts_Exception( INPUT ,  "TIME block not found. ");
-  
-  if(!discr_elem)
-    throw Dark_Arts_Exception( INPUT , "SPATIAL_DISCRETIZATION block not found.");
- 
-  if(!angle_elem)
-    throw Dark_Arts_Exception( INPUT , "ANGULAR_DISCRETIZATION block not found.");
-  
-  if(!solver_elem)
-    throw Dark_Arts_Exception( INPUT ,  "SOLVER block not found. ");
- 
-  if(!bc_ic_elem)
-    throw Dark_Arts_Exception( INPUT , "BC_IC block not found. ");  
-  
-  //! Load Data Appropriately from each input block
-  load_region_data(reg_elem);
-  load_material_data(mat_elem);
-  load_time_stepping_data(time_elem);
-  load_spatial_discretization_data(discr_elem);
-  load_angular_discretization_data(angle_elem);
-  load_solver_data(solver_elem);
-  load_bc_ic_data(bc_ic_elem);
-   
+  if(restart_elem)
+  {
+    /// mesh refinement or restart run
+    m_is_mesh_refinement = true;
+    load_restart_problem(restart_elem);
+  }
+  else
+  {
+    /// run beginning from scratch
+    load_from_scratch_problem(doc);
+  }
   return;
 }
 
@@ -424,6 +394,130 @@ BC_ENERGY_DEPENDENCE Input_Reader::get_right_bc_energy_dependence(void) const
  *
  * ************************************************** */
 
+ void Input_Reader::load_restart_problem(TiXmlElement* restart_elem)
+{
+  TiXmlElement* type_elem = restart_elem->FirstChildElement("Restart_type");
+  if(!type_elem)
+    throw Dark_Arts_Exception(INPUT, "Missing Restart_type element");
+    
+  std::string type_str = type_elem->GetText();
+  transform(type_str.begin() , type_str.end() , type_str.begin() , toupper);
+  
+  if(type_str == "MESH_REFINEMENT")
+  {
+    m_restart_type = MESH_REFINEMENT;
+  }
+  else if(type_str == "RESTART")
+  {
+    m_restart_type = RESTART;
+  }
+  
+  TiXmlElement* data_dump_path = restart_elem->FirstChildElement( "Data_dump_path" );
+  if(!data_dump_path)
+    throw Dark_Arts_Exception(INPUT, "Every RESTART_FILE element must have Data_dump_path element ");
+    
+  m_data_dump_str = data_dump_path->GetText();
+  
+  switch(m_restart_type)
+  {
+    case MESH_REFINEMENT:
+    {
+      /// load everything basically the same as before, but change the number of cells per region from the initial file
+      TiXmlElement* refine_factor = type_elem->FirstChildElement( "Refinement_factor");
+      TiXmlElement* initial_input = type_elem->FirstChildElement( "Initial_inputfile");
+      
+      if(!refine_factor)
+        throw Dark_Arts_Exception(INPUT, "Must have Refinement_factor block for MESH_REFINEMENT restarts");
+        
+      if(!initial_input)
+        throw Dark_Arts_Exception(INPUT, "Must have Initial_inputfile block for MESH_REFINEMENT restarts");
+        
+      m_refinement_factor = atoi( refine_factor->GetText() );
+      if(m_refinement_factor < 2)
+        throw Dark_Arts_Exception(INPUT , "Refinement factor must be an integer greater than 1");
+        
+      m_initial_input_str = initial_input->GetText();
+      
+      TiXmlDocument doc( m_initial_input_str.c_str() );  
+      bool loaded = doc.LoadFile();  
+      if( loaded  )
+      {
+        std::cout << "Found initial input file: " << m_initial_input_str << std::endl ;
+      }
+      else{
+        std::cout << "Failed to find initial input file: " << m_initial_input_str << std::endl;
+        throw Dark_Arts_Exception( INPUT , "Error reading initial input file, file non-existent or XML error" );
+      }      
+      load_from_scratch_problem(doc);
+      
+      for(int i =0 ; i < m_number_regions ; i++) 
+        m_cells_per_region[i] *= m_refinement_factor;
+      
+            
+      break;
+    }
+    case RESTART:
+    {
+      break;
+    }
+    case INVALID_RESTART_TYPE:
+    {
+      throw Dark_Arts_Exception(INPUT, "RESTART_FILE inputs require a valid entry in Restart_type element");      
+    }
+  }
+  
+  return;
+}
+
+void Input_Reader::load_from_scratch_problem(TiXmlDocument& doc)
+{
+  TiXmlElement* inp_block = doc.FirstChildElement( "INPUT_FILE" );
+  
+  if( !inp_block )
+    throw Dark_Arts_Exception( INPUT ,  "INPUT_FILE block not found. " );
+  
+  //! Every Input File Is Required To Have These Blocks
+  TiXmlElement* reg_elem = inp_block->FirstChildElement( "REGIONS" );
+  TiXmlElement* mat_elem = inp_block->FirstChildElement( "MATERIALS" );
+  TiXmlElement* time_elem = inp_block->FirstChildElement( "TIME" );
+  TiXmlElement* discr_elem = inp_block->FirstChildElement( "SPATIAL_DISCRETIZATION" );
+  TiXmlElement* angle_elem = inp_block->FirstChildElement( "ANGULAR_DISCRETIZATION" );
+  TiXmlElement* solver_elem = inp_block->FirstChildElement( "SOLVER" );
+  TiXmlElement* bc_ic_elem = inp_block->FirstChildElement( "BC_IC" );  
+  
+  if(!reg_elem)
+    throw Dark_Arts_Exception( INPUT , "REGIONS block not found.");
+  
+  if(!mat_elem)
+    throw Dark_Arts_Exception( INPUT , "MATERIALS block not found.");
+    
+  if(!time_elem)
+    throw Dark_Arts_Exception( INPUT ,  "TIME block not found. ");
+  
+  if(!discr_elem)
+    throw Dark_Arts_Exception( INPUT , "SPATIAL_DISCRETIZATION block not found.");
+ 
+  if(!angle_elem)
+    throw Dark_Arts_Exception( INPUT , "ANGULAR_DISCRETIZATION block not found.");
+  
+  if(!solver_elem)
+    throw Dark_Arts_Exception( INPUT ,  "SOLVER block not found. ");
+ 
+  if(!bc_ic_elem)
+    throw Dark_Arts_Exception( INPUT , "BC_IC block not found. ");  
+     
+  //! Load Data Appropriately from each input block
+  load_region_data(reg_elem);
+  load_material_data(mat_elem);
+  load_time_stepping_data(time_elem);
+  load_spatial_discretization_data(discr_elem);
+  load_angular_discretization_data(angle_elem);
+  load_solver_data(solver_elem);
+  load_bc_ic_data(bc_ic_elem);
+  
+  return;
+}  
+ 
 int Input_Reader::load_region_data(TiXmlElement* region_element)
 {  
   /// Get the number of regions in the problem

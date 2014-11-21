@@ -23,6 +23,14 @@ public:
   
   //! read the supplied input file, start populating data objects
   void read_xml(std::string xmlFile);
+  int m_refinement_factor = -1;
+  std::string m_initial_input_str;
+  bool m_is_mesh_refinement = false;
+  std::string m_data_dump_str;
+  void get_data_dump_path(std::string& dump_path) const { dump_path = m_data_dump_str; return;}
+  bool is_mesh_refinement(void) const { return m_is_mesh_refinement; }
+  void get_initial_input_filename(std::string& base_filename) const { base_filename = m_initial_input_str; return;}
+  int get_refinement_factor(void) const {return m_refinement_factor; } 
   
   /// Functions called by Fem_Quadrature class to access input data
   int get_dfem_degree(void) const {  return m_dfem_trial_space_degree; }
@@ -130,6 +138,9 @@ protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
   
+  /// Restart type
+  RESTART_TYPE m_restart_type = INVALID_RESTART_TYPE;
+  
   /// regions input block
   int m_number_regions = -1;
   int m_number_materials = -1;
@@ -230,6 +241,9 @@ protected:
   double m_bc_left_start_time = -1.;
   double m_bc_left_end_time = -2.;
 
+  void load_restart_problem(TiXmlElement* restart_elem);
+  void load_from_scratch_problem(TiXmlDocument& doc);
+  
   //! readers for the specific xml blocks
   int load_region_data(TiXmlElement* region_element);
   int load_material_data(TiXmlElement* mat_elem);

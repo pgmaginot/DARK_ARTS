@@ -58,9 +58,40 @@ set_tests_properties( Crazy_Fem_Strategy_Test PROPERTIES LABELS "quadrature_fem_
 
 # ###############################################################
 
-# set(EXE_NAME Exact_Integration)
+set(EXE_NAME Exact_Integration)
 
-#add_executable(${EXE_NAME} ${EXE_NAME}.cc)
-#target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
 
-#add_test(Exact_Integration_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/One_Cell_Angle_Quadrature.xml )
+add_test(Exact_Integration_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/One_Cell_Angle_Quadrature.xml )
+set_tests_properties( Exact_Integration_Test PROPERTIES LABELS "quadrature_fem_math;Exact")
+
+# ###############################################################
+
+set(EXE_NAME Gauss_Self_Lumping)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(Gauss_Self_Lumping_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/Gauss_Self_Lumping.xml )
+set_tests_properties( Gauss_Self_Lumping_Test PROPERTIES LABELS "quadrature_fem_math;Lumping")
+
+# ###############################################################
+
+set(EXE_NAME Lobatto_Self_Lumping)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(Lobatto_Self_Lumping_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/1Region_Equal_Spacing.xml )
+set_tests_properties( Lobatto_Self_Lumping_Test PROPERTIES LABELS "quadrature_fem_math;Lumping")
+
+# ###############################################################
+
+set(EXE_NAME Traditional_Lumping)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(Traditional_Lumping_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/Exponential_Time.xml )
+set_tests_properties( Traditional_Lumping_Test PROPERTIES LABELS "quadrature_fem_math;Lumping")

@@ -56,8 +56,8 @@
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
-    <DFEM_degree> 2 </DFEM_degree>
-    <Integration_type> TRAD_lumping </Integration_type>
+    <DFEM_degree> 3 </DFEM_degree>
+    <Integration_type> Self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Lobatto </DFEM_interpolation_point_type>
     <Opacity_treatment> Interpolating 
       <Opacity_interpolation_point_type> Lobatto </Opacity_interpolation_point_type>

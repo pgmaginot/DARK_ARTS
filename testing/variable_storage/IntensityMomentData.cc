@@ -161,9 +161,6 @@ int main(int argc, char** argv)
         }
       }
     }
-  
-    /// manufacture an angular solution in cell 0, grp 0
-    const int n_dir = angular_quadrature.get_number_of_dir();
     
     std::vector<double> phi_moment(n_l_mom,0.);    
     phi_moment[0] = 1.;
@@ -186,8 +183,7 @@ int main(int argc, char** argv)
       phi_ic.get_cell_angle_integrated_intensity(0,0,l_mom ,local_phi_vec);  
       if(fabs( local_phi_vec(0) - phi_moment[l_mom] ) > tol)
         throw Dark_Arts_Exception(VARIABLE_STORAGE , "Error with set/get or copy constructor");
-    }
-    
+    }    
   } 
   catch(const Dark_Arts_Exception& da_exception )
   {

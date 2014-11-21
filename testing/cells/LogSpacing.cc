@@ -5,6 +5,10 @@
 
 #include "Input_Reader.h"
 #include "Cell_Data.h"
+#include "Output_Generator.h"
+#include "Angular_Quadrature.h"
+#include "Fem_Quadrature.h"
+#include "Quadrule_New.h"
 #include "Dark_Arts_Exception.h"
 
 int main(int argc, char** argv)
@@ -56,8 +60,15 @@ int main(int argc, char** argv)
   }
   std::cout << "Completed reading input file\n";
   
+  /// Do all this to dump an output file that I want to use for LogSpacingRefinementTest
   Cell_Data cell_data( input_reader ); 
+  Quadrule_New quad_fun;  
+  Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
+  Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
+  Output_Generator output( angular_quadrature, fem_quadrature, cell_data, argv[1] );
+  
   try{
+  
     int n_cells = cell_data.get_total_number_of_cells();
     if( n_cells != expected_n_cells)
     {

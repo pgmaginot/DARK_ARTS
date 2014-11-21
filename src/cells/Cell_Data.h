@@ -37,6 +37,8 @@ protected:
   
   void determine_cell_properties(const int n_reg, const std::vector<int>& cell_reg,
     const Input_Reader& input_reader);
+    
+  void read_mesh_and_refine(const Input_Reader& input_reader);
 };
 
 #endif
