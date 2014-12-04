@@ -41,7 +41,7 @@ int main(int argc, char** argv)
   
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
     
-  Temperature_Data temperature_ic( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);   
+  Temperature_Data temperature_ic( fem_quadrature, input_reader, cell_data);   
 
   Temperature_Data temperature_zero( cell_data.get_total_number_of_cells() , fem_quadrature);
   

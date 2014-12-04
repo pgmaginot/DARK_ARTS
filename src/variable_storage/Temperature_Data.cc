@@ -18,9 +18,9 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
   }
   
 /// initial condition constructor
-Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_quad, const Input_Reader& input_reader)
+Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_Reader& input_reader, const Cell_Data& cell_data)
   /// initilaize range members
-  : m_cells{ n_cells } ,     
+  : m_cells{ cell_data.get_total_number_of_cells() } ,     
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() },
     m_t_length{ m_cells*m_el_per_cell} ,
     m_t(m_t_length,0.)    
@@ -50,6 +50,40 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
         }
         cell_cnt += n_cell_reg;          
       }   
+      break;
+    }
+    case MMS_TEMPERATURE_IC:
+    {
+      std::vector<int> cell_per_reg;      
+      input_reader.get_cells_per_region_vector(cell_per_reg);           
+      
+      Eigen::VectorXd local_t;
+      local_t = Eigen::VectorXd::Zero(m_el_per_cell);
+      std::vector<double> dfem_loc;
+      fem_quad.get_dfem_interpolation_point(dfem_loc);
+      
+      /// get radiation space angle and temporal components
+      MMS_Temperature t_ic(input_reader);
+      
+      int cell_cnt = 0;
+      const double time = input_reader.get_t_start();
+      for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+      {
+        int n_cell_reg = cell_per_reg[reg];        
+        for(int c = 0; c < n_cell_reg ; c++)
+        {
+          int cell = c + cell_cnt;       
+          double xL = cell_data.get_cell_left_edge(cell);
+          double dx = cell_data.get_cell_width(cell);        
+          for(int el = 0; el < m_el_per_cell ; el++)
+          {
+            double position = xL + dx/2.*( 1. + dfem_loc[el] );
+            local_t(el) = t_ic.get_mms_temperature(position, time);
+          }
+          set_cell_temperature( cell , local_t);
+        }
+        cell_cnt += n_cell_reg;
+      }    
       break;
     }
     case INVALID_TEMPERATURE_IC_TYPE:

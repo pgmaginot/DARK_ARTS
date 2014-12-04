@@ -497,11 +497,12 @@ void Input_Reader::load_from_scratch_problem(TiXmlDocument& doc)
     throw Dark_Arts_Exception( INPUT , "BC_IC block not found. ");  
      
   //! Load Data Appropriately from each input block
-  load_region_data(reg_elem);
+  load_region_data(reg_elem);  
+  load_angular_discretization_data(angle_elem);
+  /// load_material needs angular data to already be loaded
   load_material_data(mat_elem);
   load_time_stepping_data(time_elem);
   load_spatial_discretization_data(discr_elem);
-  load_angular_discretization_data(angle_elem);
   load_solver_data(solver_elem);
   load_bc_ic_data(bc_ic_elem);
   
@@ -1008,7 +1009,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       if(m_number_materials > 1)
        throw Dark_Arts_Exception(INPUT, "MMS_SOURCE only allowed for single material problems");
        
-      if((m_material_scattering_opacity_type[0] == TABLE_LOOKUP) ||(m_material_absorption_opacity_type[0] = TABLE_LOOKUP) )
+      if((m_material_scattering_opacity_type[0] == TABLE_LOOKUP) ||(m_material_absorption_opacity_type[0] == TABLE_LOOKUP) )
         throw Dark_Arts_Exception(INPUT, "MMS_SOURCE not allowed with TABLE_LOOKUP opacities");
       
       if( m_number_groups != 1) 
@@ -1064,6 +1065,15 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         m_mms_time = COS_TIME;
       }
       
+      if(rad_angle_str == "MMS_ISOTROPIC")
+      {
+        m_mms_rad_angle = MMS_ISOTROPIC;
+      }
+      else if( rad_angle_str == "MMS_ANGLE_POLY")
+      {
+        m_mms_rad_angle = MMS_ANGLE_POLY;
+      }
+      
       switch(m_mms_rad_space)
       {
         case RAD_POLY_SPACE:
@@ -1107,14 +1117,34 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         case COS_TIME:
         {
           load_mms_cos_constants( mms_time_elem , m_time_mms_const);
+          break;
         }
         case POLY_TIME:
         {
           load_mms_poly_constants( mms_time_elem , m_time_mms_const);
+          break;
         }
         case INVALID_TIME_MMS_TYPE:
         {
           throw Dark_Arts_Exception(INPUT, "Invalid mms time dependence for MMS problems");
+          break;
+        }
+      }
+      
+      switch(m_mms_rad_angle)
+      {
+        case MMS_ISOTROPIC:
+        {
+          break;
+        }
+        case MMS_ANGLE_POLY:
+        {
+          load_mms_poly_constants( rad_angle_elem , m_mms_angle_coeff);
+          break;
+        }
+        case INVALID_RADIATION_ANGLE_MMS:
+        {
+          throw Dark_Arts_Exception(INPUT, "Invalid MMS angle dependence");
           break;
         }
       }
@@ -1706,15 +1736,35 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   {
     m_temperature_ic_type = CONSTANT_TEMPERATURE_IC;
   }
+  else if(temp_ic_str == "MMS_TEMPERATURE_IC")
+  { 
+    m_temperature_ic_type = MMS_TEMPERATURE_IC;
+  }
   
+  if(m_material_temperature_source_type[0] == MMS_SOURCE)
+    if( m_temperature_ic_type != MMS_TEMPERATURE_IC)
+    {
+      std::stringstream err;
+      err << "Must specify MMS_TEMPERATURE_IC in " << bc_ic_element->Value() << " Since tempature souce is MMS_SOURCE";
+      throw Dark_Arts_Exception(INPUT, err.str() );
+    }
+    
   if(rad_ic_str == "PLANCKIAN_IC")
   {
     m_radiation_ic_type = PLANCKIAN_IC;
   }  
-  else if(rad_ic_str == "CONSTANT_SPACE_ANGLE_POLY_IC")
+  else if(rad_ic_str == "MMS_RADIATION_IC")
   {
-    m_radiation_ic_type = CONSTANT_SPACE_ANGLE_POLY_IC;
+    m_radiation_ic_type = MMS_RADIATION_IC;
   }
+  
+  if(m_material_radiation_source_type[0] == MMS_SOURCE)
+    if( m_radiation_ic_type != MMS_RADIATION_IC)
+    {
+      std::stringstream err;
+      err << "Must specify MMS_RADIATION_IC in " << bc_ic_element->Value() << " Since radiation souce is MMS_SOURCE";
+      throw Dark_Arts_Exception(INPUT, err.str());
+    }
   
   /// Get BC strings and set BC types
   std::string rad_bc_left_str = rad_left_bc_type_elem->GetText();
@@ -1734,6 +1784,10 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   {
     m_rad_bc_left = REFLECTIVE_BC;
   }
+  else if(rad_bc_left_str == "MMS_BC")
+  {
+    m_rad_bc_left = MMS_BC;
+  }
   
   if(rad_bc_right_str == "VACUUM_BC")
   {
@@ -1747,7 +1801,26 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   {
     m_rad_bc_right = REFLECTIVE_BC;
   }
+  else if(rad_bc_right_str == "MMS_BC")
+  {
+    m_rad_bc_right = MMS_BC;
+  }
   
+  if(m_material_radiation_source_type[0] == MMS_SOURCE)
+    if( m_rad_bc_right != MMS_BC)
+    {
+      std::stringstream err;
+      err <<  "Must specify MMS_BC in " << rad_right_bc_type_elem->Value() << " Since radiation souce is MMS_SOURCE";
+      throw Dark_Arts_Exception(INPUT, err.str() );
+    }
+    
+  if(m_material_radiation_source_type[0] == MMS_SOURCE)
+    if( m_rad_bc_left != MMS_BC)
+    {
+      std::stringstream err;
+      err << "Must specify MMS_BC in " << rad_left_bc_type_elem->Value() << " Since radiation souce is MMS_SOURCE";
+      throw Dark_Arts_Exception(INPUT, err.str() );
+    }
   
   /// Handle left radiation boundary condition
   if( m_rad_bc_left == INVALID_RADIATION_BC_TYPE)
@@ -2018,99 +2091,113 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     }
     
   /// get radiation initial conditions
-  if( m_radiation_ic_type == PLANCKIAN_IC )
+  switch( m_radiation_ic_type)
   {
-    m_region_radiation_temperature.resize(m_number_regions,0.);
-    TiXmlElement* rad_ic_reg_elem = rad_ic_type_elem->FirstChildElement("Region");
-    for(int reg = 0; reg < m_number_regions; reg++)
+    case PLANCKIAN_IC:
     {
-      if(!rad_ic_reg_elem)
+      m_region_radiation_temperature.resize(m_number_regions,0.);
+      TiXmlElement* rad_ic_reg_elem = rad_ic_type_elem->FirstChildElement("Region");
+      for(int reg = 0; reg < m_number_regions; reg++)
       {
-        std::stringstream err;
-        err << "In BC_IC element: Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
-        throw Dark_Arts_Exception(INPUT,  err.str() );
+        if(!rad_ic_reg_elem)
+        {
+          std::stringstream err;
+          err << "In BC_IC element: Missing a region radiation temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        
+        if( atoi( rad_ic_reg_elem->GetText() ) != reg)
+        {
+          std::stringstream err;
+          err << "Expecting Region " << reg << " Radiation Temperature Found: " << atoi( rad_ic_reg_elem->GetText() ) ;
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        
+        TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_temperature");
+        if(!rad_temp_value)
+        {
+          std::stringstream err;
+          err << "In BC_IC block: Missing required Radiation_Temperature element for region: " << reg ;
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        
+        m_region_radiation_temperature[reg] = atof( rad_temp_value->GetText() );
+        
+        
+        if(m_region_radiation_temperature[reg] < 0.)
+        {
+          std::stringstream err;
+          err << "Invalid radiation temperature in region: " << reg << " , must be >= 0. ";
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }   
+        
+        rad_ic_reg_elem = rad_ic_reg_elem->NextSiblingElement("Region");
+        
       }
+      break;
+    }
+    case MMS_RADIATION_IC:
+    {
       
-      if( atoi( rad_ic_reg_elem->GetText() ) != reg)
-      {
-        std::stringstream err;
-        err << "Expecting Region " << reg << " Radiation Temperature Found: " << atoi( rad_ic_reg_elem->GetText() ) ;
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }
-      
-      TiXmlElement* rad_temp_value = rad_ic_reg_elem->FirstChildElement("Radiation_temperature");
-      if(!rad_temp_value)
-      {
-        std::stringstream err;
-        err << "In BC_IC block: Missing required Radiation_Temperature element for region: " << reg ;
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }
-      
-      m_region_radiation_temperature[reg] = atof( rad_temp_value->GetText() );
-      
-      
-      if(m_region_radiation_temperature[reg] < 0.)
-      {
-        std::stringstream err;
-        err << "Invalid radiation temperature in region: " << reg << " , must be >= 0. ";
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }   
-      
-      rad_ic_reg_elem = rad_ic_reg_elem->NextSiblingElement("Region");
-      
+      break;
+    }
+    case INVALID_RADIATION_IC_TYPE:
+    {
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element: INVALID_RADIATION_IC_TYPE");
+      break;
     }
   }
-  else if( m_radiation_ic_type == CONSTANT_SPACE_ANGLE_POLY_IC)
-  {
-  
-  }
-  else
-  {
-    throw Dark_Arts_Exception(INPUT, "In BC_IC element:Radiation IC type not recognized");
-  }
-  
   /// Get temperature initial conditions
-  if( m_temperature_ic_type == INVALID_TEMPERATURE_IC_TYPE)
+  switch(m_temperature_ic_type)
   {
-    throw Dark_Arts_Exception(INPUT,   "In BC_IC block: Temperature IC type not recognized");
-  }
-  else if( m_temperature_ic_type == CONSTANT_TEMPERATURE_IC )
-  {
-    m_region_temperature.resize(m_number_regions,0.);
-    TiXmlElement* temp_ic_reg_elem = temp_ic_type_elem->FirstChildElement( "Region");
-    for(int reg = 0; reg < m_number_regions; reg++)
+    case INVALID_TEMPERATURE_IC_TYPE:
     {
-      if(!temp_ic_reg_elem)
-      {
-        std::stringstream err;
-        err << "Missing a region material temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }
-      if( atoi( temp_ic_reg_elem->GetText() ) != reg)
-      {
-        std::stringstream err;
-        err << "Expecting Region " << reg << " Found: " << atoi( temp_ic_reg_elem->GetText() ) ;
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }
-      
-      TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_temperature");
-      if(!temp_value)
-      {
-        std::stringstream err;
-        err << "Missing required Material_Temperature element for region: " << reg ;
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }
-      m_region_temperature[reg] = atof( temp_value->GetText() );
-      if(m_region_temperature[reg] < 0.)
-      {
-        std::stringstream err;
-        err << "Invalid material temperature in region: " << reg << " , must be >= 0. ";
-        throw Dark_Arts_Exception(INPUT,  err.str() );
-      }
-      
-      temp_ic_reg_elem = temp_ic_reg_elem->NextSiblingElement("Region");
+      throw Dark_Arts_Exception(INPUT,   "In BC_IC block: INVALID_TEMPERATURE_IC_TYPE");
+      break;
     }
-  }  
+    case CONSTANT_TEMPERATURE_IC :
+    {
+      m_region_temperature.resize(m_number_regions,0.);
+      TiXmlElement* temp_ic_reg_elem = temp_ic_type_elem->FirstChildElement( "Region");
+      for(int reg = 0; reg < m_number_regions; reg++)
+      {
+        if(!temp_ic_reg_elem)
+        {
+          std::stringstream err;
+          err << "Missing a region material temperature for every region.  Found: " << reg << " Need: " << m_number_regions ;
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        if( atoi( temp_ic_reg_elem->GetText() ) != reg)
+        {
+          std::stringstream err;
+          err << "Expecting Region " << reg << " Found: " << atoi( temp_ic_reg_elem->GetText() ) ;
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        
+        TiXmlElement* temp_value = temp_ic_reg_elem->FirstChildElement("Material_temperature");
+        if(!temp_value)
+        {
+          std::stringstream err;
+          err << "Missing required Material_Temperature element for region: " << reg ;
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        m_region_temperature[reg] = atof( temp_value->GetText() );
+        if(m_region_temperature[reg] < 0.)
+        {
+          std::stringstream err;
+          err << "Invalid material temperature in region: " << reg << " , must be >= 0. ";
+          throw Dark_Arts_Exception(INPUT,  err.str() );
+        }
+        
+        temp_ic_reg_elem = temp_ic_reg_elem->NextSiblingElement("Region");
+      }
+      break;
+    }  
+    case MMS_TEMPERATURE_IC:
+    {
+      break;
+    }
+  }
   
   return 0;
 }
@@ -2151,6 +2238,12 @@ void Input_Reader::load_mms_poly_constants(TiXmlElement* mms_element, std::vecto
     }
     
     TiXmlElement* poly_coeff = poly_val_elem->FirstChildElement( "Coefficient" );
+    if(!poly_coeff)
+    {
+      std::stringstream err;
+      err << "Missing Coefficient element for " << poly_val_elem->Value() << " in " << mms_element->Value();
+      throw Dark_Arts_Exception(INPUT, err.str() );
+    }
     poly_constants[p] = atof( poly_coeff->GetText() );
     
     poly_val_elem = poly_val_elem->NextSiblingElement( "MMS_poly_coefficient" );    

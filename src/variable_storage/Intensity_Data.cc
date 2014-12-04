@@ -40,8 +40,9 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
   m_i_length{m_cells*m_groups*m_dir*m_el_per_cell},
   m_i(m_i_length,0.)
   {    
-    /// load the initial conditions
-    if(input_reader.get_radiation_ic_type() == PLANCKIAN_IC)
+    /// load the initial conditions    
+    RADIATION_IC_TYPE ic_type = input_reader.get_radiation_ic_type();
+    if( ic_type == PLANCKIAN_IC)
     {
       /// loop over regions.  Each region could have a different initial condition
       std::vector<int> cell_per_reg;
@@ -75,6 +76,42 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
             {
               set_cell_intensity( cell+cell_cnt , grp, dir, iso_emission);
             }
+          }
+        }
+        cell_cnt += n_cell_reg;
+      }    
+    }
+    else if(ic_type == MMS_RADIATION_IC)
+    {
+      std::vector<int> cell_per_reg;      
+      input_reader.get_cells_per_region_vector(cell_per_reg);           
+      
+      Eigen::VectorXd local_i;
+      local_i = Eigen::VectorXd::Zero(m_el_per_cell);
+      std::vector<double> dfem_loc;
+      fem_quad.get_dfem_interpolation_point(dfem_loc);
+      
+      /// get radiation space angle and temporal components
+      MMS_Intensity i_ic(input_reader,ang_quad);
+      
+      int cell_cnt = 0;
+      const double time = input_reader.get_t_start();
+      for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+      {
+        int n_cell_reg = cell_per_reg[reg];        
+        for(int c = 0; c < n_cell_reg ; c++)
+        {
+          int cell = c + cell_cnt;       
+          double xL = cell_data.get_cell_left_edge(cell);
+          double dx = cell_data.get_cell_width(cell);
+          for(int dir=0; dir < m_dir ; dir++)
+          {
+            for(int el = 0; el < m_el_per_cell ; el++)
+            {
+              double position = xL + dx/2.*( 1. + dfem_loc[el] );
+              local_i(el) = i_ic.get_mms_intensity(position, time, dir);
+            }
+            set_cell_intensity( cell , 0, dir, local_i);
           }
         }
         cell_cnt += n_cell_reg;

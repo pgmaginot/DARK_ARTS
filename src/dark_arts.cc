@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   std::cout << "Intensity object created" << std::endl;
     
     /// Initialize a Temperature_Data structure
-  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);
+  Temperature_Data temperature_old( fem_quadrature, input_reader, cell_data);
   std::cout << "Temperature object created" << std::endl;
 
   

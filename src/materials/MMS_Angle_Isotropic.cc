@@ -12,3 +12,8 @@ double MMS_Angle_Isotropic::get_angle_component(const int dir)
 { 
   return m_sum_w_inv;
 }
+
+double MMS_Angle_Isotropic::get_angle_component(const double mu)
+{ 
+  return m_sum_w_inv;
+}

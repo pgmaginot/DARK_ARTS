@@ -21,3 +21,16 @@ double MMS_Angle_Poly::get_angle_component(const int dir)
   }  
   return m_val;
 }
+
+double MMS_Angle_Poly::get_angle_component(const double mu)
+{ 
+  m_val = m_poly_coeff[0];
+  m_mu = mu;
+  m_pow = mu;
+  for(int i = 1; i < m_max_poly_degree_p1 ; i++)
+  {
+    m_val += m_poly_coeff[i]*m_pow;
+    m_pow *= m_mu;
+  }  
+  return m_val;
+}

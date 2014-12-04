@@ -4,6 +4,8 @@
 #include "Fem_Quadrature.h"
 #include "Input_Reader.h"
 #include "Eigen/Dense"
+#include "MMS_Temperature.h"
+#include "Cell_Data.h"
 
 
 class Temperature_Data
@@ -13,9 +15,9 @@ public:
     const Fem_Quadrature& fem_quad);
   
   /// Initiali condition constructor
-  Temperature_Data(const int n_cells, 
-    const Fem_Quadrature& fem_quad, 
-    const Input_Reader& input_reader);
+  Temperature_Data( const Fem_Quadrature& fem_quad, 
+    const Input_Reader& input_reader,
+    const Cell_Data& cell_data);
   
   virtual ~Temperature_Data(){}
   

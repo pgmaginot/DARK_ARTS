@@ -7,6 +7,7 @@
 #include "Eigen/Dense"
 #include "Materials.h"
 #include "Input_Reader.h"
+#include "MMS_Intensity.h"
 
 class Intensity_Data
 {

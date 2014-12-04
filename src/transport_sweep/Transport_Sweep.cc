@@ -117,6 +117,11 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
         
       break;
     }
+    case MMS_BC:
+    {
+      m_sweep_bc_left = std::shared_ptr<V_Transport_BC> (new Transport_BC_MMS( angular_quadrature, input_reader , cell_data.get_cell_left_edge(0) ) );
+      break;
+    }
     case INVALID_RADIATION_BC_TYPE:
     {
       throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Made it into Transport_Sweep constructor with invalid left bc");
@@ -191,6 +196,12 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
       {
         throw Dark_Arts_Exception( SUPPORT_OBJECT , "Invalid Incident_Value type for right boundary in Transport_Sweep constructor");
       }
+      break;
+    }
+    case MMS_BC:
+    {
+      m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_MMS( angular_quadrature, input_reader , 
+        cell_data.get_cell_left_edge(m_n_cells-1) + cell_data.get_cell_width(m_n_cells-1) ) );
       break;
     }
     case INVALID_RADIATION_BC_TYPE:

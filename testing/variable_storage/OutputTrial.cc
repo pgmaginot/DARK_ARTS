@@ -37,7 +37,7 @@ int main(int argc, char** argv)
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
   Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature);  
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature, materials, input_reader);
-  Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);
+  Temperature_Data temperature_old( fem_quadrature, input_reader, cell_data);
   Intensity_Moment_Data phi_ic(cell_data,angular_quadrature, fem_quadrature, intensity_old);
   
   std::string my_str = "Does nothing";
