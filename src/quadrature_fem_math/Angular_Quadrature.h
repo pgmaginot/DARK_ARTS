@@ -39,7 +39,9 @@ public:
   bool has_left_reflection(void) const;  
   
   double most_glance_mu(void) const;
-  double most_normal_mu(void) const;  
+  double most_normal_mu(void) const; 
+
+  void get_all_mu(std::vector<double>& angles) const { angles = m_mu; return; }
 protected:  
   /// number of directions
   const int m_n_dir;

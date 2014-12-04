@@ -22,6 +22,8 @@
 #include "Scattering_Opacity_Polynomial_Space.h"
 #include "Source_I_Constant.h"
 #include "Source_T_Constant.h"
+#include "Source_I_MMS.h"
+#include "Source_T_MMS.h"
 #include "Cv_Constant.h"
 #include "Cv_Rational.h"
 
@@ -38,8 +40,7 @@ public:
   Materials(const Input_Reader& input_reader, 
     const Fem_Quadrature& fem_quadrature, 
     const Cell_Data& cell_data,
-    const int n_groups,
-    const double sum_sn_weights);
+    const Angular_Quadrature& angular_quadrature);
     
   virtual ~Materials(){}
 
@@ -86,7 +87,7 @@ public:
 private:
   Planck m_planck;
 
-  void load_materials(const Input_Reader& input_reader);
+  void load_materials(const Input_Reader& input_reader, const Angular_Quadrature& angular_quadrature);
 
 private:
   /** Vectors of pointers to the various opacity, cv, and source objects we will create in

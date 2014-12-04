@@ -109,31 +109,31 @@ public:
   virtual ~Planck() {}; // empty destructor
   
   /// to access c constant
-  double get_c(void);
+  double get_c(void) const;
 
   // to find the planck function B at a specific temperature and energy
-  double get_B(double T, double E);
+  double get_B(double T, double E) const;
 
   // returns the partial of B with respect to temperature
-  double get_dBdT(double T, double E);
+  double get_dBdT(double T, double E) const;
 
   // to find Bg; pass temp, e_min, e_max
-  double integrate_B(double T, double E_min, double E_max);
+  double integrate_B(double T, double E_min, double E_max) const;
 
   //Get Temp for corresponding Energy
-  double getTempForEnergy(double E);
+  double getTempForEnergy(double E) const;
 
   // grey-case Bg
-  double integrate_B_grey(double T);
+  double integrate_B_grey(double T) const;
 
   // to find (dB/dT)g
-  double integrate_dBdT(double T, double E_min, double E_max);
+  double integrate_dBdT(double T, double E_min, double E_max) const;
 
   // grey-case (dB/dT)g
-  double integrate_dBdT_grey(double T);
+  double integrate_dBdT_grey(double T)  const;
 
 };
-inline double Planck::get_B(double T, double E)
+inline double Planck::get_B(double T, double E)  const
 {
   if( T == 0 )
     return 0;
@@ -155,7 +155,7 @@ inline double Planck::get_B(double T, double E)
 
 } // Planck::get_B()
 
-inline double Planck::get_dBdT(double T, double E)
+inline double Planck::get_dBdT(double T, double E)  const
 {
   if( T == 0 )
     return 0;

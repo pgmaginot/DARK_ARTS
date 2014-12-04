@@ -177,16 +177,6 @@ CV_TYPE Input_Reader::get_cv_type(const int mat_num) const
   return m_material_cv_type[mat_num];
 }
 
-FIXED_SOURCE_TYPE Input_Reader::get_temperature_source_type(const int mat_num) const
-{
-  return m_material_temperature_source_type[mat_num];
-}
-
-FIXED_SOURCE_TYPE Input_Reader::get_radiation_source_type(const int mat_num) const
-{
-  return m_material_radiation_source_type[mat_num]; 
-}  
-
 double Input_Reader::get_abs_double_constant_1(const int mat_num) const
 {
   return m_abs_opacity_double_constants_1[mat_num];
@@ -1007,7 +997,130 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     
     if(rad_source_str == "NO_SOURCE")
       m_material_radiation_source_type[mat_num] = NO_SOURCE;
-   
+    else if(rad_source_str == "MMS_SOURCE")
+    {
+      m_material_radiation_source_type[mat_num] = MMS_SOURCE;
+    }
+    
+    if(m_material_radiation_source_type[mat_num] == MMS_SOURCE)
+    {
+      /// restrictions on MMS simulations
+      if(m_number_materials > 1)
+       throw Dark_Arts_Exception(INPUT, "MMS_SOURCE only allowed for single material problems");
+       
+      if((m_material_scattering_opacity_type[0] == TABLE_LOOKUP) ||(m_material_absorption_opacity_type[0] = TABLE_LOOKUP) )
+        throw Dark_Arts_Exception(INPUT, "MMS_SOURCE not allowed with TABLE_LOOKUP opacities");
+      
+      if( m_number_groups != 1) 
+        throw Dark_Arts_Exception(INPUT, "MMS_SOURCE only valid for grey simulations");
+        
+      if(m_n_leg_moments > 1)
+        throw Dark_Arts_Exception(INPUT, "MMS_SOURCE only valid for storing P0 angular moments");
+    
+      /// require a radiation space element, radiation angle element , temperature space element , and temporal dependence element
+      TiXmlElement* rad_space_elem = rad_source_type->FirstChildElement( "Radiation_space");
+      TiXmlElement* temp_space_elem = rad_source_type->FirstChildElement( "Temperature_space");
+      TiXmlElement* mms_time_elem = rad_source_type->FirstChildElement( "Temporal");
+      TiXmlElement* rad_angle_elem = rad_source_type->FirstChildElement( "Radiation_angle");
+      
+      if(!rad_space_elem || !temp_space_elem || ! mms_time_elem || !rad_angle_elem)
+        throw Dark_Arts_Exception(INPUT, "MMS_SOURCE requires Radiation_space, Temperature_space, Temporal, and Radiation_angle elements");
+        
+      std::string rad_space_str = rad_space_elem->GetText();
+      std::string temp_space_str = temp_space_elem->GetText();
+      std::string mms_time_str = mms_time_elem->GetText();
+      std::string rad_angle_str = rad_angle_elem->GetText();
+      
+      transform(rad_space_str.begin() , rad_space_str.end() , rad_space_str.begin() , toupper);
+      transform(temp_space_str.begin() , temp_space_str.end() , temp_space_str.begin() , toupper);
+      transform(mms_time_str.begin() , mms_time_str.end() , mms_time_str.begin() , toupper);
+      transform(rad_angle_str.begin() , rad_angle_str.end() , rad_angle_str.begin() , toupper);
+      
+      
+      if(rad_space_str == "RAD_POLY_SPACE")
+      {
+        m_mms_rad_space = RAD_POLY_SPACE;
+      }
+      else if(rad_space_str == "RAD_COS_SPACE" )
+      {
+        m_mms_rad_space = RAD_COS_SPACE;
+      }
+      
+      if(temp_space_str == "TEMP_POLY_SPACE")
+      {
+        m_mms_temp_space = TEMP_POLY_SPACE;
+      }
+      else if(temp_space_str == "TEMP_COS_SPACE" )
+      {
+        m_mms_temp_space = TEMP_COS_SPACE;
+      }
+      
+      if(mms_time_str == "POLY_TIME")
+      {
+        m_mms_time = POLY_TIME;
+      }
+      else if(mms_time_str == "COS_TIME")
+      {
+        m_mms_time = COS_TIME;
+      }
+      
+      switch(m_mms_rad_space)
+      {
+        case RAD_POLY_SPACE:
+        {
+          load_mms_poly_constants( rad_space_elem , m_rad_space_mms_const);
+          break;
+        }
+        case RAD_COS_SPACE:
+        {
+          load_mms_cos_constants( rad_space_elem, m_rad_space_mms_const );
+          break;
+        }
+        case INVALID_RADIATION_SPACE_MMS:
+        {
+          throw Dark_Arts_Exception(INPUT, "Invalid Radiation spatial dependence for MMS problems");
+          break;
+        }
+      }
+      
+      switch(m_mms_temp_space)
+      {
+        case TEMP_POLY_SPACE:
+        {
+          load_mms_poly_constants( temp_space_elem , m_temp_space_mms_const);
+          break;
+        }
+        case TEMP_COS_SPACE:
+        {
+          load_mms_cos_constants( temp_space_elem, m_temp_space_mms_const );
+          break;
+        }
+        case INVALID_TEMPERATURE_SPACE_MMS:
+        {
+          throw Dark_Arts_Exception(INPUT, "Invalid temperature spatial dependence for MMS problems");
+          break;
+        }
+      }
+      
+      switch(m_mms_time)
+      {
+        case COS_TIME:
+        {
+          load_mms_cos_constants( mms_time_elem , m_time_mms_const);
+        }
+        case POLY_TIME:
+        {
+          load_mms_poly_constants( mms_time_elem , m_time_mms_const);
+        }
+        case INVALID_TIME_MMS_TYPE:
+        {
+          throw Dark_Arts_Exception(INPUT, "Invalid mms time dependence for MMS problems");
+          break;
+        }
+      }
+      
+      
+    }
     if(m_material_radiation_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
       std::stringstream err;
@@ -1017,7 +1130,12 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     
     if(temp_source_str == "NO_SOURCE")
       m_material_temperature_source_type[mat_num] = NO_SOURCE;
-   
+    if(temp_source_str == "MMS_SOURCE")
+    {
+      m_material_temperature_source_type[mat_num] = MMS_SOURCE;
+      if( m_material_radiation_source_type[mat_num] != MMS_SOURCE )
+        throw Dark_Arts_Exception(INPUT, "For MMS_Source must be defined for temperature and radiation fixed source");
+    }
     if(m_material_temperature_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
       std::stringstream err;
@@ -1995,4 +2113,80 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   }  
   
   return 0;
+}
+
+void Input_Reader::load_mms_poly_constants(TiXmlElement* mms_element, std::vector<double>& poly_constants)
+{
+  std::stringstream err;
+  TiXmlElement* poly_degree_elem = mms_element->FirstChildElement( "MMS_polynomial_degree" );
+  if(! poly_degree_elem)
+  {
+    err << "Missing MMS_polynomial_degree element in " << mms_element->Value() ;
+    throw Dark_Arts_Exception(INPUT, err.str() );
+  }
+  
+  int poly_degree = -1;
+  poly_degree = atoi(poly_degree_elem->GetText() );
+  if(poly_degree < 0 )
+  {
+    err << "Invalid MMS polynomial degree in " << mms_element->Value() ;
+    throw Dark_Arts_Exception( INPUT, err.str() );  
+  }
+  
+  poly_constants.resize(poly_degree + 1, 0.);
+  TiXmlElement* poly_val_elem = mms_element->FirstChildElement( "MMS_poly_coefficient" );
+  for(int p=0 ; p <= poly_degree ; p++)
+  {
+    if(!poly_val_elem)
+    {
+      err << "Missing MMS_poly_coefficent element: " << p << " for MMS element: " << mms_element->Value() ;
+      throw Dark_Arts_Exception(INPUT, err.str() );
+    }
+    
+    int degree = atoi(poly_val_elem->GetText() );
+    if(degree != p )
+    {
+      err << "MMS_poly_coefficient out of order or missing in " << mms_element->Value();
+      throw Dark_Arts_Exception(INPUT, err.str() );
+    }
+    
+    TiXmlElement* poly_coeff = poly_val_elem->FirstChildElement( "Coefficient" );
+    poly_constants[p] = atof( poly_coeff->GetText() );
+    
+    poly_val_elem = poly_val_elem->NextSiblingElement( "MMS_poly_coefficient" );    
+  }  
+  
+  return ;
+}
+
+void Input_Reader::load_mms_cos_constants(TiXmlElement* mms_element, std::vector<double>& cos_constants)
+{
+  TiXmlElement* a_elem = mms_element->FirstChildElement( "MMS_cos_a" );
+  TiXmlElement* b_elem = mms_element->FirstChildElement( "MMS_cos_b" );
+  TiXmlElement* c_elem = mms_element->FirstChildElement( "MMS_cos_c" );
+  TiXmlElement* d_elem = mms_element->FirstChildElement( "MMS_cos_d" );
+  
+  std::stringstream err;
+  if(!a_elem)
+    err << "Missing MMS_cos_a element in " << mms_element->Value() ;
+    
+  if(!b_elem)
+    err << "Missing MMS_cos_b element in " << mms_element->Value() ;
+    
+  if(!c_elem)
+    err << "Missing MMS_cos_c element in " << mms_element->Value() ;
+  
+  if(!d_elem)
+    err << "Missing MMS_cos_d element in " << mms_element->Value() ;
+  
+  if(err.gcount() > 1)
+    throw Dark_Arts_Exception(INPUT, err.str() );
+  
+  cos_constants.resize(4,0.);
+  cos_constants[0] = atof( a_elem->GetText() );
+  cos_constants[1] = atof( b_elem->GetText() );
+  cos_constants[2] = atof( c_elem->GetText() );
+  cos_constants[3] = atof( d_elem->GetText() );
+  
+  return;
 }

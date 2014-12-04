@@ -35,7 +35,7 @@ int main(int argc, char** argv)
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
   Cell_Data cell_data( input_reader );  
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
-  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
+  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature);  
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature, materials, input_reader);
   Temperature_Data temperature_old( cell_data.get_total_number_of_cells(), fem_quadrature, input_reader);
   Intensity_Moment_Data phi_ic(cell_data,angular_quadrature, fem_quadrature, intensity_old);

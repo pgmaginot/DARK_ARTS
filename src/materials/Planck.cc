@@ -56,12 +56,12 @@ Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader, cons
 
 }
 
-double Planck::get_c(void)
+double Planck::get_c(void) const
 {
   return c;
 }
 
-double Planck::getTempForEnergy(double E)
+double Planck::getTempForEnergy(double E) const
 {
 	if( E < 0 )
 	{
@@ -72,7 +72,7 @@ double Planck::getTempForEnergy(double E)
 	return pow(E/(a*c),0.25); // Note that this is NOT a per steradian quantity
 }
 
-double Planck::integrate_B_grey(double T)
+double Planck::integrate_B_grey(double T) const
 {
 	if( T < 0 )
 	{
@@ -83,7 +83,7 @@ double Planck::integrate_B_grey(double T)
 	return a*c*pow(T,4)/m_sn_weight; /// Note this is a per steradian quantity
 }
 
-double Planck::integrate_B(double T, double E_min, double E_max)
+double Planck::integrate_B(double T, double E_min, double E_max) const
 {
 	if( T == 0 || E_min == E_max )
 		return 0;
@@ -187,13 +187,13 @@ double Planck::integrate_B(double T, double E_min, double E_max)
 } // Planck::integrate_B()
 
 
-double Planck::integrate_dBdT_grey(double T)
+double Planck::integrate_dBdT_grey(double T) const
 {
 	return 4.0*a*c*pow(T,3)/m_sn_weight; // Note that this is a per steradian quantity
 }
 
 
-double Planck::integrate_dBdT(double T, double E_min, double E_max)
+double Planck::integrate_dBdT(double T, double E_min, double E_max) const
 {
 	if( T == 0 || E_min == E_max )
 		return 0;

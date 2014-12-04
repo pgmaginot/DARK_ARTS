@@ -16,10 +16,9 @@
 Materials::Materials( const Input_Reader& input_reader, 
   const Fem_Quadrature& fem_quadrature, 
   const Cell_Data& cell_data,
-  const int n_groups,
-  const double sum_sn_weights)
+  const Angular_Quadrature& angular_quadrature)
 :
-  m_planck( 1.0E-15 , input_reader, sum_sn_weights),
+  m_planck( 1.0E-15 , input_reader, angular_quadrature.get_sum_w() ),
   m_num_materials{input_reader.get_number_of_materials()},
   m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
   m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },
@@ -36,7 +35,7 @@ Materials::Materials( const Input_Reader& input_reader,
     m_source_i.resize(m_num_materials);  
     
     /// load material property objects for each different material
-    load_materials(input_reader);
+    load_materials(input_reader , angular_quadrature);
       
     /// create smart pointers that look at input once, then select cross section treatment type
     switch( input_reader.get_opacity_treatment() )
@@ -79,7 +78,7 @@ Materials::Materials( const Input_Reader& input_reader,
     m_position_at_source_quad.resize(m_n_source_pts,0.);
     
     /// get energy bounds 
-    if(n_groups > 1)
+    if(angular_quadrature.get_number_of_groups() > 1)
     {
       /// having energy group bounds only makes sense if this is a grey problem
       input_reader.get_lower_energy_bounds(m_grp_e_min);
@@ -284,7 +283,7 @@ double Materials::get_c(void)
 *   Private Member functions
 *  ****************************************************************/
 
-void Materials::load_materials(const Input_Reader& input_reader)
+void Materials::load_materials(const Input_Reader& input_reader, const Angular_Quadrature& angular_quadrature)
 {
   for(int mat_num=0; mat_num< m_num_materials ; mat_num++)
   {
@@ -357,6 +356,11 @@ void Materials::load_materials(const Input_Reader& input_reader)
     {
       m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_Constant( input_reader, mat_num)  ) ;
     }
+    else if(rad_src_type == MMS_SOURCE)
+    {
+      m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_MMS( input_reader , 
+        angular_quadrature , m_abs_opacities , m_scat_opacities, mat_num , m_planck)  ) ;
+    }
     
     /// temperature source
     FIXED_SOURCE_TYPE temp_src_type = input_reader.get_temperature_source_type(mat_num);
@@ -364,6 +368,11 @@ void Materials::load_materials(const Input_Reader& input_reader)
     {
       /// default is to set source to 0
       m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_Constant( input_reader, mat_num)  ) ;
+    }
+    else if(temp_src_type == MMS_SOURCE)
+    {
+      m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_MMS( input_reader , angular_quadrature,
+        m_abs_opacities , m_cv_obj , mat_num , m_planck) );
     }
   }
 }

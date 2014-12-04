@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   Cell_Data cell_data( input_reader );  
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
+  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature);  
   
   // cubic dfem trial space, lobatto DFEM points, Interpolatory opacity treatment with P4 Equally_Spaced points
   // Exact matrix integration (via Gauss quadrature using (3 + 1 + 4) points),

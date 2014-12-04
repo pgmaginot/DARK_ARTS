@@ -78,8 +78,8 @@ public:
   OPACITY_TYPE get_abs_opacity_type(const int mat_num) const;
   OPACITY_TYPE get_scat_opacity_type(const int mat_num) const;
   CV_TYPE get_cv_type(const int mat_num) const;
-  FIXED_SOURCE_TYPE get_temperature_source_type(const int mat_num) const;
-  FIXED_SOURCE_TYPE get_radiation_source_type(const int mat_num) const;  
+  FIXED_SOURCE_TYPE get_temperature_source_type(const int mat_num) const{ return m_material_temperature_source_type[mat_num]; }
+  FIXED_SOURCE_TYPE get_radiation_source_type(const int mat_num) const {return m_material_radiation_source_type[mat_num];   }
   double get_abs_double_constant_1(const int mat_num) const;
   double get_abs_double_constant_2(const int mat_num) const;
   double get_scat_double_constant_1(const int mat_num) const;
@@ -95,6 +95,15 @@ public:
   void get_absorption_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
   int  get_rational_cv_power(const int mat_num) const { return m_cv_rational_powers[mat_num] ; }
   double get_rational_cv_offset(const int mat_num) const { return m_cv_rational_offsets[mat_num] ;}
+  /// MMS access functions
+  RADIATION_ANGLE_MMS get_mms_radiation_angle_dependence(void) const {return m_mms_rad_angle;}
+  RADIATION_SPACE_MMS get_mms_radiation_space_dependence(void) const {return m_mms_rad_space;}
+  TEMPERATURE_SPACE_MMS get_mms_temperature_space_dependence(void) const {return m_mms_temp_space;}
+  TIME_MMS_TYPE get_mms_time_dependence(void) const {return m_mms_time;}
+  void get_mms_time_coeff(std::vector<double>& time_coeff) const {time_coeff = m_time_mms_const ; return;}
+  void get_mms_radiation_space_coeff(std::vector<double>& space_coeff) const { space_coeff = m_rad_space_mms_const; return;}
+  void get_mms_temperature_space_coeff(std::vector<double>& space_coeff) const { space_coeff = m_temp_space_mms_const; return;}
+  void get_mms_angle_coeff(std::vector<double>& angle_coeff) const { angle_coeff = m_mms_angle_coeff; return;}
   
   /// Solver tolerances 
   WG_SOLVE_TYPE get_within_group_solve_type(void) const;
@@ -174,6 +183,17 @@ protected:
   std::vector<int> m_cv_rational_powers;
   std::vector<double> m_cv_rational_offsets;
   
+  /// MMS constants
+  RADIATION_SPACE_MMS m_mms_rad_space = INVALID_RADIATION_SPACE_MMS;
+  TEMPERATURE_SPACE_MMS m_mms_temp_space = INVALID_TEMPERATURE_SPACE_MMS;  
+  TIME_MMS_TYPE m_mms_time = INVALID_TIME_MMS_TYPE;
+  RADIATION_ANGLE_MMS m_mms_rad_angle = INVALID_RADIATION_ANGLE_MMS;
+  std::vector<double> m_rad_space_mms_const;
+  std::vector<double> m_temp_space_mms_const;
+  std::vector<double> m_time_mms_const;
+  std::vector<double> m_mms_angle_coeff;
+  
+  
   /// spatial discretization input block
   int m_dfem_trial_space_degree = -1;
   MATRIX_INTEGRATION m_integration_type = INVALID_MATRIX_INTEGRATION;
@@ -252,6 +272,13 @@ protected:
   int load_angular_discretization_data(TiXmlElement* angle_element);
   int load_solver_data(TiXmlElement* solver_element);
   int load_bc_ic_data(TiXmlElement* bc_ic_element);
+  
+  /**loaders for MMS types
+    I(x,mu,t) = (mu_fun)*(x_fun_rad)*(t_fun_rad)
+    T(x,t) = (x_fun_temp)*(t_fun_temp)
+  */
+  void load_mms_poly_constants(TiXmlElement* mms_element, std::vector<double>& poly_constants);
+  void load_mms_cos_constants(TiXmlElement* mms_element, std::vector<double>& cos_constants);  
 
 };
 

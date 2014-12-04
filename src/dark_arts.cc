@@ -64,7 +64,7 @@ int main(int argc, char** argv)
   std::cout << "Angular quadrature object created" << std::endl;
    
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
+  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature );  
   std::cout << "Materials object created" << std::endl;
   
   /// Load SDIRK data

@@ -40,7 +40,7 @@ int main(int argc, char** argv)
   Quadrule_New quad_fun;   
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);    
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
-  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature.get_number_of_groups() , angular_quadrature.get_sum_w() );  
+  Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature);  
   
   Intensity_Data intensity_ic(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);
   
