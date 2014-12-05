@@ -19,12 +19,12 @@ Materials::Materials( const Input_Reader& input_reader,
   const Angular_Quadrature& angular_quadrature)
 :
   m_planck( 1.0E-15 , input_reader, angular_quadrature.get_sum_w() ),
-  m_num_materials{input_reader.get_number_of_materials()},
-  m_n_xs_quad{ fem_quadrature.get_number_of_xs_point() },
-  m_n_el_cell{ fem_quadrature.get_number_of_interpolation_points() },
+  m_num_materials(input_reader.get_number_of_materials()),
+  m_n_xs_quad( fem_quadrature.get_number_of_xs_point() ),
+  m_n_el_cell( fem_quadrature.get_number_of_interpolation_points() ),
   m_dx{-1.},
   m_cell_data( cell_data),
-  m_n_source_pts{ fem_quadrature.get_number_of_source_points() }
+  m_n_source_pts( fem_quadrature.get_number_of_source_points() )
 { 
   try{
     /// resize material property objects
@@ -214,9 +214,12 @@ void Materials::get_cv_boundary(std::vector<double>& cv)
 */
 void Materials::get_temperature_source(const double time, std::vector<double>& t_source_evals)
 {
+  // std::cout << "In Materials::get_temperature_source(), passed a vector of length: " << t_source_evals.size() << " will do work on " << m_n_source_pts << " elements\n";
+  // std::cout << "Length of position vector at source points: " << m_position_at_source_quad.size() << std::endl;
   for(int i=0; i < m_n_source_pts; i++)
-    m_mat_property_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_position_at_source_quad[i], time);
-  
+  {  
+    t_source_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_position_at_source_quad[i], time);
+  }
   return;
 }
 
@@ -227,7 +230,7 @@ void Materials::get_temperature_source(const double time, std::vector<double>& t
 void Materials::get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source_evals)
 {
   for(int i=0; i < m_n_source_pts; i++)
-    m_mat_property_evals[i] = m_source_i[m_current_material]->get_intensity_source(m_position_at_source_quad[i], grp, dir, time);
+    i_source_evals[i] = m_source_i[m_current_material]->get_intensity_source(m_position_at_source_quad[i], grp, dir, time);
   
   return;
 }
@@ -352,27 +355,46 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     
     /// radiation source
     FIXED_SOURCE_TYPE rad_src_type = input_reader.get_radiation_source_type(mat_num);
-    if(rad_src_type == NO_SOURCE)
+    switch(rad_src_type)
     {
-      m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_Constant( input_reader, mat_num)  ) ;
+      case NO_SOURCE:
+      {
+        m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_Constant( input_reader, mat_num)  ) ;
+        break;
+      }
+      case MMS_SOURCE:
+      {
+        m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_MMS( input_reader , 
+          angular_quadrature , m_abs_opacities , m_scat_opacities, mat_num , m_planck)  ) ;
+        break;
+      }
+      case INVALID_FIXED_SOURCE_TYPE:
+      {
+        throw Dark_Arts_Exception(INPUT, "Trying to create an invalid radiation source for Materials object");
+        break;      
+      }
     }
-    else if(rad_src_type == MMS_SOURCE)
-    {
-      m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_MMS( input_reader , 
-        angular_quadrature , m_abs_opacities , m_scat_opacities, mat_num , m_planck)  ) ;
-    }
-    
     /// temperature source
     FIXED_SOURCE_TYPE temp_src_type = input_reader.get_temperature_source_type(mat_num);
-    if(temp_src_type == NO_SOURCE)
+    switch(temp_src_type)
     {
+      case NO_SOURCE:
+      {
       /// default is to set source to 0
-      m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_Constant( input_reader, mat_num)  ) ;
-    }
-    else if(temp_src_type == MMS_SOURCE)
-    {
-      m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_MMS( input_reader , angular_quadrature,
-        m_abs_opacities , m_cv_obj , mat_num , m_planck) );
+        m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_Constant( input_reader, mat_num)  ) ;
+        break;
+      }
+      case MMS_SOURCE:
+      {
+        m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_MMS( input_reader , angular_quadrature,
+          m_abs_opacities , m_cv_obj , mat_num , m_planck) );
+        break;
+      }
+      case INVALID_FIXED_SOURCE_TYPE:
+      {
+        throw Dark_Arts_Exception (SUPPORT_OBJECT,  "Attempting to create an invalid temperature source in Materials");
+        break;
+      }
     }
   }
 }

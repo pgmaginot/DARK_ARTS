@@ -7,6 +7,7 @@
 
 Source_T_Constant::Source_T_Constant(
   const Input_Reader& input_reader, const int mat_num) :
+    VSource_T(),
     m_const{ 0. }
 {
   if(m_const < 0. )
@@ -17,7 +18,6 @@ Source_T_Constant::Source_T_Constant(
   }
 }
 
-Source_T_Constant::~Source_T_Constant(){}
 
 double  Source_T_Constant::get_temperature_source(const double position, const double time)
 {

@@ -7,6 +7,7 @@
 
 Source_I_Constant::Source_I_Constant(
   const Input_Reader& input_reader, const int mat_num) :
+    VSource_I(),
     m_const{ 0. }
 {
   if(m_const < 0. )
@@ -16,8 +17,6 @@ Source_I_Constant::Source_I_Constant(
     throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
   }
 }
-
-Source_I_Constant::~Source_I_Constant(){}
 
 double  Source_I_Constant::get_intensity_source(const double position, 
   const int group, const int dir, const double time)

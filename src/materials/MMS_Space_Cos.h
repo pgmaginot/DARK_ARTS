@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <math.h>   
+#include <iostream>
 #include "V_MMS_Space.h"
 
 class MMS_Space_Cos : public V_MMS_Space
@@ -17,7 +18,7 @@ public:
 private:
   const std::vector<double> m_cos_coeff;
   double m_val;
-  const double m_pi = 3.14159265358979323846264;
+  const double m_pi = 3.14159265358979323846;
 };
 
 #endif

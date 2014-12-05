@@ -11,7 +11,7 @@ class Source_T_Constant : public VSource_T
 
 public:
   Source_T_Constant(const Input_Reader& input_reader, const int mat_num);
-  virtual ~Source_T_Constant();
+  virtual ~Source_T_Constant(){}
 
   double get_temperature_source(const double position, const double time) override;
 private:

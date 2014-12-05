@@ -10,7 +10,7 @@ class Source_I_Constant : public VSource_I
 {
 public:
   Source_I_Constant(const Input_Reader& input_reader, const int mat_num);
-  virtual ~Source_I_Constant();
+  virtual ~Source_I_Constant(){}
 
   double get_intensity_source(const double position, 
     const int group, const int dir, const double time) override;

@@ -1159,13 +1159,20 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     }
     
     if(temp_source_str == "NO_SOURCE")
+    {
       m_material_temperature_source_type[mat_num] = NO_SOURCE;
-    if(temp_source_str == "MMS_SOURCE")
+    }
+    else if(temp_source_str == "MMS_SOURCE")
     {
       m_material_temperature_source_type[mat_num] = MMS_SOURCE;
       if( m_material_radiation_source_type[mat_num] != MMS_SOURCE )
         throw Dark_Arts_Exception(INPUT, "For MMS_Source must be defined for temperature and radiation fixed source");
     }
+    
+    if(m_material_radiation_source_type[mat_num] == MMS_SOURCE)
+      if( m_material_temperature_source_type[mat_num] != MMS_SOURCE)
+        throw Dark_Arts_Exception(INPUT, "Must specify MMS_SOURCE for temperature and radiation or neither");
+    
     if(m_material_temperature_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
       std::stringstream err;

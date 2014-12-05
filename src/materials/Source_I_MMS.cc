@@ -10,6 +10,7 @@ Source_I_MMS::Source_I_MMS( const Input_Reader& input_reader, const Angular_Quad
   std::vector<std::shared_ptr<VScattering_Opacity>>& scat_op, 
   const int mat_num , const Planck& planck)
   :
+  VSource_I(),
   m_planck(planck),
   m_ang_quad(angular_quadrature),
   m_c(planck.get_c() )

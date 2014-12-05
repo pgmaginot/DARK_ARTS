@@ -8,8 +8,8 @@ class VSource_I
 {
 
 public:
-  VSource_I();
-  virtual ~VSource_I();
+  VSource_I(){}
+  virtual ~VSource_I(){}
 
   virtual double get_intensity_source(const double position, 
     const int group, const int dir, const double time) = 0;

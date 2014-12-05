@@ -8,8 +8,8 @@ class VSource_T
 {
 
 public:
-  VSource_T();
-  virtual ~VSource_T();
+  VSource_T(){}
+  virtual ~VSource_T(){}
 
   virtual double get_temperature_source(const double position, const double time) = 0;
 };

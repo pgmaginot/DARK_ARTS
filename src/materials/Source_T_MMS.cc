@@ -11,8 +11,9 @@ Source_T_MMS::Source_T_MMS(const Input_Reader& input_reader,
   std::vector<std::shared_ptr<VCv> >& cv, 
   const int mat_num,
   const Planck& planck):
+  VSource_T(),
   m_planck(planck),
-  m_sn_w(angular_quadrature.get_sum_w() )
+  m_sn_w(angular_quadrature.get_sum_w() )  
 {
   m_abs_op = abs_op[mat_num];
   m_cv = cv[mat_num];
@@ -43,7 +44,7 @@ Source_T_MMS::Source_T_MMS(const Input_Reader& input_reader,
   }
   for(int d=0; d<n_dir; d++)
     m_angle_integration += angular_quadrature.get_sum_w() * angle_dependence->get_angle_component(d);
-  
+    
   TIME_MMS_TYPE time_dependence = input_reader.get_mms_time_dependence();
   TEMPERATURE_SPACE_MMS temp_space_dependence = input_reader.get_mms_temperature_space_dependence();
   RADIATION_SPACE_MMS rad_space_dependence = input_reader.get_mms_radiation_space_dependence();
@@ -112,10 +113,9 @@ Source_T_MMS::Source_T_MMS(const Input_Reader& input_reader,
   }
 }
 
-Source_T_MMS::~Source_T_MMS(){}
-
 double  Source_T_MMS::get_temperature_source(const double position, const double time)
 {  
+  std::cout << "In Source_T_MMS- position: " << position << " time: " << time << std::endl;
   double time_component = m_time_dep->get_time_component(time) ;
   double dt_time = m_time_dep->get_time_derivative(time);
   double temperature_space = m_temp_space_dep->get_position_component(position);
@@ -128,6 +128,12 @@ double  Source_T_MMS::get_temperature_source(const double position, const double
   */
   double cv = m_cv->get_cv(position,temperature);
   double sig_a = m_abs_op->get_absorption_opacity(0,temperature,position);
+  
+  // std::cout << "cv: " << cv << "sig_a: " << sig_a <<std::endl;
+  // std::cout << "d f(t)/dt: " << dt_time <<std::endl;
+  // std::cout << "angle integration: " << m_angle_integration << std::endl;
+  std::cout << "Temperature_space_component: " << temperature_space << std::endl;
+  
   val = cv*dt_time*temperature_space - sig_a*( phi - m_planck.integrate_B_grey(temperature) );
   return val;
 }

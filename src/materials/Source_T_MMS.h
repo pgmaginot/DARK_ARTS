@@ -23,7 +23,7 @@ public:
     std::vector<std::shared_ptr<VAbsorption_Opacity> >& abs_op, 
     std::vector<std::shared_ptr<VCv> >& cv, 
     const int mat_num, const Planck& planck) ;
-  virtual ~Source_T_MMS();
+  virtual ~Source_T_MMS(){}
 
   double get_temperature_source(const double position, const double time) override;
 private:

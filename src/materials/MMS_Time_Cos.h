@@ -17,7 +17,7 @@ public:
 private:
   const std::vector<double> m_cos_coeff;
   double m_val;
-  const double m_pi = 3.14159265358979323846264;
+  const double m_pi = 3.14159265358979323846;
 };
 
 #endif
