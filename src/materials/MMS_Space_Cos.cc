@@ -9,7 +9,6 @@ MMS_Space_Cos::MMS_Space_Cos(const std::vector<double>& coeff)
 
 double MMS_Space_Cos::get_position_component(const double position)
 {
-  std::cout << "Received x: " << position << std::endl;
   m_val = m_cos_coeff[0]*cos(position*m_pi/m_cos_coeff[1] + m_cos_coeff[2] ) + m_cos_coeff[3];
   return m_val;
 }

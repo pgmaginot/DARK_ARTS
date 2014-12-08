@@ -36,11 +36,12 @@ int main(int argc, char** argv)
   
   std::vector<double> t_trial(3,0.);
   std::vector<double> x_trial(3,0.);
+  
   std::vector<double> space_poly_coeff(3,0.);
   std::vector<double> space_cos_coeff(4,0.);
   std::vector<double> time_poly_coeff(2,0.);
   std::vector<double> time_cos_coeff(4,0.);
-  std::vector<double> angle_poly_coeff(5,0.);
+  std::vector<double> angle_poly_coeff(4,0.);
   
   t_trial[0] = -0.1;
   t_trial[1] = 0.;
@@ -66,6 +67,11 @@ int main(int argc, char** argv)
   time_cos_coeff[1] = 1.2;
   time_cos_coeff[2] = 0.1;
   time_cos_coeff[3] = 5.;  
+  
+  angle_poly_coeff[0] = 0.1;
+  angle_poly_coeff[1] = 2.3;
+  angle_poly_coeff[2] = 3.;
+  angle_poly_coeff[3] = 4.2;
 
   const double pi = 3.14159265358979323846;
   
@@ -80,69 +86,103 @@ int main(int argc, char** argv)
   double calc_deriv;
   
   try{
-      space_ptr = std::shared_ptr<V_MMS_Space> (new MMS_Space_Poly(space_poly_coeff) );
-      for(int i=0; i<3; i++)
+    space_ptr = std::shared_ptr<V_MMS_Space> (new MMS_Space_Poly(space_poly_coeff) );
+    for(int i=0; i<3; i++)
+    {
+      ex_val = 1. + x_trial[i]*0.5 + x_trial[i]*x_trial[i]*3.;
+      ex_deriv = 0.5 + 3.*2.*x_trial[i];
+      
+      if(fabs(ex_val - space_ptr->get_position_component(x_trial[i]) ) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial spatial component wrong");          
+        
+      if(fabs(ex_deriv - space_ptr->get_position_derivative(x_trial[i]) ) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial spatial deriviative wrong");
+    }
+    
+    space_ptr = std::shared_ptr<V_MMS_Space> (new MMS_Space_Cos(space_cos_coeff) );
+    for(int i=0; i<3; i++)
+    {
+      ex_val = space_cos_coeff[0]*cos( x_trial[i]*pi/space_cos_coeff[1] + space_cos_coeff[2]) + space_cos_coeff[3];        
+      ex_deriv = -space_cos_coeff[0]*sin( x_trial[i]*pi/space_cos_coeff[1] + space_cos_coeff[2]) * pi/space_cos_coeff[1];
+      
+      calc_val = space_ptr->get_position_component(x_trial[i]);
+      calc_deriv = space_ptr->get_position_derivative(x_trial[i]);
+      
+      std::cout << "Calculated: " << calc_val << " Expected:  " << ex_val << std::endl;
+      if(fabs(ex_val - calc_val) > tol)
       {
-        ex_val = 1. + x_trial[i]*0.5 + x_trial[i]*x_trial[i]*3.;
-        ex_deriv = 0.5 + 3.*2.*x_trial[i];
-        
-        if(fabs(ex_val - space_ptr->get_position_component(x_trial[i]) ) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial spatial component wrong");          
-          
-        if(fabs(ex_deriv - space_ptr->get_position_derivative(x_trial[i]) ) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial spatial deriviative wrong");
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos spatial component wrong");          
       }
+      if(fabs(ex_deriv - calc_deriv ) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos spatial deriviative wrong");
+    }
+    
+    time_ptr = std::shared_ptr<V_MMS_Time> (new MMS_Time_Poly(time_poly_coeff) );
+    for(int i=0; i<3; i++)
+    {
+      ex_val = time_poly_coeff[0] + t_trial[i]*time_poly_coeff[1];
+      ex_deriv = time_poly_coeff[1];
       
-      space_ptr = std::shared_ptr<V_MMS_Space> (new MMS_Space_Cos(space_cos_coeff) );
-      for(int i=0; i<3; i++)
-      {
-        ex_val = space_cos_coeff[0]*cos( x_trial[i]*pi/space_cos_coeff[1] + space_cos_coeff[2]) + space_cos_coeff[3];        
-        ex_deriv = -space_cos_coeff[0]*sin( x_trial[i]*pi/space_cos_coeff[1] + space_cos_coeff[2]) * pi/space_cos_coeff[1];
-        
-        calc_val = space_ptr->get_position_component(x_trial[i]);
-        calc_deriv = space_ptr->get_position_derivative(x_trial[i]);
-        
-        std::cout << "Calculated: " << calc_val << " Expected:  " << ex_val << std::endl;
-        if(fabs(ex_val - calc_val) > tol)
-        {
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos spatial component wrong");          
-        }
-        if(fabs(ex_deriv - calc_deriv ) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos spatial deriviative wrong");
-      }
+      calc_val = time_ptr->get_time_component(t_trial[i]);
+      calc_deriv = time_ptr->get_time_derivative(t_trial[i]);
       
-      time_ptr = std::shared_ptr<V_MMS_Time> (new MMS_Time_Poly(time_poly_coeff) );
-      for(int i=0; i<3; i++)
-      {
-        ex_val = time_poly_coeff[0] + t_trial[i]*time_poly_coeff[1];
-        ex_deriv = time_poly_coeff[1];
+      if(fabs(ex_val - calc_val ) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial time component wrong");          
         
-        calc_val = time_ptr->get_time_component(t_trial[i]);
-        calc_deriv = time_ptr->get_time_derivative(t_trial[i]);
-        
-        if(fabs(ex_val - calc_val ) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial time component wrong");          
-          
-        if(fabs(ex_deriv - calc_deriv) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial time deriviative wrong");
-      }
+      if(fabs(ex_deriv - calc_deriv) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial time deriviative wrong");
+    }
+    
+    
+    time_ptr = std::shared_ptr<V_MMS_Time> (new MMS_Time_Cos(time_cos_coeff) );
+    for(int i=0; i<3; i++)
+    {        
+      ex_val = time_cos_coeff[0]*cos( t_trial[i]*pi/time_cos_coeff[1] + time_cos_coeff[2]) + time_cos_coeff[3];        
+      ex_deriv = -time_cos_coeff[0]*sin( t_trial[i]*pi/time_cos_coeff[1] + time_cos_coeff[2]) * pi/time_cos_coeff[1];
       
+      calc_val = time_ptr->get_time_component(t_trial[i]);
+      calc_deriv = time_ptr->get_time_derivative(t_trial[i]);
       
-      time_ptr = std::shared_ptr<V_MMS_Time> (new MMS_Time_Cos(time_cos_coeff) );
-      for(int i=0; i<3; i++)
-      {        
-        ex_val = time_cos_coeff[0]*cos( t_trial[i]*pi/time_cos_coeff[1] + time_cos_coeff[2]) + time_cos_coeff[3];        
-        ex_deriv = -time_cos_coeff[0]*sin( t_trial[i]*pi/time_cos_coeff[1] + time_cos_coeff[2]) * pi/time_cos_coeff[1];
+      if(fabs(ex_val - calc_val ) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos time component wrong");          
         
-        calc_val = time_ptr->get_time_component(t_trial[i]);
-        calc_deriv = time_ptr->get_time_derivative(t_trial[i]);
+      if(fabs(ex_deriv - calc_deriv ) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos time derivative wrong");
+    }
+    
+    const int n_dir = angular_quadrature.get_number_of_dir();
+    
+    angle_ptr = std::shared_ptr<V_MMS_Angle> (new MMS_Angle_Isotropic(2.) );
+    double calc_val_2;
+    for(int i=0; i<n_dir;i++)
+    {
+      ex_val = 1./2.;
+      
+      calc_val = angle_ptr->get_angle_component(i  );
+      calc_val_2 = angle_ptr->get_angle_component( angular_quadrature.get_mu(i) );
+      if( fabs(calc_val - calc_val_2) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Methods of mu retrieval not equal for MMS components");
         
-        if(fabs(ex_val - calc_val ) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos time component wrong");          
-          
-        if(fabs(ex_deriv - calc_deriv ) > tol)
-          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos time deriviative wrong");
-      }
+      if( fabs(calc_val - ex_val ) > tol )
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Mu component not isotropic for MMS");
+    }
+    
+    angle_ptr = std::shared_ptr<V_MMS_Angle> (new MMS_Angle_Poly(angle_poly_coeff,angular_quadrature) );
+    double mu;
+    for(int i=0; i<n_dir;i++)
+    {
+      mu = angular_quadrature.get_mu(i);
+      ex_val = angle_poly_coeff[0] + mu*angle_poly_coeff[1] + mu*mu*angle_poly_coeff[2] + mu*mu*mu*angle_poly_coeff[3];
+      
+      calc_val = angle_ptr->get_angle_component( i );
+      calc_val_2 = angle_ptr->get_angle_component( mu );
+      if( fabs(calc_val - calc_val_2) > tol)
+        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Methods of mu retrieval not equal for MMS components");
+        
+      if( fabs(calc_val - ex_val ) > tol )
+        throw Dark_Arts_Exception(SUPPORT_OBJECT, "Mu component not isotropic for MMS");
+    }
+      
   }
   catch(const Dark_Arts_Exception& da)
   {

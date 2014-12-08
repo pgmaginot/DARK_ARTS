@@ -25,9 +25,9 @@
       </Absorption_opacity_type>
       <Radiation_fixed_source_type> MMS_source 
         <Radiation_space> RAD_POLY_SPACE 
-          <MMS_polynomial_degree> 3 </MMS_polynomial_degree>
+          <MMS_polynomial_degree> 4 </MMS_polynomial_degree>
           <MMS_poly_coefficient> 0 
-              <Coefficient> 1. </Coefficient>
+              <Coefficient> 0.6. </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 1 
             <Coefficient> 2.1 </Coefficient>
@@ -38,26 +38,27 @@
           <MMS_poly_coefficient> 3 
             <Coefficient> 5. </Coefficient>
           </MMS_poly_coefficient>
+          <MMS_poly_coefficient> 4 
+            <Coefficient> 3.2 </Coefficient>
+          </MMS_poly_coefficient>
         </Radiation_space>
         <Radiation_angle> MMS_ANGLE_POLY 
           <MMS_polynomial_degree> 2 </MMS_polynomial_degree>
           <MMS_poly_coefficient> 0 
-              <Coefficient> 1. </Coefficient>
-          </MMS_poly_coefficient>
-          
+              <Coefficient> 1.1 </Coefficient>
+          </MMS_poly_coefficient>          
           <MMS_poly_coefficient> 1 
-            <Coefficient> 1. </Coefficient>
+            <Coefficient> 0.1 </Coefficient>
           </MMS_poly_coefficient>
-          
           <MMS_poly_coefficient> 2 
-            <Coefficient> 1. </Coefficient>
+            <Coefficient> 1.3 </Coefficient>
           </MMS_poly_coefficient>
         </Radiation_angle>
         <Temperature_space> TEMP_COS_SPACE
           <MMS_cos_a> 1 </MMS_cos_a>
           <MMS_cos_b> 2 </MMS_cos_b>
           <MMS_cos_c> 0 </MMS_cos_c>
-          <MMS_cos_d> 1 </MMS_cos_d>
+          <MMS_cos_d> 3 </MMS_cos_d>
         </Temperature_space>
         <Temporal> POLY_TIME 
           <MMS_polynomial_degree> 1 </MMS_polynomial_degree>
@@ -65,7 +66,7 @@
             <Coefficient> 0.5 </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 1
-            <Coefficient> 2 </Coefficient>
+            <Coefficient> 1.2 </Coefficient>
           </MMS_poly_coefficient>
         </Temporal>
       </Radiation_fixed_source_type>

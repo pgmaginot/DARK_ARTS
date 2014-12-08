@@ -59,9 +59,18 @@ double MMS_Temperature::get_mms_temperature(const double position, const double 
   double time_component = m_time_dep->get_time_component(time);
   double position_component = m_temp_space_dep->get_position_component(position);
 
+  double val = time_component*position_component;
   
-  return time_component*position_component;
+  return val;
 }
 
+double MMS_Temperature::get_mms_temperature_time_derivative(const double position , const double time)
+{
+  double time_component = m_time_dep->get_time_derivative(time);
+  double position_component = m_temp_space_dep->get_position_component(position);
 
+  double val = time_component*position_component;
+  
+  return val;
+}
 
