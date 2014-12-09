@@ -5,9 +5,9 @@
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
     <Region> 0 
-      <N_cells> 5 </N_cells>
-      <Left_bound> 1.0 </Left_bound>
-      <Right_bound> 22.0 </Right_bound>
+      <N_cells> 9 </N_cells>
+      <Left_bound> 0.0 </Left_bound>
+      <Right_bound> 5.0 </Right_bound>
       <Spacing> Equal   </Spacing>
       <Material_number> 0 </Material_number>
     </Region>
@@ -18,69 +18,70 @@
     <Units> Unity </Units>
     <Material> 0
       <Scattering_opacity_type> Constant_xs 
-        <Constant_value> 1.3 </Constant_value>
+        <Constant_value> 0.0 </Constant_value>
       </Scattering_opacity_type>      
-      <Absorption_opacity_type> Constant_xs 
-        <Constant_value> 0.9 </Constant_value>
+      
+      <Absorption_opacity_type> RATIONAL
+        <Multiplier> 1.0 </Multiplier>
+        <Denominator_power> 3 </Denominator_power>
+        <Denominator_offset> 0.0 </Denominator_offset>
       </Absorption_opacity_type>
+      
+      <Cv_type> Constant_cv 
+        <Cv_constant> 0.2 </Cv_constant>
+      </Cv_type>
+      
       <Radiation_fixed_source_type> MMS_source 
+      
         <Radiation_space> RAD_POLY_SPACE 
-          <MMS_polynomial_degree> 4 </MMS_polynomial_degree>
+          <MMS_polynomial_degree> 3 </MMS_polynomial_degree>
           <MMS_poly_coefficient> 0 
-              <Coefficient> 0.6. </Coefficient>
+              <Coefficient> 0.2 </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 1 
-            <Coefficient> 2.1 </Coefficient>
+            <Coefficient> 0.0 </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 2 
-            <Coefficient> 4.5 </Coefficient>
+            <Coefficient> 0.0 </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 3 
-            <Coefficient> 5. </Coefficient>
-          </MMS_poly_coefficient>
-          <MMS_poly_coefficient> 4 
-            <Coefficient> 3.2 </Coefficient>
-          </MMS_poly_coefficient>
-        </Radiation_space>
-        <Radiation_angle> MMS_ANGLE_POLY 
-          <MMS_polynomial_degree> 2 </MMS_polynomial_degree>
-          <MMS_poly_coefficient> 0 
-              <Coefficient> 1.1 </Coefficient>
+            <Coefficient> 7.0 </Coefficient>
           </MMS_poly_coefficient>          
+        </Radiation_space>
+        
+        <Radiation_angle> MMS_ISOTROPIC
+        </Radiation_angle>
+        
+        <Temperature_space> TEMP_Poly_SPACE
+          <MMS_polynomial_degree> 2</MMS_polynomial_degree>
+          <MMS_poly_coefficient> 0 
+              <Coefficient> 0.5</Coefficient>
+          </MMS_poly_coefficient>
           <MMS_poly_coefficient> 1 
-            <Coefficient> 0.1 </Coefficient>
+            <Coefficient> 0.4 </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 2 
-            <Coefficient> 1.3 </Coefficient>
+            <Coefficient> 0.3 </Coefficient>
           </MMS_poly_coefficient>
-        </Radiation_angle>
-        <Temperature_space> TEMP_COS_SPACE
-          <MMS_cos_a> 1 </MMS_cos_a>
-          <MMS_cos_b> 2 </MMS_cos_b>
-          <MMS_cos_c> 0 </MMS_cos_c>
-          <MMS_cos_d> 3 </MMS_cos_d>
         </Temperature_space>
-        <Temporal> POLY_TIME 
-          <MMS_polynomial_degree> 1 </MMS_polynomial_degree>
-          <MMS_poly_coefficient> 0
-            <Coefficient> 0.5 </Coefficient>
-          </MMS_poly_coefficient>
-          <MMS_poly_coefficient> 1
-            <Coefficient> 1.2 </Coefficient>
-          </MMS_poly_coefficient>
+        
+        <Temporal> Cos_TIME 
+          <MMS_cos_a> 1.0 </MMS_cos_a>
+          <MMS_cos_b> 2.0 </MMS_cos_b>
+          <MMS_cos_c> 0.0  </MMS_cos_c>
+          <MMS_cos_d> 3.0 </MMS_cos_d>
         </Temporal>
+        
       </Radiation_fixed_source_type>
       <Temperature_fixed_source_type> MMS_source </Temperature_fixed_source_type>      
-      <Cv_type> Constant_cv 
-        <Cv_constant> 2.0 </Cv_constant>
-      </Cv_type>
+
     </Material>
   </MATERIALS>
   
   <TIME>
     <Dt_min> 0.4 </Dt_min>
     <Dt_max> 12 </Dt_max>
-    <T_start> 1.5 </T_start>
+    <T_start> -1.0 </T_start>
     <T_end> 21.0 </T_end>
     <Time_solver> Implicit_euler </Time_solver>
     <!--
@@ -105,9 +106,7 @@
     <DFEM_degree> 3 </DFEM_degree>
     <Integration_type> Self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Lobatto </DFEM_interpolation_point_type>
-    <Opacity_treatment> Interpolating 
-      <Opacity_interpolation_point_type> Lobatto </Opacity_interpolation_point_type>
-      <Opacity_polynomial_degree> 2 </Opacity_polynomial_degree> 
+    <Opacity_treatment> SLXS
     </Opacity_treatment>    
   </SPATIAL_DISCRETIZATION>
   

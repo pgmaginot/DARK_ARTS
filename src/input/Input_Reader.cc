@@ -2279,7 +2279,7 @@ void Input_Reader::load_mms_cos_constants(TiXmlElement* mms_element, std::vector
   if(!d_elem)
     err << "Missing MMS_cos_d element in " << mms_element->Value() ;
   
-  if(err.gcount() > 1)
+  if(err.tellp() > 0)
     throw Dark_Arts_Exception(INPUT, err.str() );
   
   cos_constants.resize(4,0.);

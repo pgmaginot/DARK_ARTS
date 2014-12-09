@@ -93,6 +93,13 @@ SLXS_Test - SLXS.cc - SLXS.cc - 2Region_Log_Spacing.xml
 -sig_s: constant
 -Cv : Constant
 
+MMS_Components_Test - MMS_Components.cc - MMS_Sources.xml
+-Test all V_MMS_Angle , V_MMS_Space, V_MMS_Time concrete classes for accuracy
+-Verify composite MMS_Intensity and MMS_Temperature classes evaluate quantities correctly
+
+MMS_Sources_Test - MMS_Sources.cc - MMS_Sources.xml
+-Verify pointwise evaluation of S_I and S_T for MMS problems
+
 #################################################################################
 
 variable_storage/
@@ -124,6 +131,20 @@ IntensityMomentDataTest - IntensityMomentData.cc - 2Region_Log_Spacing.xml
 OutputTrialTest - OutputTrial.cc 1Region_Equal_Spacing.xml
 -write sample .xml and .txt files for dumping Intensity, Intensty_Moment and Temperature data objects
 -visual comparison for correctness
+
+#################################################################################
+
+transport_sweep/
+
+SLXS_MMS_Sweep_Matrix_Test - SLXS_MMS_Sweep_Matrix.cc - SLXS_MMS_Sweep_Matrix.xml
+-Test evaluation of transport sweep reaction matrices and source moments for the SLXS scheme
+-Rational sig_a: 1/T^3
+-constant cv = 0.2
+-zero sig_s
+-T(x,t) = (1cos(pi*t/2 + 0) + 3)*(0.5 + .4x + .3x^2);
+-I(\mu,x,t) = 1/2*(1cos(pi*t/2 + 0) + 3)*( 0.2 + 7x^3 )
+-Cubic DFEM, Lobatto interpolation points, SLXS cross section treatment
+-x \in[0,5] , 9 cells
 
 
 
