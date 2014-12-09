@@ -78,11 +78,7 @@ public:
   OPACITY_TYPE get_abs_opacity_type(const int mat_num) const;
   OPACITY_TYPE get_scat_opacity_type(const int mat_num) const;
   CV_TYPE get_cv_type(const int mat_num) const;
-  FIXED_SOURCE_TYPE get_temperature_source_type(const int mat_num) const
-  {
-    std::cout << "Material source type: " << m_material_temperature_source_type[mat_num] << std::endl;
-    return m_material_temperature_source_type[mat_num]; 
-  }
+  FIXED_SOURCE_TYPE get_temperature_source_type(const int mat_num) const {return m_material_temperature_source_type[mat_num];  }
   FIXED_SOURCE_TYPE get_radiation_source_type(const int mat_num) const { return m_material_radiation_source_type[mat_num];   }
   double get_abs_double_constant_1(const int mat_num) const;
   double get_abs_double_constant_2(const int mat_num) const;

@@ -149,6 +149,7 @@ private:
   std::vector<double> m_dfem_at_xs;
   std::vector<double> m_dfem_at_left_edge;
   std::vector<double> m_dfem_at_right_edge;
+  std::vector<double> m_dfem_at_source;
 
   /// physical position at material property evaluation points
   std::vector<double> m_xs_position;
@@ -160,7 +161,8 @@ private:
   
   /// variables needed to evaluate driving sources at driving source quadrature points
   std::vector<double> m_source_quad;
-  std::vector<double> m_position_at_source_quad;    
+  std::vector<double> m_position_at_source_quad;   
+  std::vector<double> m_temperature_at_source_quad;
 };
 
 #endif

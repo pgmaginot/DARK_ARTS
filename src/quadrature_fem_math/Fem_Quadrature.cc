@@ -186,6 +186,7 @@ m_xs_extra_points{ 10}
     m_source_weights.resize(m_n_source_points,0.);
     quad_fun.lobatto_compute(m_n_source_points , m_source_points, m_source_weights);
     /// calculate dfem at source weigths
+    evaluate_lagrange_func(m_dfem_interpolation_points, m_source_points,m_dfem_at_source_moments); 
   }
   catch(const Dark_Arts_Exception& da_exception)
   {

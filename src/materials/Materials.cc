@@ -66,6 +66,7 @@ Materials::Materials( const Input_Reader& input_reader,
     fem_quadrature.get_xs_eval_points(m_xs_eval_quad);  
     fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);    
     fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);  
+    fem_quadrature.get_dfem_at_source_points(m_dfem_at_source);
     
     /// allocate space for physical position and temperature at material property evaluation points
     m_xs_position.resize(m_n_xs_quad,0.);  
@@ -76,6 +77,7 @@ Materials::Materials( const Input_Reader& input_reader,
     /// qet source moment quadrature points and allocate space for source moment evaluations
     fem_quadrature.get_source_points(m_source_quad);
     m_position_at_source_quad.resize(m_n_source_pts,0.);
+    m_temperature_at_source_quad.resize(m_n_source_pts,0.);
     
     /// get energy bounds 
     if(angular_quadrature.get_number_of_groups() > 1)
@@ -115,13 +117,16 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
   /// calculate the local temperature at the xs evaluation points
   /// basis function evaluation is laid out in a vector: B_{1,1} ... B_{1,N_eval} B_{2,1} ...
   for(int i=0; i < m_n_xs_quad; i++)
-    m_t_at_xs_eval_points[i] = 0.;
+    m_t_at_xs_eval_points[i] = 0.;    
+  
+  for(int i=0; i < m_n_source_pts; i++)
+    m_temperature_at_source_quad[i] = 0.;
     
   m_t_left_bound = 0.; 
   m_t_right_bound = 0.;
   
-  
   int p=0;
+  int src_p = 0;
   for(int dfem_t = 0; dfem_t < m_n_el_cell ; dfem_t++)
   {
     /// temperature is an Eigen::VectorXd
@@ -132,8 +137,12 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
     {
       m_t_at_xs_eval_points[i] += t_el*m_dfem_at_xs[p];
       p++;
-    }    
-
+    }   
+    for(int j=0; j< m_n_source_pts; j++)
+    {
+      m_temperature_at_source_quad[j] += t_el*m_dfem_at_source[src_p];
+      src_p++;
+    }      
   }
   return;
 }
@@ -214,8 +223,6 @@ void Materials::get_cv_boundary(std::vector<double>& cv)
 */
 void Materials::get_temperature_source(const double time, std::vector<double>& t_source_evals)
 {
-  // std::cout << "In Materials::get_temperature_source(), passed a vector of length: " << t_source_evals.size() << " will do work on " << m_n_source_pts << " elements\n";
-  // std::cout << "Length of position vector at source points: " << m_position_at_source_quad.size() << std::endl;
   for(int i=0; i < m_n_source_pts; i++)
   {  
     t_source_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_position_at_source_quad[i], time);

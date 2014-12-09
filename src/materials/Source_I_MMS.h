@@ -26,6 +26,7 @@ public:
     const int group, const int dir, const double time) override;
 private:
   const Planck& m_planck;
+  const double m_sn_w;
   const double m_c;  
   const Angular_Quadrature& m_ang_quad;
   

@@ -180,8 +180,7 @@ int main(int argc, char** argv)
     }
     double calc_phi = calc_intensity.get_mms_phi(space_eval,time_eval);
     std::cout << "Expected phi: " << ex_phi << " Calculated_phi: " << calc_phi << std::endl;
-    std::cout << "Summed phi: " << sum_phi << std::endl;
-    
+ 
     if(fabs(ex_phi - calc_phi ) > tol)
       throw Dark_Arts_Exception(SUPPORT_OBJECT, "MMS_phi does not agree with expected phi");
     
@@ -227,16 +226,14 @@ int main(int argc, char** argv)
         {
           double x = xL + dx/2.*(1. + source_quad_pts[p]);
           double mu = angular_quadrature.get_mu(d);
-          
-          std::cout << "x: " << x << std::endl;
-          std::cout << "sig_s: " << sig_s << std::endl;
-          std::cout << "time_eval: " << time_eval << std::endl;
+ 
           ex_i_src[p] = calc_intensity.get_mms_intensity_time_derivative(x,time_eval,d)/c_speed;
           ex_i_src[p] += mu*calc_intensity.get_mms_intensity_space_derivative(x,time_eval,d);
           ex_i_src[p] += (sig_a+sig_s)*calc_intensity.get_mms_intensity(x,time_eval,d);
-          ex_i_src[p] -=  sig_s/sn_w*calc_intensity.get_mms_phi(x,time_eval) -sig_a/sn_w*pow(calc_temperature.get_mms_temperature(x,time_eval),4);
+          ex_i_src[p] -=  sig_s/sn_w*calc_intensity.get_mms_phi(x,time_eval);
+          ex_i_src[p] -= sig_a/sn_w*pow(calc_temperature.get_mms_temperature(x,time_eval),4);
         
-          std::cout << "Calculed I source: " << calc_i_source[p] << " Expected i src: " << ex_i_src[p] << std::endl;
+          std::cout << "Calculated I source: " << calc_i_source[p] << " Expected i src: " << ex_i_src[p] << std::endl;
           if(fabs(ex_i_src[p] - calc_i_source[p] ) > tol )
             throw Dark_Arts_Exception(SUPPORT_OBJECT, "Miscalculating intensity mms sources");
         
