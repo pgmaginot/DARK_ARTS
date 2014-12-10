@@ -34,8 +34,7 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   
   /// get \f$ \vec{T}^* \f$
   m_t_star_ref.get_cell_temperature(m_cell_num,m_t_star_vec) ;
-  
-  /// populate Materials object with local temperature and position to evalaute material properties
+    
   m_materials.calculate_local_temp_and_position(cell,m_t_star_vec);
   
   /// get Planck vector since it won't change
@@ -83,9 +82,10 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
     m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
   
   m_r_sig_t = m_r_sig_a + m_r_sig_s[0];
+  
   /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
   m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass;
-  
+      
   /// calculate \f$ \mathbf{D} \f$
   m_materials.get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
 

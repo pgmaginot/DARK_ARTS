@@ -154,9 +154,9 @@ void Materials::get_sigma_a(const int grp, std::vector<double>& sig_a)
     m_mat_property_evals[i] = m_abs_opacities[m_current_material]->get_absorption_opacity(
       grp, m_t_at_xs_eval_points[i], m_xs_position[i]);      
   }
-    
-  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, sig_a);
   
+  m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, sig_a);
+    
   return;
 }
 

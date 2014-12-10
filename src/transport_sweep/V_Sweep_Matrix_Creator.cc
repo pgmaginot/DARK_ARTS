@@ -100,6 +100,8 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   
   m_mtrx_builder->construct_pos_upwind_vector(m_no_mu_pos_f_vector);
   m_mtrx_builder->construct_neg_upwind_vector(m_no_mu_neg_f_vector);  
+  
+  m_mtrx_builder->construct_dimensionless_mass_matrix(m_mass);
 }
 
 void V_Sweep_Matrix_Creator::construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix)
@@ -135,7 +137,7 @@ void V_Sweep_Matrix_Creator::set_time_data( const double dt, const double time_s
   m_stage = stage;
   m_time = time_stage;
   
-  for(int s=0; s<m_stage ; s++)
+  for(int s=0; s<=m_stage ; s++)
     m_rk_a[s] = rk_a_of_stage_i[s];
  
   m_dt = dt;

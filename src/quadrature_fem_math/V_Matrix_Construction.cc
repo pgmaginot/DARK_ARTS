@@ -41,6 +41,7 @@ void V_Matrix_Construction::construct_r_cv(Eigen::MatrixXd& r_cv)
 void V_Matrix_Construction::construct_r_sigma_a(Eigen::MatrixXd& r_sig_a, const int grp)
 {
   m_materials.get_sigma_a(grp, m_xs_evals);
+  
   construct_reaction_matrix(r_sig_a,m_xs_evals);
   
   r_sig_a *= m_materials.get_cell_width()/2.;
