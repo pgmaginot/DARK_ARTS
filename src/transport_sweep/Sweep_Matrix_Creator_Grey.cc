@@ -18,7 +18,8 @@ Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_q
   const Temperature_Data& t_star)
 :
   V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, n_l_mom, t_old,  i_old, kt, ki, t_star ),
-  m_group_num{0}
+  m_group_num{0},
+  m_hold_matrix(Eigen::MatrixXd::Zero(m_np,m_np))
 {  
 }
 
@@ -36,11 +37,7 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_t_star_ref.get_cell_temperature(m_cell_num,m_t_star_vec) ;
     
   m_materials.calculate_local_temp_and_position(cell,m_t_star_vec);
-  
-  /// get Planck vector since it won't change
-  /// Planck grey_planck is \f$ acT^4 \f$  not \f$ \frac{1}{\text{m_sn_w}} acT^4 \f$
-  m_materials.get_grey_planck(m_t_star_vec, m_planck_vec);
-  
+    
   /// set cell width
   m_dx = m_materials.get_cell_width();
   
@@ -56,6 +53,7 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_coefficient = m_r_cv.inverse(); 
   /// put this back into m_r_cv
   m_r_cv = m_coefficient;
+  std::cout << "r_cv: \n" << m_r_cv << std::endl;
   
   return;
 }
@@ -71,28 +69,32 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
     \f[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}
     \f]  ^{-1}  
   */
+  m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
+  
+  /// get Planck vector since it won't change
+  /// Planck grey_planck is \f$ acT^4 \f$  not \f$ \frac{1}{\text{m_sn_w}} acT^4 \f$
+  m_materials.get_grey_planck(m_t_star_vec, m_planck_vec);
+  
+  /// calculate \f$ \mathbf{D} \f$
+  m_materials.get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
+  
   m_coefficient = m_identity_matrix;
   m_coefficient += m_sn_w*m_dt*m_rk_a[m_stage]*m_r_cv*m_r_sig_a*m_d_matrix;
   
-  m_r_sig_a = m_coefficient.inverse();
-  m_coefficient = m_r_sig_a;
-
-  m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
+  m_hold_matrix = m_coefficient.inverse();
+  m_coefficient = m_hold_matrix;
+  
   for(int l=0; l< m_n_l_mom ; l++)
     m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
   
   m_r_sig_t = m_r_sig_a + m_r_sig_s[0];
   
   /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
-  m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass;
-      
-  /// calculate \f$ \mathbf{D} \f$
-  m_materials.get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
+  m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass; 
 
   /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
   
-  m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*
-    m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a;
+  m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a;
     
   /// start building the isotropic portion of \f$ \bar{\bar{\xi}} \f$
   
@@ -112,11 +114,14 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   /** \f$ \text{m_xi_isotropic} += 
     \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \left[ \vec{S}_T - \text{m_sn_w} \mathbf{R}_{\sigma_a} \vec{\widehat{B}} \right] \f$ 
   */
-  m_xi_isotropic += m_dt*m_rk_a[m_stage]*m_r_cv*( m_driving_source - m_sn_w*m_r_sig_a*m_planck_vec );
+  m_temp_vec = m_driving_source - m_sn_w*m_r_sig_a*m_planck_vec;
+  m_xi_isotropic += m_dt*m_rk_a[m_stage]*m_r_cv*m_temp_vec;
   
-  m_xi_isotropic *= m_r_sig_a*m_d_matrix*m_coefficient;
+  m_hold_matrix = m_r_sig_a*m_d_matrix*m_coefficient;
   
-  m_xi_isotropic += m_r_sig_a*m_planck_vec;
+  m_temp_vec = m_hold_matrix*m_xi_isotropic;
+  
+  m_xi_isotropic = m_temp_vec + m_r_sig_a*m_planck_vec;
   
   return;
 }

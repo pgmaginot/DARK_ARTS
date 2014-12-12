@@ -40,6 +40,7 @@ public:
   
 private:
   const int m_group_num;
+  Eigen::MatrixXd m_hold_matrix;
 };
 
 #endif

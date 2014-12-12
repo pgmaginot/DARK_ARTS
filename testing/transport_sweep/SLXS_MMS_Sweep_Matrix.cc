@@ -49,6 +49,7 @@ int main(int argc, char** argv)
   const int n_cell = cell_data.get_total_number_of_cells();
   const int n_dir = angular_quadrature.get_number_of_dir();
   const int n_dfem_p = fem_quadrature.get_number_of_interpolation_points();
+  const double sn_w = angular_quadrature.get_sum_w();
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature );  
@@ -254,6 +255,80 @@ int main(int argc, char** argv)
         }
       }
       
+      /// calculate the pseudo-scattering reaction matrix
+      /// take advantage of SLXS being self-lumping (diagonal matrices)
+      /// \mathbf{R}_{\widetilde{\sigma}_s} = \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a}
+      Eigen::MatrixXd pseudo_r_sig_s = Eigen::MatrixXd::Zero(n_dfem_p,n_dfem_p);
+      matrix_creator->get_r_sig_s(pseudo_r_sig_s,0);
+      
+      Eigen::VectorXd t_old_vec = Eigen::VectorXd::Zero(n_dfem_p);
+      t_old.get_cell_temperature(cell,t_old_vec);      
+      for(int el = 0; el < n_dfem_p ; el++)
+      {
+        double temp = t_star_vec(el);
+        double d = 4.*pow(temp,3)/sn_w;
+        double r_sig_a =  1./pow(temp,3)*dx/2.*expected_dimensionless_mass[el][el]; 
+        double cv_inv = 1./(0.2*dx/2.*expected_dimensionless_mass[el][el]);
+        double nu = sn_w*dt*rk_a[0]*r_sig_a*d* (1. / (1.+ sn_w*dt*rk_a[0]*cv_inv*r_sig_a*d) )*cv_inv;
+        double ex_r_sig_s = nu*r_sig_a;
+        std::cout << "Expected entry: " << ex_r_sig_s << "Actual pseudo r_sig_s: " << pseudo_r_sig_s(el,el) << std::endl;
+        if( fabs(ex_r_sig_s - pseudo_r_sig_s(el,el) )>tol )
+          throw Dark_Arts_Exception(FEM, "Not calculating pseudo r_sig_s correctly");
+      }
+      
+      /// calculate non-directional dependent component of pseudo source
+      Eigen::VectorXd my_iso_xi = Eigen::VectorXd::Zero(n_dfem_p);
+      Eigen::VectorXd calc_iso_xi = Eigen::VectorXd::Zero(n_dfem_p);
+      matrix_creator->get_xi_isotropic(calc_iso_xi);
+      
+      Eigen::VectorXd calc_s_t = Eigen::VectorXd::Zero(n_dfem_p);
+      matrix_creator->k_i_get_s_i(calc_s_t);
+      Eigen::VectorXd my_s_t = Eigen::VectorXd::Zero(n_dfem_p);
+      int pnt = 0;
+      for(int el = 0; el < n_dfem_p ; el++)
+      {
+        /// evaluate S_T 
+        // source_quad_pt; source_quad_wt;
+        for(int q = 0; q < n_source_q ; q++)
+        {
+          double x_q = xL + dx/2.*(1.+source_quad_pt[q]);
+          double t = temp_mms.get_mms_temperature(x_q,time_stage);
+          double sig_a = 1. / pow(t,3);
+          double cv = 0.2;
+          double t_dt = temp_mms.get_mms_temperature_time_derivative(x_q,time_stage);
+          double phi = i_mms.get_mms_phi(x_q , time_stage);
+          
+          /// take adavantage of this being a pure absorber problem
+          double source_q = cv*t_dt - sig_a*(phi- pow(t,4));
+          my_s_t(el) += source_quad_wt[q]*source_q*dfem_at_source[pnt];
+          pnt++;
+        }
+        my_s_t(el) *= dx/2.;    
+
+        std::cout << "my_s_t: " << my_s_t(el) << " calc_s_t: " << calc_s_t(el) << std::endl;
+        if(fabs(my_s_t(el) - calc_s_t(el) ) > tol)
+          throw Dark_Arts_Exception(FEM, "Difference in S_T");
+      }
+        
+      for(int el = 0 ; el < n_dfem_p ; el++)
+      {
+        /// already have t_old_vec and t_star_vec
+        double r_sig_a =  (1./pow(t_star_vec(el),3))*dx/2.*expected_dimensionless_mass[el][el]; 
+        double p = pow(t_star_vec(el),4)/sn_w;
+        double d = 4.*pow(t_star_vec(el),3)/sn_w;
+        double cv_inv = 1./(0.2*dx/2.*expected_dimensionless_mass[el][el]);
+        double coeff = r_sig_a*d / (1.+ sn_w*dt*rk_a[0]*cv_inv*r_sig_a*d) ;        
+        
+        my_iso_xi(el) = r_sig_a*p;
+        my_iso_xi(el) += coeff*(t_old_vec(el) - t_star_vec(el) + dt*rk_a[stage_num]*cv_inv*(my_s_t(el) - sn_w*r_sig_a*p) );
+        
+        std::cout << "\n\nEx xi_iso: " << my_iso_xi(el) << " calc xi_iso: " << calc_iso_xi(el) << std::endl;
+        
+        std::cout << "expected values\n" << "r_sig_a: " << r_sig_a << "\ncv_inv: " << cv_inv << "\nplanck: " << p << "\nd_planck: " << d << std::endl;
+        if( fabs(my_iso_xi(el) - calc_iso_xi(el)) > tol )
+          throw Dark_Arts_Exception(FEM,"Not calculating expected isotropic xi");
+      }
+      
       for(int dir = 0; dir < n_dir ; dir++)
       {
         /// update direction dependencies  
@@ -292,8 +367,14 @@ int main(int argc, char** argv)
           }
         }
         
-        Eigen::VectorXd s_i = Eigen::VectorXd::Zero(n_dfem_p);        
-        matrix_creator->k_i_get_s_i(s_i);
+        Eigen::VectorXd pseudo_source = Eigen::VectorXd::Zero(n_dfem_p);        
+        Eigen::VectorXd my_pseudo_source = Eigen::VectorXd::Zero(n_dfem_p);
+        
+        Eigen::VectorXd i_old_vec = Eigen::VectorXd::Zero(n_dfem_p);
+        i_old.get_cell_intensity( cell , 0 , dir , i_old_vec);
+        
+        
+        Eigen::VectorXd s_i = Eigen::VectorXd::Zero(n_dfem_p);         
         Eigen::VectorXd my_s_i = Eigen::VectorXd::Zero(n_dfem_p);
         int pnt = 0;
         for(int el = 0; el < n_dfem_p ; el++)
@@ -315,10 +396,21 @@ int main(int argc, char** argv)
             my_s_i(el) += source_quad_wt[q]*source_q*dfem_at_source[pnt];
             pnt++;
           }
-          my_s_i(el) *= dx/2.;
+          my_s_i(el) *= dx/2.;          
+        }
+        matrix_creator->get_s_i(pseudo_source);
+        matrix_creator->k_i_get_s_i(s_i);      
+        
+        for(int el = 0 ; el < n_dfem_p ; el++)
+        {
+          my_pseudo_source(el) += my_s_i(el);
+          my_pseudo_source(el) += expected_dimensionless_mass[el][el]*dx/(2.*c_speed*dt*rk_a[stage_num])*i_old_vec(el);
           
           if( fabs(my_s_i(el) - s_i(el) ) > tol)
             throw Dark_Arts_Exception(FEM, "Not calculating driving intensity source moments correctly");
+          
+          if( fabs(my_pseudo_source(el) - my_pseudo_source(el) ) > tol)
+            throw Dark_Arts_Exception(FEM, "Not psuedo source correctly");          
         }
         
       }

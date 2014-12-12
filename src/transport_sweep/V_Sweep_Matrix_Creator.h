@@ -94,6 +94,7 @@ public:
   void k_i_get_s_i(Eigen::VectorXd& s_i) const;
   void k_i_get_planck_vec(Eigen::VectorXd& planck) const;
   
+  void get_xi_isotropic(Eigen::VectorXd& xi) const { xi = m_xi_isotropic; return; }
 private:
   const MATRIX_INTEGRATION m_matrix_type; 
   
@@ -132,6 +133,7 @@ protected:
     \f]
   */
   Eigen::MatrixXd m_coefficient;
+  
   /// \f$ \mathbf{M} \f$ without \f$ \frac{\Delta x}{2} \f$ term
   Eigen::MatrixXd m_mass;
   /// scaled mass matrix
