@@ -1,0 +1,52 @@
+Opacities.cpp
+Opacities.h
+-Possibly a clone or a one time version of what PDT currently has to read opacity data files
+Methods in class Opacities:
+initialize(string filename)
+Opacity_File_Details getEnergyGrpDetails(string filename,Opacity_File_Details ret_Opacity_File_Details);
+int getDensityIndex(double dDensity,Opacity_File_Details opacityFileDetails);
+Opacity_File_Details getopacitiesMapFromFile(string strFilename)
+
+
+Opacities_Class.cpp - Defines (empty/blank) class Opacities_Class
+
+Opacities_Object.cpp
+Opacities_Object.h
+-- no methods
+-integer, number of temperatures
+-map<string,Opacity_Object>
+-set<double> temps_set
+
+Opacity_File_Details.cpp
+Opacity_File_Details.h
+-defines Opacity_File_Details class
+--no methods
+has a vector<vector<vector<Opacity_Object>>> (holds all data 
+-integer members: iNoOfTempEntrie, iNoOfEnergyGrps, iNoOfDensities;
+-vector<double> grp_vector;
+-vector<double> density_mat;
+-maps of <string,int> for density, energy group, and temperature
+
+
+Opacity_Object.cpp
+Opacity_Object.h
+-defines Opacity_Object class
+-public data members (doubles):
+-dTemperature, dEnergyIter, dSigmaA, dSigmaS, dSigmaT, dDensity
+
+
+Specific_Heat_Object.cpp
+Specific_Heat_Object.h
+-Blank class that has only has public data members:
+double constA , constB, constC
+
+How are material propoeries evalauted by Akansha?
+Calls to 
+common_Utils.getSigmaAStar
+common_Utils.getSigmaTStar(dTemp) or common_Utils.getSigmaTStar(dTemp , igrp);
+common_Utils.getCVStar_jks_gm_keV
+common_Utils.getCVStar_jks_gm_keV((dPlusHlf),data_transfer_object.c_v_object)
+To answer:
+
+What is a map?
+What is a set?

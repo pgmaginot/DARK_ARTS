@@ -1,0 +1,118 @@
+// Copyright (c) 2000-2011, Texas Engineering Experiment Station (TEES), a
+// component of the Texas A&M University System.
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are not permitted without specific prior written permission
+// from TEES.
+
+// If written permission is obtained for redistribution or further use, the
+// following conditions must be met:
+
+// 1) Redistributions of source code must retain the above copyright notice,
+// this list of conditions and the disclaimer below.
+
+// 2) Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions, and the disclaimer below in the documentation and/or
+// other materials provided with the distribution.
+
+// 3) Neither the name of TEES, the name of the Texas A&M University System, nor
+// the names of its contributors may be used to endorse or promote products
+// derived from this software without specific prior written permission.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS AS IS
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+
+//==============================================================================
+//
+// Opacities.h
+//
+// Checked In:- 10-07-2011
+//
+// Header file for Opacities class.
+//Description:- Contains relevant methods to obtain opacity details from
+// opacity .data file.
+//
+//
+//==============================================================================
+
+#include<string>
+#include <map>
+#include <set>
+#include <vector>
+#ifndef Opacity_Object_h
+#define Opacity_Object_h
+#include "Opacity_Object.h"
+#endif
+#ifndef Opacity_File_Details_h
+#define Opacity_File_Details_h
+#include "Opacity_File_Details.h"
+#endif
+
+
+using std::vector;
+using std::stringstream;
+using std::ifstream;
+using std::map;
+using std::set;
+
+class Opacities
+{
+public:
+	void initialize(string filename);
+	//Opacity_Object getDataFromFile(string filename,string strEnergyGrp,double dConvertedTemp,double dDensity);
+
+	/*! Obtain the Energy Group Details from the .data File and creates and object, Opacity_File_Details
+	 * It contains the following details,
+	 * 1> Number of Temperature entries in the .data file.
+	 * 2> Number of Energy groups.
+	 * 3> Number of densities on which opacities are dependent.
+	 * 4> Material density, if density is independent of Temperature.
+	 * 5> The Energy Group Vector containing details about all energy groups.
+	 * 6> Flag to determine if opacity depends on Temperature and Energy Groups. 1-Constant Opacity
+	 * \param filename New string : Opacities Input File name (.data)
+	 * \return Opacity_File_Details : Energy Group details. */
+	Opacity_File_Details getEnergyGrpDetails(string filename,Opacity_File_Details ret_Opacity_File_Details);
+
+	/*! Obtain the Opacity Details as map from the .data File
+	 * \param filename New string : Opacities Input File name(.data)
+	 * \return map<string,Opacity_Object> : Energy Group details. */
+	Opacity_File_Details getopacitiesMapFromFile(string strFilename);
+
+	/*! Obtain the specific Opacity Object from Opacities Map based on Temperature, density and energy group
+	 * \param opacitiesMap New map<string,Opacity_Object> : Opacities Map that contains details about all opacities.
+	 * \param strEnergyGrp New string : String that has the specific opacity dependent details.
+	 * \param temperature_mat New vector<double> : Details of All Temperature values to which opacities are dependent.
+	 * \param dConvertedTemp New double : Specific temperature (kelvin)
+	 * \param dDensity New double : Density of material for which opacity is determined.
+	 * \return Opacity_Object : Opacity details for the particular temperature,density and energy group */
+	Opacity_Object getOpacityData1(map<string,Opacity_Object> opacitiesMap,vector<double> temperature_mat,string strEnergyGrp,double dConvertedTemp,double dDensity);
+
+	/*! Obtain the specific Opacity Object from Opacities Map based on Temperature, density and energy group
+	 * \param opacitiesMap New map<string,Opacity_Object> : Opacities Map that contains details about all opacities.
+	 * \param strEnergyGrp New string : String that has the specific opacity dependent details.
+	 * \param temperature_mat New vector<double> : Details of All Temperature values to which opacities are dependent.
+	 * \param dConvertedTemp New double : Specific temperature (kelvin)
+	 * \param dDensity New double : Density of material for which opacity is determined.
+	 * \return Opacity_Object : Opacity details for the particular temperature,density and energy group */
+	Opacity_Object getOpacityData(Opacity_File_Details opacityFileDetails,vector<double> temperature_mat,string strEnergyGrp,double dConvertedTemp,double dDensity);
+
+	/*! All temperature values on which opacities are dependent.
+	 * \param filename New string : Opacities Input File name(.data)
+	 * \return vector<double> : Vector contains all relevant temperature values. */
+	vector<double> getTemperatureVector(string strFileName);
+
+	Opacities(void);
+	~Opacities(void);
+};
+
