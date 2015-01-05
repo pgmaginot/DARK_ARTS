@@ -33,7 +33,8 @@ void WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
   for(int n_sweep = 0; n_sweep < m_max_sweeps ; n_sweep++)
   {
     /// perform a transport sweep, updating phi_new
-    m_transport_sweep.sweep_mesh(m_phi_old , phi_new, false,false);
+    m_transport_sweep.set_sweep_type(false,false);
+    m_transport_sweep.sweep_mesh(m_phi_old , phi_new);
     
     /// clear out the error object
     m_err.clear();

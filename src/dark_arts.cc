@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     da_exception.message() ;
   }     
   std::cout << "Input File Read" << std::endl;
-  
+
   /// Initialize a Quadrule object to be able to get all of the quadrature we need
   Quadrule_New quad_fun;  
   std::cout << "Quadrule object created" << std::endl;
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature );  
   std::cout << "Materials object created" << std::endl;
-  
+
   /// Load SDIRK data
   Time_Data time_data( input_reader);  
   std::cout << "Time data object created" << std::endl;
@@ -83,11 +83,11 @@ int main(int argc, char** argv)
   /// Time Marcher.  This object will take care of solving the problem
   Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
     cell_data, materials, temperature_old, intensity_old, time_data);    
-  std::cout << "Time_Marcher object created"<< std::endl;
+    std::cout << "Time_Marcher object created"<< std::endl;  
   
   /// this is the entire time loop !
   try{
-    // time_marcher.solve(intensity_old, temperature_old, time_data);
+    time_marcher.solve(intensity_old, temperature_old, time_data);
   }
   catch(const Dark_Arts_Exception& da_exception)
   {

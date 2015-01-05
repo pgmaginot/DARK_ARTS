@@ -52,10 +52,12 @@ public:
 
     *
   */
+  void set_sweep_type(const bool is_krylov, const bool is_get_k_i);
+  
   void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   
   /// sweep the mesh, calculating a phi_new
-  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov, const bool is_k_i_sweep);
+  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new);
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   
@@ -100,6 +102,10 @@ private:
   Psi_In m_psi_in; 
 
   bool const m_left_reflecting;  
+  
+  bool m_k_i_sweep;
+  bool m_krylov_sweep;
+  bool m_sweep_type_set;
   
   void get_neg_mu_boundary_conditions(const bool is_krylov);
   void get_pos_mu_boundary_conditions(const bool is_krylov);

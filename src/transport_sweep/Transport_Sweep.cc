@@ -26,7 +26,10 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   m_local_soln{ Eigen::VectorXd::Zero(m_np)  },
   m_time{-1.},
   m_psi_in(m_n_groups,m_n_dir),
-  m_left_reflecting{ angular_quadrature.has_left_reflection() }
+  m_left_reflecting{ angular_quadrature.has_left_reflection() },
+  m_k_i_sweep{false},
+  m_krylov_sweep{false},
+  m_sweep_type_set{false}
 {
   if(m_n_groups > 1)
   {
@@ -210,6 +213,9 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
       break;
     }
   }
+  
+  /// to set the time, 
+  m_sweep_saver = m_angle_integrated_saver;
 }
 
 void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
@@ -221,7 +227,39 @@ void Transport_Sweep::set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr)
   return;
 }
 
-void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new, const bool is_krylov, const bool is_get_k_i)
+void Transport_Sweep::set_sweep_type(const bool is_krylov, const bool is_get_k_i)
+{
+  if(is_krylov)
+  {
+    m_sweep_source = m_no_source;
+    m_krylov_sweep = true;
+  }
+  else
+  {
+    m_sweep_source = m_fixed_source;
+    m_krylov_sweep = false;
+  }
+  
+  if(is_get_k_i)
+  {
+    if(is_krylov)
+      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Cannot calculate k_i during a Krylov mode sweep");
+
+    m_k_i_sweep = true;
+    m_sweep_saver = m_k_i_saver;
+  }
+  else
+  {
+    m_k_i_sweep = false;
+    m_sweep_saver = m_angle_integrated_saver; 
+  }
+  
+  m_sweep_type_set = true;
+  
+  return;
+}
+
+void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new)
 {
   /** perform a single transport sweep across the mesh
     * Do not save the full intensity vector
@@ -233,29 +271,12 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
         groups
           directions
   */
-  if(is_krylov)
-  {
-    m_sweep_source = m_no_source;
-  }
-  else
-  {
-    m_sweep_source = m_fixed_source;
-  }
   
-  if(is_get_k_i)
-  {
-    if(is_krylov)
-      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Cannot calculate k_i during a Krylov mode sweep");
-
-    m_sweep_saver = m_k_i_saver;
-  }
-  else
-  {
-    m_sweep_saver = m_angle_integrated_saver; 
+  if(!m_sweep_type_set)
+    throw Dark_Arts_Exception(TRANSPORT, "Must set transport sweep type prior to performing a sweep");
+  
+  if(m_k_i_sweep)
     phi_new.clear_angle_integrated_intensity();
-  }
-  
-  
   
   /// starting and ending number of cells
   int cell_end, cell_start;
@@ -275,7 +296,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       cell_end = 0;
       incr = -1;
       d_offset = 0;      
-      get_neg_mu_boundary_conditions(is_krylov);
+      get_neg_mu_boundary_conditions(m_krylov_sweep);
     }
     else
     {
@@ -283,7 +304,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       cell_end = m_n_cells - 1;
       incr = 1;
       d_offset = m_n_dir/2;
-      get_pos_mu_boundary_conditions(is_krylov);
+      get_pos_mu_boundary_conditions(m_krylov_sweep);
     }
         
     for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
@@ -294,7 +315,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
         /// avoid calculating cross sections as much as possible, call m_sweep_matrix_creator->update_group_dependencies
         m_sweep_matrix_creator->update_group_dependencies(grp);
         /// populate V_Sweep_Matrix_Creator m_k_i_r_sig_t and m_k_i_r_sig_s_zero
-        if(is_get_k_i)
+        if(m_k_i_sweep)
           m_sweep_matrix_creator->calculate_k_i_quantities();      
         
         /// get all the moments of this group's angular flux moments
@@ -337,6 +358,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
     } /// cell loop
   } /// direction set loop (positive vs negative mu)
   
+  m_sweep_type_set = false;
   return;
 }
 

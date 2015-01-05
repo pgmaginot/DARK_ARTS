@@ -5,11 +5,12 @@
 
 Err_Temperature::Err_Temperature(const int n_el)
 :
-m_np{ n_el },
-big_delta{ Eigen::VectorXd::Zero(m_np)},
-error{0.},
-cell{-1},
-element{-1}
+m_np( n_el ),
+big_delta( Eigen::VectorXd::Zero(m_np)),
+error(0.),
+cell(-1),
+element(-1),
+small_number(1.)
 {
 
 }
@@ -38,10 +39,26 @@ int Err_Temperature::get_cell_with_worst_err(void) const
 {
   return cell;
 }
+
+int Err_Temperature::get_element_with_worst_err(void) const
+{
+  return element;
+}
   
 double Err_Temperature::get_worst_err(void) const
 {
   return error;
+}
+
+void Err_Temperature::get_big_delta(Eigen::VectorXd& vec) const
+{
+  vec = big_delta;
+  return;
+}
+
+double Err_Temperature::get_small_number(void) const
+{
+  return small_number;
 }
 
 void Err_Temperature::set_small_number(const double val)

@@ -68,7 +68,7 @@ bool K_Intensity::ki_range_check(const int cell, const int grp, const int dir,co
     std::stringstream err;
     err <<" Attemping to access k_i outside of logical bounds. \n" ;
     err << "Requested cell: " << cell << " group: " << grp << " direction: " << dir << " stage: " << stage << std::endl;
-    err << "Max Element: " << m_el_per_cell << "Max Cell: " << m_cells << " Max Dir: " << m_n_dir << " Max group: " << m_n_grp << " max stage: " << m_n_stages << std::endl;
+    err << "Max Element: " << m_el_per_cell << " Max Cell: " << m_cells << " Max Dir: " << m_n_dir << " Max group: " << m_n_grp << " max stage: " << m_n_stages << std::endl;
     throw Dark_Arts_Exception( VARIABLE_STORAGE , err.str() );
   }
   

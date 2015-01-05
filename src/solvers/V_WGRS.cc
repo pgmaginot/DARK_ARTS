@@ -32,7 +32,8 @@ void V_WGRS::sweep_for_k_i(K_Intensity& k_i, Intensity_Moment_Data& ard_phi)
   
   /// sweep the mesh and form k_I on the fly
   /// since we only have accees to one phi at this point (ard_phi, transport sweep needs to be modified have non co
-  m_transport_sweep.sweep_mesh(ard_phi, ard_phi , false, true);
+  m_transport_sweep.set_sweep_type(false,true);
+  m_transport_sweep.sweep_mesh(ard_phi, ard_phi);
   
   return;
 }

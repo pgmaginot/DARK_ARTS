@@ -14,10 +14,13 @@ public:
   void set_error(const int c, const int el, const double err, Eigen::VectorXd& delta);
   void clear(void);
   int get_cell_with_worst_err(void) const;
-  double get_worst_err() const;
+  int get_element_with_worst_err(void) const;
+  double get_worst_err(void) const;
+  void get_big_delta(Eigen::VectorXd& vec) const;
   
   
   void set_small_number(const double val);
+  double get_small_number(void) const;
   
 private:
   const int m_np;

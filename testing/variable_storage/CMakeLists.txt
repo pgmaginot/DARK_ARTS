@@ -62,3 +62,25 @@ target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_
 add_test(MMS_Intensity_IC_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/MMS_Source_Test.xml )
 
 set_tests_properties( MMS_Intensity_IC_Test PROPERTIES LABELS "variable_storage;Radiation;MMS")
+
+# ###################################################################
+
+set(EXE_NAME ErrPhi)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(ErrPhi_Test ${EXE_NAME} )
+
+set_tests_properties( ErrPhi_Test PROPERTIES LABELS "variable_storage;Radiation")
+
+# ###################################################################
+
+set(EXE_NAME ErrTemperature)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(ErrTemperature_Test ${EXE_NAME} )
+
+set_tests_properties( ErrTemperature_Test PROPERTIES LABELS "variable_storage;Temperature")

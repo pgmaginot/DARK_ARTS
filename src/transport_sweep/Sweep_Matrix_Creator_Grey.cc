@@ -53,7 +53,6 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_coefficient = m_r_cv.inverse(); 
   /// put this back into m_r_cv
   m_r_cv = m_coefficient;
-  std::cout << "r_cv: \n" << m_r_cv << std::endl;
   
   return;
 }
