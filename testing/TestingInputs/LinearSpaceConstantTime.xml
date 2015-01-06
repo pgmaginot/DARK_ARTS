@@ -5,13 +5,22 @@
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
     <Region> 0 
-      <N_cells> 10 </N_cells>
+      <N_cells> 1 </N_cells>
       <Left_bound> 0.0 </Left_bound>
       <Right_bound> 5.0 </Right_bound>
       <Spacing> Equal   </Spacing>
       <Material_number> 0 </Material_number>
     </Region>
   </REGIONS>
+  
+  <SPATIAL_DISCRETIZATION>
+    <DFEM_degree> 4 </DFEM_degree>
+    <Integration_type> Exact</Integration_type>
+    <DFEM_interpolation_point_type> EQUAL_SPACED </DFEM_interpolation_point_type>
+    <Opacity_treatment> Moment_Preserving
+      <Opacity_polynomial_degree> 0 </Opacity_polynomial_degree>
+    </Opacity_treatment>    
+  </SPATIAL_DISCRETIZATION>
   
   <MATERIALS>
     <!-- CM_SH_KEV or  UNITY-->
@@ -37,7 +46,7 @@
               <Coefficient> 1.0 </Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 1 
-            <Coefficient> 2.0 </Coefficient>
+            <Coefficient> 2.2 </Coefficient>
           </MMS_poly_coefficient>
         </Radiation_space>
         
@@ -50,7 +59,7 @@
               <Coefficient> 0.5</Coefficient>
           </MMS_poly_coefficient>
           <MMS_poly_coefficient> 1 
-            <Coefficient> 0.4 </Coefficient>
+            <Coefficient> 1.0 </Coefficient>
           </MMS_poly_coefficient>
         </Temperature_space>
         
@@ -87,14 +96,7 @@
     </Starting_method>
   </TIME>
   
-  <SPATIAL_DISCRETIZATION>
-    <DFEM_degree> 2 </DFEM_degree>
-    <Integration_type> Exact</Integration_type>
-    <DFEM_interpolation_point_type> EQUAL_SPACED </DFEM_interpolation_point_type>
-    <Opacity_treatment> Moment_Preserving
-      <Opacity_polynomial_degree> 0 </Opacity_polynomial_degree>
-    </Opacity_treatment>    
-  </SPATIAL_DISCRETIZATION>
+
   
   <ANGULAR_DISCRETIZATION>
     <Number_of_angles> 2 </Number_of_angles>

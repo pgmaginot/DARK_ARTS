@@ -205,7 +205,8 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
     
   */
   
-  double phi_new_this = 0.;
+  Eigen::VectorXd phi_this = Eigen::VectorXd::Zero(m_el_per_cell);
+  Eigen::VectorXd phi_other =  Eigen::VectorXd::Zero(m_el_per_cell);
   double loc_err;
   for(int cell = 0; cell < m_cells; cell++)
   {
@@ -213,17 +214,18 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
     {
       for(int l_mom = 0; l_mom < m_leg ; l_mom++)
       {
+        get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_this);
+        phi_compare.get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_other);
         for(int el = 0; el < m_el_per_cell ; el++)
         {
-          phi_new_this = get_angle_integrated_intensity(el,cell,grp,l_mom);
-          if(fabs(phi_new_this) > m_norm_for_err[grp])
+          if(fabs(phi_this(el)) > m_norm_for_err[grp])
           {
             /// will not be normalizing to zero
-            loc_err = fabs( (phi_new_this - phi_compare.get_angle_integrated_intensity(el,cell,grp,l_mom) )/phi_new_this);
+            loc_err = fabs( (phi_this(el) - phi_other(el) )/phi_this(el) );
           }
           else
           {
-            loc_err = fabs( phi_new_this - phi_compare.get_angle_integrated_intensity(el,cell,grp,l_mom) );
+            loc_err = fabs( phi_this(el) - phi_other(el) );
           }
           
           if(loc_err > err_phi.get_worst_err() )

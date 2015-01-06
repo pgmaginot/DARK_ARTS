@@ -3,12 +3,7 @@
 
 #include "V_Transport_BC.h"
 #include "Angular_Quadrature.h"
-#include "MMS_Time_Poly.h"
-#include "MMS_Time_Cos.h"
-#include "MMS_Space_Poly.h"
-#include "MMS_Space_Cos.h"
-#include "MMS_Angle_Poly.h"
-#include "MMS_Angle_Isotropic.h"
+#include "MMS_Intensity.h"
 
 /** @file   V_Transport_BC.h
   *   @author pmaginot
@@ -30,9 +25,7 @@ public:
   double get_boundary_condition(const double mu, const int grp, const double time) override;
 protected:
   const double m_x_boundary;
-  std::shared_ptr<V_MMS_Time> m_time_dep;
-  std::shared_ptr<V_MMS_Space> m_rad_space_dep;
-  std::shared_ptr<V_MMS_Angle> m_angle_dep;
+  MMS_Intensity m_intensity;
 };
 
 #endif

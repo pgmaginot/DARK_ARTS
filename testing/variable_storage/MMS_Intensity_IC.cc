@@ -6,6 +6,7 @@
 #include "Input_Reader.h"
 #include "Cell_Data.h"
 #include "Intensity_Data.h"
+#include "Intensity_Moment_Data.h"
 #include "Angular_Quadrature.h"
 #include "Materials.h"
 #include "Fem_Quadrature.h"
@@ -40,7 +41,11 @@ int main(int argc, char** argv)
   Eigen::VectorXd local_i_vec;
   
   Intensity_Data intensity_ic(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);  
- 
+  
+  Intensity_Moment_Data phi_ic( cell_data,angular_quadrature, fem_quadrature, intensity_ic );
+  Eigen::VectorXd ex_phi_vec = Eigen::VectorXd::Zero(n_p);
+  Eigen::VectorXd calc_phi_vec = Eigen::VectorXd::Zero(n_p);
+  
   const int n_dir = angular_quadrature.get_number_of_dir();
   
   double x_dfem , xL, dx , I;
@@ -77,7 +82,7 @@ int main(int argc, char** argv)
     {
       xL = cell_data.get_cell_left_edge(cell);
       dx = cell_data.get_cell_width(cell);
-      
+      ex_phi_vec = Eigen::VectorXd::Zero(n_p);
       for(int dir = 0; dir < n_dir ; dir++)
       {       
         local_i_vec = Eigen::VectorXd::Zero(n_p);
@@ -94,8 +99,20 @@ int main(int argc, char** argv)
           if( fabs( local_i_vec(el) - I) > tol )
             throw Dark_Arts_Exception(VARIABLE_STORAGE , "IC intensity different than expected");            
         }
+        ex_phi_vec += angular_quadrature.get_w(dir) * local_i_vec;
       }
-    } 
+      phi_ic.get_cell_angle_integrated_intensity(cell,0,0,calc_phi_vec);
+      std::cout << "Difference between phi: " << std::endl;
+      local_i_vec = ex_phi_vec - calc_phi_vec;
+      std::cout << local_i_vec << std::endl; 
+      for(int el = 0 ; el < n_p ; el++)
+      { 
+        if( fabs( ex_phi_vec(el) - calc_phi_vec(el)) > tol )
+          throw Dark_Arts_Exception(VARIABLE_STORAGE , "phi IC different than expected");            
+      }
+    }
+
+    
   } 
   catch(const Dark_Arts_Exception& da_exception )
   {

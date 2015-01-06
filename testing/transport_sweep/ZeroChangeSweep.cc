@@ -27,7 +27,7 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.0E-6;
+  const double tol = 1.0E-10;
   
   Input_Reader input_reader;    
   try
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     bool is_krylov = false;
     bool is_get_k_i = false;
     transport_sweep.set_sweep_type(is_krylov,is_get_k_i);
-    transport_sweep.sweep_mesh(phi_new,phi_old);
+    transport_sweep.sweep_mesh(phi_old,phi_new);
     
     Err_Phi err_phi;
     phi_new.normalized_difference(phi_old,err_phi);
@@ -102,8 +102,6 @@ int main(int argc, char** argv)
     phi_new.get_phi_norm(phi_new_norm);
     phi_old.get_phi_norm(phi_old_norm);
     
-    std::cout << "Phi_new norm: " << phi_new_norm[0] <<std::endl;
-    std::cout << "Phi_old norm: " << phi_old_norm[0] <<std::endl;
     
     if(fabs(err_phi.get_worst_err() ) > tol)
       throw Dark_Arts_Exception(TRANSPORT , "Not getting zero change in phi");

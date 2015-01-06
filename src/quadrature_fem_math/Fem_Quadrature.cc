@@ -9,7 +9,7 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
 :
 m_n_interpolation_points{ input_reader.get_dfem_degree() + 1},
 m_int_method{ input_reader.get_integration_method() },
-m_n_source_points{ 2*(m_n_interpolation_points + 1) +1 },
+m_n_source_points{ 2*m_n_interpolation_points + 1 },
 m_xs_extra_points{ 10}
 {
   try{

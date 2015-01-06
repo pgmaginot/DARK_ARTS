@@ -91,6 +91,17 @@ double MMS_Intensity::get_mms_intensity(const double position , const double tim
   return val;
 }
 
+double MMS_Intensity::get_mms_intensity(const double position , const double time , const double mu)
+{
+  double time_component = m_time_dep->get_time_component(time);
+  double angle_comp = m_angle_dep->get_angle_component(mu);
+  double i_position_comp = m_rad_space_dep->get_position_component(position);
+  
+  double val = time_component*i_position_comp*angle_comp;
+  
+  return val;
+}
+
 double MMS_Intensity::get_mms_intensity_space_derivative(const double position , const double time , const int dir)
 {
   double time_component = m_time_dep->get_time_component(time);
