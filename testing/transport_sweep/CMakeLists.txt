@@ -42,3 +42,12 @@ add_test(ZeroChangeSweep_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingI
 set_tests_properties( ZeroChangeSweep_Test PROPERTIES LABELS "transport_sweep")
 
 # ################################################################
+
+set(EXE_NAME Upwinding)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES})
+
+add_test(Upwinding_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/MMS_Source_Test.xml )
+
+set_tests_properties( Upwinding_Test PROPERTIES LABELS "MMS;transport_sweep;Upwind")

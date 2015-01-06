@@ -2,6 +2,7 @@
 #define Psi_In_h
 
 #include <vector>
+#include "Dark_Arts_Exception.h"
 
 class Psi_In
 {

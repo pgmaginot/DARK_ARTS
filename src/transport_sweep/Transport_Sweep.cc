@@ -297,6 +297,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       incr = -1;
       d_offset = 0;      
       get_neg_mu_boundary_conditions(m_krylov_sweep);
+	  std::cout << "Incident BC: " << m_psi_in(0,0) << std::endl;
     }
     else
     {
@@ -305,7 +306,9 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       incr = 1;
       d_offset = m_n_dir/2;
       get_pos_mu_boundary_conditions(m_krylov_sweep);
+      std::cout << "Incident BC: " << m_psi_in(0,1) << std::endl;
     }
+	
         
     for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
     {
@@ -338,7 +341,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
           /// build RHS vector
           /// overwrite with incident flux contribution
           m_sweep_matrix_creator->construct_f_vector(mu,m_rhs_vec);
-          m_rhs_vec *= m_psi_in(dir,grp);          
+          m_rhs_vec *= m_psi_in(grp,dir);          
           /// add in source moments
           m_sweep_source->get_source(m_vector_scratch);          
           m_rhs_vec += m_vector_scratch;
@@ -350,6 +353,8 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
           }
           /// get the local solution
           m_local_soln = m_lhs_mat.partialPivLu().solve(m_rhs_vec);
+		  std::cout << "New local intensity for cell: " << cell << " direction: " << mu << std::endl;
+		  std::cout << m_local_soln << std::endl;
           /// save the moments of the local solutions (or calculate k_I), and update outflow
           m_sweep_saver->save_local_solution(phi_new,m_local_soln,m_psi_in,cell,grp,dir);
           

@@ -29,7 +29,7 @@ public:
   const int dir) = 0;
   
   void set_stage(const int stage);
-  
+  double calculate_outflow(const int dir, const Eigen::VectorXd& local_intensity);
 protected:
   const int m_np;
   const int m_n_dir_div_2;
@@ -43,7 +43,7 @@ protected:
   std::vector<double> m_dfem_at_left_bound;
   std::vector<double> m_dfem_at_right_bound;
   
-  double calculate_outflow(const int dir, const Eigen::VectorXd& local_intensity);
+
 };
 
 #endif
