@@ -47,8 +47,7 @@ int main(int argc, char** argv)
   
   const int n_cell = cell_data.get_total_number_of_cells();
   const int n_dir = angular_quadrature.get_number_of_dir();
-  const int n_dfem_p = fem_quadrature.get_number_of_interpolation_points();
-  const double sn_w = angular_quadrature.get_sum_w();
+  const int n_p = fem_quadrature.get_number_of_interpolation_points();
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
   Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature );  
@@ -96,29 +95,67 @@ int main(int argc, char** argv)
     Err_Phi err_phi;
     phi_new.normalized_difference(phi_old,err_phi);
     std::cout << "Maximum normalized difference: " << err_phi.get_worst_err() << std::endl;
-    
-    std::vector<double> phi_old_norm;
-    std::vector<double> phi_new_norm;
-    phi_new.get_phi_norm(phi_new_norm);
-    phi_old.get_phi_norm(phi_old_norm);
-    
-    
+        
     if(fabs(err_phi.get_worst_err() ) > tol)
       throw Dark_Arts_Exception(TRANSPORT , "Not getting zero change in phi");
     
     /// perform the same sweep , but check that k_i is zero
-    // is_krylov = false;
-    // is_get_k_i = true;
-    // transport_sweep.set_sweep_type(is_krylov,is_get_k_i);
-    // transport_sweep.sweep_mesh(phi_new,phi_old);
+    is_krylov = false;
+    is_get_k_i = true;
+    transport_sweep.set_sweep_type(is_krylov,is_get_k_i);
+    transport_sweep.sweep_mesh(phi_old,phi_new);
     
+    Eigen::VectorXd k_i_loc = Eigen::VectorXd::Zero(n_p);
     
+    const int grp = 0;
+    for(int cell = 0 ; cell < n_cell; cell++)
+    {
+      Eigen::VectorXd phi_new_loc = Eigen::VectorXd::Zero(n_p);
+      Eigen::VectorXd phi_old_loc = Eigen::VectorXd::Zero(n_p);
+      phi_new.get_cell_angle_integrated_intensity(cell,grp,0,phi_new_loc);
+      phi_old.get_cell_angle_integrated_intensity(cell,grp,0,phi_old_loc);
+      std::cout << "Phi_new:\n" << phi_new_loc << "\nPhi_old:\n" << phi_old_loc << std::endl;
+      for(int dir = 0; dir < n_dir ; dir++)
+      {
+        ki.get_ki(cell, grp, dir, stage, k_i_loc);        
+        std::cout << "K_i for stage: " << stage << " cell: " << cell << " direction: " << dir << " group: " << grp << std::endl << k_i_loc << std::endl; 
+        
+        for(int el = 0; el < n_p ; el++)
+        {
+          if( fabs(k_i_loc(el)) > tol)          
+            throw Dark_Arts_Exception(TRANSPORT, "Expecting zero k_i");   
+        }
+      }        
+    }
+    
+    std::cout << "Advancing intensity now " << std::endl;
+    /// now test out that when we add k_i we don't change the solution
+    Intensity_Data i_new(i_old);
+    ki.advance_intensity(i_old, dt, time_data);
+    Eigen::VectorXd i_old_loc = Eigen::VectorXd::Zero(n_p);
+    Eigen::VectorXd i_new_loc = Eigen::VectorXd::Zero(n_p);
+    for(int cell = 0; cell < n_cell ; cell++)
+    {
+      for(int dir = 0; dir < n_dir ; dir++)
+      {
+        i_old.get_cell_intensity(cell,grp,dir,i_old_loc);
+        i_new.get_cell_intensity(cell,grp,dir,i_new_loc);
+        for(int el = 0 ; el < n_p ; el++)
+        {
+          if(fabs(i_old_loc(el) - i_new_loc(el))>tol)
+            throw Dark_Arts_Exception(TRANSPORT, "Not advancing constant in time intensity");
+        }
+      }
+    }
   }
   catch(const Dark_Arts_Exception& da)
   {
     val = -1;
     da.testing_message();
   }
+  
+  
+
   
   return val;
 }

@@ -1,0 +1,30 @@
+Normalized maximum differences
+
+Linear space in temperature and radiation, P1 exact itnegration
+1- 0.982775
+2- 0.814416
+4- 0.277075
+8- 0.0404894
+16- 0.00664297
+32-  0.00147261
+
+Linear space in temperature and radiation, P2 exact itnegration
+1-1.0584
+2-14.8625
+4-0.063806
+8-0.00316561
+16- 0.000164814
+
+Linear space in temperature and radiation, P3 exact itnegration
+1- 0.672635
+2-  0.08304
+4- 0.003403
+8- 0.000120977
+16-  5.00311e-06
+
+Linear space in temperature and radiation, P4 exact itnegration
+1- 5.63993e-14
+2-  6.66134e-15
+4- 7.02183e-15
+8- 6.09581e-15
+16-  3.51092e-15

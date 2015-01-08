@@ -9,7 +9,7 @@ K_Intensity::K_Intensity(const int n_cells, const int n_stages,
     const Fem_Quadrature& fem_quadrature, const Angular_Quadrature& angular_quadrature)
   /// initilaize range members
   :
-  m_cells{ n_stages },
+  m_cells{ n_cells },
   m_el_per_cell{ fem_quadrature.get_number_of_interpolation_points()},
   m_n_stages{n_stages},
   m_n_dir{ angular_quadrature.get_number_of_dir() },
@@ -18,7 +18,7 @@ K_Intensity::K_Intensity(const int n_cells, const int n_stages,
   m_el_stage{ m_el_per_cell*m_n_stages},
   m_el_stage_dir_div_2{ m_el_stage*m_n_dir/2},
   m_el_stage_dir_div_2_grp{m_el_stage_dir_div_2*m_n_grp},
-  m_offset{m_n_dir/2*m_n_grp*m_cells*m_n_stages},
+  m_offset{m_n_dir/2*m_n_grp*m_cells*m_n_stages*m_el_per_cell},
   m_dir_div_2{m_n_dir/2},
   m_vec_sum{ Eigen::VectorXd::Zero(m_el_per_cell) },
   m_vec_retrieve{ Eigen::VectorXd::Zero(m_el_per_cell) }  
@@ -51,8 +51,10 @@ bool K_Intensity::ki_range_check(const int cell, const int grp, const int dir,co
 {
   bool is_bad = false;
   
-  if( (stage >= m_n_stages ) || (stage < 0) )
+  if( (stage < 0) ||  (stage > (m_n_stages-1)) )
+  {
     is_bad = true;
+  }
        
   if( (cell < 0) || (cell >= m_cells) )
     is_bad = true;
@@ -60,7 +62,7 @@ bool K_Intensity::ki_range_check(const int cell, const int grp, const int dir,co
   if( (grp < 0 ) || (grp >= m_n_grp) )
     is_bad = true;
     
-  if( (dir < 0) || ( dir > m_n_dir) ) 
+  if( (dir < 0) || ( dir >= m_n_dir) ) 
     is_bad = true;
     
   if(is_bad)
@@ -99,10 +101,12 @@ int K_Intensity::ki_data_locator(const int cell, const int grp, const int dir,co
   int loc_val = 0;
   if( dir < m_dir_div_2)
   {
+    /// negative mu
     loc_val = stage*m_el_per_cell + dir*m_el_stage + grp*m_el_stage_dir_div_2 + (m_cells-cell-1)*m_el_stage_dir_div_2_grp;
   }
   else
   {
+    /// positive mu
     loc_val = m_offset + stage*m_el_per_cell + (dir-m_dir_div_2)*m_el_stage + grp*m_el_stage_dir_div_2 + cell*m_el_stage_dir_div_2_grp;;
   }
   
@@ -156,7 +160,7 @@ void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, cons
     
     for(int c = start ; c != end ; c += incr)
     {
-      for(int g = 0 ; g <= m_n_grp ; g++)
+      for(int g = 0 ; g < m_n_grp ; g++)
       {
         for(int d = 0; d < m_dir_div_2 ; d++)
         {

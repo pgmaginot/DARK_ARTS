@@ -275,7 +275,7 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
   if(!m_sweep_type_set)
     throw Dark_Arts_Exception(TRANSPORT, "Must set transport sweep type prior to performing a sweep");
   
-  if(m_k_i_sweep)
+  if(!m_k_i_sweep)
     phi_new.clear_angle_integrated_intensity();
   
   /// starting and ending number of cells
@@ -306,7 +306,6 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
       d_offset = m_n_dir/2;
       get_pos_mu_boundary_conditions(m_krylov_sweep);
     }
-	
         
     for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
     {
@@ -351,8 +350,6 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
           }
           /// get the local solution
           m_local_soln = m_lhs_mat.partialPivLu().solve(m_rhs_vec);
-          // std::cout << "New local intensity for cell: " << cell << " direction: " << mu << std::endl;
-          // std::cout << m_local_soln << std::endl;
           /// save the moments of the local solutions (or calculate k_I), and update outflow
           m_sweep_saver->save_local_solution(phi_new,m_local_soln,m_psi_in,cell,grp,dir);
           

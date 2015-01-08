@@ -11,7 +11,6 @@ Solution_Saver_K_I::Solution_Saver_K_I(const Fem_Quadrature& fem_quadrature,
   m_local_ki{Eigen::VectorXd::Zero(m_np)},
   m_scratch_vec{Eigen::VectorXd::Zero(m_np)},
   m_scratch_mat{Eigen::MatrixXd::Zero(m_np,m_np)}  ,
-  m_zero{0},
   m_c{c}
 {
  
@@ -35,7 +34,7 @@ void Solution_Saver_K_I::save_local_solution(Intensity_Moment_Data& phi_new,
   /// get 0 moment scatter source
   phi_new.get_cell_angle_integrated_intensity(cell,grp, 0 , m_scratch_vec);
   m_sweep_matrix_ptr->k_i_get_r_sig_s_zero(m_scratch_mat);  
-  m_local_ki = m_scratch_mat*m_scratch_vec;
+  m_local_ki = m_quad_ref.get_leg_poly(dir,0)*m_scratch_mat*m_scratch_vec;
   
   /// add in higher order scattering moments
   for(int l=1; l<m_n_l_mom;l++)
@@ -56,7 +55,7 @@ void Solution_Saver_K_I::save_local_solution(Intensity_Moment_Data& phi_new,
   
   /// add in upwind contribution
   m_sweep_matrix_ptr->construct_f_vector(m_quad_ref.get_mu(dir),m_scratch_vec); 
-  m_local_ki += psi_in(dir,grp)*m_scratch_vec;
+  m_local_ki += psi_in(grp,dir)*m_scratch_vec;
   
   /// add in driving source
   m_sweep_matrix_ptr->k_i_get_s_i(m_scratch_vec);
@@ -68,13 +67,17 @@ void Solution_Saver_K_I::save_local_solution(Intensity_Moment_Data& phi_new,
   
   /// apply \f$ c\mathbf{M}^{-1} \f$
   m_sweep_matrix_ptr->get_mass_inverse(m_scratch_mat);
-  m_local_ki *= m_c*m_scratch_mat;
+  m_scratch_vec = m_c*m_scratch_mat*m_local_ki;
+  m_local_ki = m_scratch_vec;
+  
+  // std::cout << "Direction: " << dir << " Cell: " << cell << " Local k_i: \n" << m_local_ki << std::endl;
+  // std::cout << "Local I: \n" << local_intensity << std::endl;
   
   /// save the local k_i in K_Intensity object
   m_k_i_ref.set_ki(cell,grp,dir,m_stage,m_local_ki);
   
   /// calculate cell outflow (next cell's inflow)
-  psi_in(dir,grp) = calculate_outflow(dir,local_intensity);
+  psi_in(grp,dir) = calculate_outflow(dir,local_intensity);
   return;
 }
 

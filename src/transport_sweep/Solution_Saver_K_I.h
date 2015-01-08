@@ -34,10 +34,7 @@ protected:
   Eigen::VectorXd m_scratch_vec;
   Eigen::MatrixXd m_scratch_mat;
   
-  const int m_zero;
-  const double m_c;
-  int m_stage;
-  
+  const double m_c;  
 };
 
 #endif
