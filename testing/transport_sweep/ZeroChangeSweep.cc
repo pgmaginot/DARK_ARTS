@@ -16,6 +16,8 @@
 #include "K_Intensity.h"
 #include "K_Temperature.h"
 #include "Transport_Sweep.h"
+#include "Temperature_Update_Grey.h"
+#include "Err_Temperature.h"
 
 #include "Dark_Arts_Exception.h"
 
@@ -145,6 +147,47 @@ int main(int argc, char** argv)
           if(fabs(i_old_loc(el) - i_new_loc(el))>tol)
             throw Dark_Arts_Exception(TRANSPORT, "Not advancing constant in time intensity");
         }
+      }
+    }
+    
+    Temperature_Update_Grey t_update(fem_quadrature, cell_data, materials,  angular_quadrature, 1);
+    t_update.set_time_data( dt, time_data.get_t_start() + dt , rk_a, stage );
+    Err_Temperature err_temperature(n_p);
+    t_update.update_temperature(phi_new, t_star, t_old, kt, 1.0 , err_temperature ); 
+    
+    if(fabs(err_temperature.get_worst_err() ) > tol )
+      throw Dark_Arts_Exception(TIME_MARCHER, "Temperature should not change");
+    
+    
+    t_update.calculate_k_t(t_star, kt, phi_new);
+    /// verify that k_t is zero
+    Eigen::VectorXd kt_loc = Eigen::VectorXd::Zero(n_p);
+    
+    for(int cell = 0; cell < n_cell ; cell++)
+    {
+      kt.get_kt(cell, stage, kt_loc);
+      
+      for(int el = 0; el < n_p ; el++)
+      {
+        if(fabs(kt_loc(el) ) > tol)
+          throw Dark_Arts_Exception(TIME_MARCHER , "Non zero kt");
+      }
+    }
+    
+    kt.advance_temperature(t_old, dt, time_data);
+    
+    Eigen::VectorXd t_old_loc = Eigen::VectorXd::Zero(n_p);
+    Eigen::VectorXd t_new_loc = Eigen::VectorXd::Zero(n_p);
+    /// test the k_t addition
+    for(int cell = 0; cell < n_cell ; cell++)
+    {
+      t_star.get_cell_temperature(cell, t_new_loc);
+      t_old.get_cell_temperature(cell,t_old_loc);
+      
+      for(int el = 0; el < n_p ; el++)
+      {
+        if(fabs(t_new_loc(el) - t_old_loc(el) ) > tol)
+          throw Dark_Arts_Exception(TIME_MARCHER , "Bad temperature advancing");
       }
     }
   }

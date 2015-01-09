@@ -39,7 +39,7 @@ target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_
 
 add_test(ZeroChangeSweep_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/LinearSpaceConstantTime.xml )
 
-set_tests_properties( ZeroChangeSweep_Test PROPERTIES LABELS "transport_sweep")
+set_tests_properties( ZeroChangeSweep_Test PROPERTIES LABELS "transport_sweep;Temperature_Update")
 
 # ################################################################
 
