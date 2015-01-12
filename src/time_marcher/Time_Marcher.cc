@@ -87,46 +87,46 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
         
       // /// set time (of this stage), dt (of the whole time step), rk_a for this stage
-      // m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
-      // m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
+      m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
+      m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       
-      // // for(int therm_iter = 0; therm_iter < max_thermal_iter; therm_iter++)
-      // // {
-        // // /// converge the thermal linearization
-        // // /// first get an intensity given the temperature iterate
-        // // /// Intensity_Update objects are linked to m_star at construction
-        // // m_intensity_update->update_intensity(m_ard_phi);
+      for(int therm_iter = 0; therm_iter < max_thermal_iter; therm_iter++)
+      {
+        /// converge the thermal linearization
+        /// first get an intensity given the temperature iterate
+        /// Intensity_Update objects are linked to m_star at construction
+        m_intensity_update->update_intensity(m_ard_phi);
           
-        // // /// then update temperature given the new intensity
-        // // /// give a damping coefficient to possibly control this Newton (like) iteration)
-        // // /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
-        // // m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
+        /// then update temperature given the new intensity
+        /// give a damping coefficient to possibly control this Newton (like) iteration)
+        /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
+        m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
 
-        // // /// check convergence of temperature
-        // // if( m_err_temperature.get_worst_err() < m_thermal_tolerance)
-        // // {
-          // // break;
-        // // }
+        /// check convergence of temperature
+        if( m_err_temperature.get_worst_err() < m_thermal_tolerance)
+        {
+          break;
+        }
         
-      // // }    
-      // // /** calculate k_I and k_T
-       // // * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
-       // // * but let's just call the calculate k_i and k_t functions by passing references to the objects we want to change
-       // // * this will then imply that the more frequently called update functions are not modifying the 
-      // // */
-      // // /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
-      // // m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
-      // // m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
+      }    
+      /** calculate k_I and k_T
+       * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
+       * but let's just call the calculate k_i and k_t functions by passing references to the objects we want to change
+       * this will then imply that the more frequently called update functions are not modifying the 
+      */
+      /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
+      m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
+      m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
     }
-    // /// advance to the next time step, overwrite t_old
-    // time += dt;
-    // /// these are the only functions that change I_old and T_old
-    // // m_k_i.advance_intensity(i_old,dt,m_time_data);
-    // // m_k_t.advance_temperature(t_old,dt,m_time_data);
+    /// advance to the next time step, overwrite t_old
+    time += dt;
+    /// these are the only functions that change I_old and T_old
+    m_k_i.advance_intensity(i_old,dt,m_time_data);
+    m_k_t.advance_temperature(t_old,dt,m_time_data);
     
-    // /// check to see if we are at the end of the time marching scheme
-    // if( abs( (time - time_data.get_t_end() )/time) < 1.0E-6)
-      // break;
+    /// check to see if we are at the end of the time marching scheme
+    if( abs( (time - time_data.get_t_end() )/time) < 1.0E-6)
+      break;
     
   }
 

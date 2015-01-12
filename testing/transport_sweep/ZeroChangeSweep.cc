@@ -92,6 +92,7 @@ int main(int argc, char** argv)
     bool is_krylov = false;
     bool is_get_k_i = false;
     transport_sweep.set_sweep_type(is_krylov,is_get_k_i);
+    /// phi_old is the exact phi, therefore there will be only one richardson iteration to reach convergence!!!
     transport_sweep.sweep_mesh(phi_old,phi_new);
     
     Err_Phi err_phi;

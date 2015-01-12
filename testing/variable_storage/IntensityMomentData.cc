@@ -146,7 +146,7 @@ int main(int argc, char** argv)
     err_phi.clear();
     phi_ic.normalized_difference(blank_phi, err_phi);
     if( fabs(err_phi.get_worst_err() ) > tol )
-      throw Dark_Arts_Exception( VARIABLE_STORAGE, "Should calculate zoer error if assignment operator works correctly for Intensity_Moment_Data");
+      throw Dark_Arts_Exception( VARIABLE_STORAGE, "Should calculate zero error if assignment operator works correctly for Intensity_Moment_Data");
     
     phi_ic.clear_angle_integrated_intensity();
     for(int cell = 0; cell < 8 ; cell++)

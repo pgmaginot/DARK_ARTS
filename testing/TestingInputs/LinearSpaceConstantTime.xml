@@ -5,7 +5,7 @@
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
     <Region> 0 
-      <N_cells> 2 </N_cells>
+      <N_cells> 5 </N_cells>
       <Left_bound> 0.0 </Left_bound>
       <Right_bound> 5.0 </Right_bound>
       <Spacing> Equal   </Spacing>
@@ -27,15 +27,15 @@
     <Units> Unity </Units>
     <Material> 0
       <Scattering_opacity_type> Constant_xs 
-        <Constant_value> 0.0 </Constant_value>
+        <Constant_value> 0 </Constant_value>
       </Scattering_opacity_type>      
       
       <Absorption_opacity_type> Constant_xs
-        <Constant_value> 1.0 </Constant_value>
+        <Constant_value> 1.3 </Constant_value>
       </Absorption_opacity_type>      
       
       <Cv_type> Constant_cv 
-        <Cv_constant> 1.2 </Cv_constant>
+        <Cv_constant> 2.2 </Cv_constant>
       </Cv_type>
       
       <Radiation_fixed_source_type> MMS_source 
@@ -108,7 +108,7 @@
   <SOLVER>
     <!-- Valid options are FP_SWEEPS, FP_DSA, KRYLOV_SWEEPS, KRYLOV_DSA   -->
     <WG_solver_type> FP_SWEEPS 
-      <Max_within_group_sweeps> 10 </Max_within_group_sweeps>
+      <Max_within_group_sweeps> 200 </Max_within_group_sweeps>
     </WG_solver_type>
     <WG_tolerance> 1.0E-12 </WG_tolerance>
     <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>

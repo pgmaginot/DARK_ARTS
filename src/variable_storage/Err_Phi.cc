@@ -4,7 +4,7 @@
 #include "Err_Phi.h"
 Err_Phi::Err_Phi(void)
 :
-error{0.},
+error{-1.},
 cell{-1},
 group{-1},
 leg_moment{-1}
@@ -28,7 +28,7 @@ void Err_Phi::clear(void)
   cell = -1;
   group = -1;
   leg_moment = -1;
-  error = 0.;
+  error = -1.;
 }
 
 int Err_Phi::get_cell_with_worst_err(void) const

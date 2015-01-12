@@ -186,7 +186,7 @@ void Intensity_Moment_Data::clear_angle_integrated_intensity(void)
   return;
 }
 
-void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const
+void Intensity_Moment_Data::normalized_difference(const Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const
 {
   /**
     Find the maximum, normalized difference between this iterate and another Intensity_Moment_Data object
@@ -216,11 +216,12 @@ void Intensity_Moment_Data::normalized_difference(Intensity_Moment_Data& phi_com
       {
         get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_this);
         phi_compare.get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_other);
+        
         for(int el = 0; el < m_el_per_cell ; el++)
         {
           if(fabs(phi_this(el)) > m_norm_for_err[grp])
           {
-            /// will not be normalizing to zero
+            /// not dividing by a near zero
             loc_err = fabs( (phi_this(el) - phi_other(el) )/phi_this(el) );
           }
           else

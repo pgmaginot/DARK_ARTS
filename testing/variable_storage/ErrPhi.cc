@@ -23,7 +23,7 @@ int main(int argc, char** argv)
     if( abs(test_err.get_legendre_moment_with_worst_err() - (-1) ) > 0 )
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Initialized with wrong moment");
 
-    if( fabs(test_err.get_worst_err() ) > tol )
+    if( fabs(test_err.get_worst_err() + 1. ) > tol )
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Initialized with wrong error");
   
     const int group = 1;
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     if( abs(test_err.get_legendre_moment_with_worst_err() - (-1) ) > 0 )
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Cleared with wrong moment");
 
-    if( fabs(test_err.get_worst_err() ) > tol )
+    if( fabs(test_err.get_worst_err() +1. ) > tol )
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Cleared with wrong error");
   
   }
