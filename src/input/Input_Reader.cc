@@ -924,15 +924,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     }
     else if(scat_opacity_str == "TABLE_LOOKUP")
     {
-      m_material_scattering_opacity_type[mat_num] = TABLE_LOOKUP;
-      TiXmlElement* scat_op_file = scat_opacity_type->FirstChildElement( "File_name" );
-      if(!scat_op_file)
-      {
-        std::stringstream err;
-        err  << "In MATERIALS block: Missing File_name tag for material " << mat_num << " TABLE_LOOKUP scattering opacity " ;
-        throw Dark_Arts_Exception( INPUT , err.str() );
-      }
-      m_scat_opacity_str[mat_num] = scat_op_file->GetText();
+      std::stringstream err;
+      err  << "In MATERIALS block: Scattering opacities cannot be table look-up.  In material " << mat_num << " TABLE_LOOKUP scattering opacity " ;
+      throw Dark_Arts_Exception( INPUT , err.str() );      
     }
     else if(scat_opacity_str == "POLYNOMIAL_SPACE")
     {
@@ -1009,7 +1003,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       if(m_number_materials > 1)
        throw Dark_Arts_Exception(INPUT, "MMS_SOURCE only allowed for single material problems");
        
-      if((m_material_scattering_opacity_type[0] == TABLE_LOOKUP) ||(m_material_absorption_opacity_type[0] == TABLE_LOOKUP) )
+      if( m_material_absorption_opacity_type[0] == TABLE_LOOKUP )
         throw Dark_Arts_Exception(INPUT, "MMS_SOURCE not allowed with TABLE_LOOKUP opacities");
       
       if( m_number_groups != 1) 

@@ -336,8 +336,7 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     }
     else if(scat_op_type == TABLE_LOOKUP)
     {
-      m_scat_opacities[mat_num] = std::shared_ptr<VScattering_Opacity>
-        (new Scattering_Opacity_Table( input_reader, mat_num)  ) ;
+      throw Dark_Arts_Exception(SUPPORT_OBJECT,"No table look-up scattering opacities.  In Matierals constructor");
     }
     else if(scat_op_type == POLYNOMIAL_SPACE)
     {

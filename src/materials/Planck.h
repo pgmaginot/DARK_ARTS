@@ -60,19 +60,7 @@
 #include <iostream>
 
 #include "Input_Reader.h"
-
-// #ifndef math_h
-// #define math_h
-// #include "math.h"
-// #endif
-// #ifndef stdio_h
-// #define stdio_h
-// #include "stdio.h"
-// #endif
-
-//#include "CommonException.h"
-
-
+#include "global_constants.h"
 
 using std::vector;
 using std::stringstream;
@@ -142,7 +130,7 @@ inline double Planck::get_B(double T, double E)  const
     stringstream str;
     str << "Planckian evaluation requires temperature and energy to be "
         << "positive.";
-    //throw CommonException(str, CET_INTERNAL_ERROR);
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, str.str() );
   }
 
   //                     2 E^3
@@ -164,7 +152,7 @@ inline double Planck::get_dBdT(double T, double E)  const
     stringstream str;
     str << "Planckian evaluation requires temperature and energy to be "
         << "positive.";
-    //throw CommonException(str, CET_INTERNAL_ERROR);
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, str.str() );
   }
 
   //    dB(E, T)       2      E^4      e^(E/kT)

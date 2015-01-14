@@ -29,6 +29,11 @@ Dark_Arts_Exception::Dark_Arts_Exception( EXCEPTION_TYPE ex_type , const std::st
       error_message = "TIME_MARCHER: ";
       break;
     }
+    case TRANSPORT:
+    {
+      error_message = "TRANSPORT: ";
+      break;
+    }
     default:
     {
       error_message = "Unknown Exception Type: " ;
@@ -37,6 +42,50 @@ Dark_Arts_Exception::Dark_Arts_Exception( EXCEPTION_TYPE ex_type , const std::st
   }
   
   error_message.append( ex_message );      
+}
+
+Dark_Arts_Exception::Dark_Arts_Exception( EXCEPTION_TYPE ex_type , const std::stringstream& ex_message )
+{
+  switch(ex_type)
+  {
+    case INPUT:
+    {
+      error_message = "INPUT: ";
+      break;
+    }
+    case FEM:
+    {
+      error_message = "FEM: ";
+      break;
+    }
+    case VARIABLE_STORAGE:
+    {
+      error_message = "VARIABLE_STORAGE: ";
+      break;
+    }
+    case SUPPORT_OBJECT:
+    {
+      error_message = "SUPPORT_OBJECT: ";
+      break;
+    }
+    case TIME_MARCHER:
+    {
+      error_message = "TIME_MARCHER: ";
+      break;
+    }
+    case TRANSPORT:
+    {
+      error_message = "TRANSPORT: ";
+      break;
+    }
+    default:
+    {
+      error_message = "Unknown Exception Type: " ;
+      break;
+    }
+  }
+  
+  error_message.append( ex_message.str() );      
 }
 
 Dark_Arts_Exception::Dark_Arts_Exception(  )
