@@ -65,7 +65,12 @@ int main(int argc, char** argv)
   Quadrule_New quad_fun;  
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
-  Output_Generator output( angular_quadrature, fem_quadrature, cell_data, argv[1] );
+  
+  std::string input_filename = argv[1];
+  unsigned int found = input_filename.find_last_of("/");
+  std::string short_input_filename = input_filename.substr(found+1);  
+  
+  Output_Generator output( angular_quadrature, fem_quadrature, cell_data, short_input_filename );
   
   try{
   

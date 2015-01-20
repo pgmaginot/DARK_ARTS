@@ -39,10 +39,12 @@ int main(int argc, char** argv)
   Intensity_Data intensity_old( cell_data, angular_quadrature, fem_quadrature, materials, input_reader);
   Temperature_Data temperature_old( fem_quadrature, input_reader, cell_data);
   Intensity_Moment_Data phi_ic(cell_data,angular_quadrature, fem_quadrature, intensity_old);
-  
-  std::string my_str = "Does nothing";
+     
+  std::string input_filename = argv[1];
+  unsigned int found = input_filename.find_last_of("/");
+  std::string short_input_filename = input_filename.substr(found+1);  
   Output_Generator output(angular_quadrature,
-    fem_quadrature, cell_data, argv[1]);
+    fem_quadrature, cell_data, short_input_filename);
   
   try{
     output.write_xml( false, 1, temperature_old);

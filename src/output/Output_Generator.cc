@@ -19,7 +19,7 @@ Output_Generator::Output_Generator(const Angular_Quadrature& angular_quadrature,
  m_n_groups( angular_quadrature.get_number_of_groups()),
  m_n_l_mom( angular_quadrature.get_number_of_leg_moments() ),
  m_n_dir( angular_quadrature.get_number_of_dir() ),
- m_filename_base(input_filename),
+ m_input_filename(input_filename),
  m_cell_data( cell_data )
 {
   output_cell_data();
@@ -518,12 +518,8 @@ void Output_Generator::output_cell_data(void)
   return;
 }
 
-void Output_Generator::construct_filename( const int data_type , const bool is_final, const int ts, std::string& output_filename)
-{
-  unsigned found = m_filename_base.find_last_of("/");
-  
-  output_filename = m_filename_base.substr(found+1);
-  
+void Output_Generator::construct_filename( const int data_type , const bool is_final, const int ts, std::string& output_filename) const
+{  
   std::string xml_extension = ".xml";
   std::stringstream new_str;
   switch(data_type)
@@ -565,6 +561,7 @@ void Output_Generator::construct_filename( const int data_type , const bool is_f
 
   new_str << ".xml";
   
+  output_filename = m_input_filename;
   output_filename.replace(output_filename.find(xml_extension),xml_extension.length() , new_str.str() );
 
   return;

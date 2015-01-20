@@ -11,6 +11,8 @@ static char help[] = "A character array that PETSc might be expecting";
 #include "Intensity_Data.h"
 #include "Temperature_Data.h"
 #include "Materials.h"
+#include "Status_Generator.h"
+#include "Output_Generator.h"
 
 #include "Dark_Arts_Exception.h"
 
@@ -79,20 +81,23 @@ int main(int argc, char** argv)
   Temperature_Data temperature_old( fem_quadrature, input_reader, cell_data);
   std::cout << "Temperature object created" << std::endl;
 
+  std::string input_filename = argv[1];
+  unsigned int found = input_filename.find_last_of("/");
+  std::string short_input_filename = input_filename.substr(found+1);  
   
   /// Time Marcher.  This object will take care of solving the problem
   Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
-    cell_data, materials, temperature_old, intensity_old, time_data);    
+    cell_data, materials, temperature_old, intensity_old, time_data,short_input_filename);    
     std::cout << "Time_Marcher object created"<< std::endl;  
   
   /// this is the entire time loop !
-  try{
-    time_marcher.solve(intensity_old, temperature_old, time_data);
-  }
-  catch(const Dark_Arts_Exception& da_exception)
-  {
-    da_exception.message() ;
-  }
+  // try{
+    // time_marcher.solve(intensity_old, temperature_old, time_data);
+  // }
+  // catch(const Dark_Arts_Exception& da_exception)
+  // {
+    // da_exception.message() ;
+  // }
   
   /**
     End PETSc

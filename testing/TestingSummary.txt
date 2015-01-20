@@ -61,14 +61,6 @@ Traditional_Lumping_Test - Traditional_Lumping.cc - Exponential_Time.xml
 -P3 equal spacing, traditional lumping
 #################################################################################
 
-time_data/
-
-Vector_Time_Data_Test - Vector_Time_Data.cc - 1Region_Equal_Spacing.xml
-Ramp_Time_Data - Ramp_Time_Data.cc - 2Region_Log_Spacing.xml
-Exponential Time_Data_Test - Exponential_Time_Data.cc - Exponential_Time.xml
-
-#################################################################################
-
 materials/
 
 Unity_Grey_Planck_Test - Unity_Grey_Planck.cc
@@ -102,6 +94,49 @@ MMS_Sources_Test - MMS_Sources.cc - MMS_Sources.xml
 
 #################################################################################
 
+solvers/
+
+FP_Sweeps_Test - FP_Sweeps.cc - LinearSpaceConstantTime.xml
+-- verification of WGRS_FP_Sweeps object using constant time, linear space solution with P4 finite elements
+
+MMS_Intensity_Update_Test - MMS_Intensity_Update.cc - LinearSpaceConstantTime.xml
+-- verification of Intensity_Update_Grey object (that uses WGRS_FP_Sweeps)
+
+#################################################################################
+
+time_data/
+
+Vector_Time_Data_Test - Vector_Time_Data.cc - 1Region_Equal_Spacing.xml
+Ramp_Time_Data - Ramp_Time_Data.cc - 2Region_Log_Spacing.xml
+Exponential Time_Data_Test - Exponential_Time_Data.cc - Exponential_Time.xml
+
+#################################################################################
+
+transport_sweep/
+
+SLXS_MMS_Sweep_Matrix_Test - SLXS_MMS_Sweep_Matrix.cc - SLXS_MMS_Sweep_Matrix.xml
+-Test evaluation of transport sweep reaction matrices and source moments for the SLXS scheme
+-Rational sig_a: 1/T^3
+-constant cv = 0.2
+-zero sig_s
+-T(x,t) = (1cos(pi*t/2 + 0) + 3)*(0.5 + .4x + .3x^2);
+-I(\mu,x,t) = 1/2*(1cos(pi*t/2 + 0) + 3)*( 0.2 + 7x^3 )
+-Cubic DFEM, Lobatto interpolation points, SLXS cross section treatment
+-x \in[0,5] , 9 cells
+
+MMS_BC_Test - MMS_BC.cc - MMS_Source_Test.xml
+-Testing BC for radiation using MMS 
+
+Upwinding_Test - Upwinding.cc - MMS_Source_Test.xml
+
+ZeroChangeSweep_Test - ZeroChangeSweep.cc - LinearSpaceConstantTime.xml
+-Testing Transport_Sweep object
+-Given exact solution for phi_old, expect phi_new to be the same (and exact).
+-Testing Temperature_Update_Grey to verify that no update in applied
+-Testting K_Temperature to verify correct (zero) change for constant in time solution
+
+#################################################################################
+
 variable_storage/
 
 ConstantTemperatureTest - ConstantTemperature.cc - 2Region_Log_Spacing.xml
@@ -114,6 +149,12 @@ ConstantIntensityICTest - ConstantIntensityIC.cc - 2Region_Log_Spacing.xml
 -Test constant radiation temperature IC
 -Test that set/get pairs store and retieve the same 
 -Test "zero" intensity data constructor and ic intensity constructor
+
+ErrPhi_Test - ErrPhi.cc
+-  Test set, get, clear functions of Err_Phi objects
+
+ErrTemperature_Test - ErrTemperature.cc 
+- Test the set, get, clear functions of Err_Temperature objects
 
 IntensityMomentDataTest - IntensityMomentData.cc - 2Region_Log_Spacing.xml
 -Test pass constant intensity ic, make sure the correct average is calculated
@@ -132,19 +173,13 @@ OutputTrialTest - OutputTrial.cc 1Region_Equal_Spacing.xml
 -write sample .xml and .txt files for dumping Intensity, Intensty_Moment and Temperature data objects
 -visual comparison for correctness
 
+MMS_Intensity_IC_Test - MMS_Intensity_IC.cc
+-verify Intensity_Data constructor with MMS ic works correctly
+
+MMS_Temperature_IC_Test - MMS_Temperature_IC.cc
+-verify Temperature_Data constructor with MMS ic works correctly
+
 #################################################################################
-
-transport_sweep/
-
-SLXS_MMS_Sweep_Matrix_Test - SLXS_MMS_Sweep_Matrix.cc - SLXS_MMS_Sweep_Matrix.xml
--Test evaluation of transport sweep reaction matrices and source moments for the SLXS scheme
--Rational sig_a: 1/T^3
--constant cv = 0.2
--zero sig_s
--T(x,t) = (1cos(pi*t/2 + 0) + 3)*(0.5 + .4x + .3x^2);
--I(\mu,x,t) = 1/2*(1cos(pi*t/2 + 0) + 3)*( 0.2 + 7x^3 )
--Cubic DFEM, Lobatto interpolation points, SLXS cross section treatment
--x \in[0,5] , 9 cells
 
 
 

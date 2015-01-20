@@ -46,11 +46,11 @@ protected:
   const int m_n_l_mom;
   const int m_n_dir;
   
-  std::string m_filename_base;
+  const std::string m_input_filename;
   
   const Cell_Data& m_cell_data;
   
-  void construct_filename( const int data_type , const bool is_final, const int ts, std::string& output_filename);
+  void construct_filename( const int data_type , const bool is_final, const int ts, std::string& output_filename) const;
 
   void output_cell_data(void);
 };

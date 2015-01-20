@@ -3,7 +3,7 @@
 Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data)
+    const Time_Data& time_data, std::string input_filename)
     :
     m_n_stages(time_data.get_number_of_stages()),
     m_time_data( time_data),
@@ -13,8 +13,11 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_t_star( cell_data.get_total_number_of_cells(), fem_quadrature),
     m_ard_phi( cell_data, angular_quadrature, fem_quadrature, i_old ),
     m_damping(1.),
-    m_err_temperature( fem_quadrature.get_number_of_interpolation_points() )
+    m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
+    m_status_generator(input_filename),
+    m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename)
 {   
+  m_status_generator.write_iteration_status();
   try{
     std::vector<double> phi_ref_norm;
     m_ard_phi.get_phi_norm(phi_ref_norm);

@@ -8,6 +8,8 @@
 
 #include "Temperature_Update_Grey.h"
 #include "Temperature_Update_MF.h"
+#include "Status_Generator.h"
+#include "Output_Generator.h"
 
 class Time_Marcher
 {
@@ -16,7 +18,7 @@ public:
   Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data);
+    const Time_Data& time_data, std::string input_filename);
     
   virtual ~Time_Marcher(){}
   
@@ -36,6 +38,8 @@ private:
   /// damping variable, and temperature update err object used to track thermal iteration progress
   double m_damping;
   Err_Temperature m_err_temperature;
+  Status_Generator m_status_generator;
+  Output_Generator m_output_generator;
   
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
   std::shared_ptr<V_Temperature_Update> m_temperature_update;

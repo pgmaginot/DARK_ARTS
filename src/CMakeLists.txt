@@ -81,6 +81,13 @@ add_subdirectory(input)
 PropagateSG(INPUT)
 
 #----------------------------------------
+# Input
+#----------------------------------------
+add_subdirectory(output)
+PropagateSG(OUTPUT)
+
+
+#----------------------------------------
 # Quadrature rules, fem, and math things
 #----------------------------------------
 add_subdirectory(quadrature_fem_math)
