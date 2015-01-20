@@ -80,7 +80,7 @@ m_ang_quad(angular_quadrature)
     
 }
 
-double MMS_Intensity::get_mms_intensity(const double position , const double time , const int dir)
+double MMS_Intensity::get_mms_intensity(const double position , const double time , const int dir) const
 {
   double time_component = m_time_dep->get_time_component(time);
   double angle_comp = m_angle_dep->get_angle_component(dir);
@@ -91,7 +91,7 @@ double MMS_Intensity::get_mms_intensity(const double position , const double tim
   return val;
 }
 
-double MMS_Intensity::get_mms_intensity(const double position , const double time , const double mu)
+double MMS_Intensity::get_mms_intensity(const double position , const double time , const double mu) const
 {
   double time_component = m_time_dep->get_time_component(time);
   double angle_comp = m_angle_dep->get_angle_component(mu);
@@ -102,7 +102,7 @@ double MMS_Intensity::get_mms_intensity(const double position , const double tim
   return val;
 }
 
-double MMS_Intensity::get_mms_intensity_space_derivative(const double position , const double time , const int dir)
+double MMS_Intensity::get_mms_intensity_space_derivative(const double position , const double time , const int dir) const
 {
   double time_component = m_time_dep->get_time_component(time);
   double angle_comp = m_angle_dep->get_angle_component(dir);
@@ -113,7 +113,7 @@ double MMS_Intensity::get_mms_intensity_space_derivative(const double position ,
   return val;
 }
 
-double MMS_Intensity::get_mms_intensity_time_derivative(const double position , const double time , const int dir)
+double MMS_Intensity::get_mms_intensity_time_derivative(const double position , const double time , const int dir) const
 {
   double time_component = m_time_dep->get_time_derivative(time);
   double angle_comp = m_angle_dep->get_angle_component(dir);
@@ -124,7 +124,7 @@ double MMS_Intensity::get_mms_intensity_time_derivative(const double position , 
   return val;
 }
 
-double MMS_Intensity::get_mms_phi(const double position , const double time )
+double MMS_Intensity::get_mms_phi(const double position , const double time ) const
 {
   double time_component = m_time_dep->get_time_component(time);
   double i_position_comp = m_rad_space_dep->get_position_component(position);

@@ -194,39 +194,6 @@ m_xs_extra_points{ 10}
   }  
 }
 
-int Fem_Quadrature::get_number_of_integration_points(void) const
-{
-  return m_n_integration_points; 
-}
-
-int Fem_Quadrature::get_number_of_interpolation_points(void) const
-{
-  return m_n_interpolation_points; 
-}
-
-void Fem_Quadrature::get_xs_eval_points(std::vector<double>& xs_eval_pts) const
-{
-  xs_eval_pts = m_xs_eval_points;
-  return;
-}
-
- void Fem_Quadrature::get_xs_eval_weights(std::vector<double>& xs_eval_wts) const
-{
-  xs_eval_wts = m_xs_eval_weights;
-  return;
-}
-
-void Fem_Quadrature::get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const
-{
-  dfem_at_xs_pts = m_basis_at_xs_points;
-  return;
-}
-
-void Fem_Quadrature::get_dfem_integration_points(std::vector<double>& dfem_integration_pts) const
-{
-  dfem_integration_pts = m_integration_points;
-  return;
-}
 
 void Fem_Quadrature::get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,
   std::vector<double>& dfem_at_right_edge) const
@@ -384,15 +351,20 @@ void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double
   
   return;
 }
-    
-void Fem_Quadrature::get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const
-{
-  dfem_weights = m_dfem_interpolation_weights;
-  return;
-}
 
-void Fem_Quadrature::get_dfem_interpolation_point(std::vector<double>& dfem_pts) const
+void Fem_Quadrature::evaluate_variable_at_quadrature_pts(const Eigen::VectorXd& dfem_qty, const std::vector<double>& dfem_at_quadrature , std::vector<double>& qty_at_quadrature ) const
 {
-  dfem_pts = m_dfem_interpolation_points;
+  int n_pts = dfem_at_quadrature.size()/m_n_interpolation_points;
+  qty_at_quadrature.resize(n_pts,0.);
+  int pos = 0;
+  for(int i = 0 ; i < m_n_interpolation_points; i++)
+  {
+    for(int p = 0 ; p < n_pts ; p++)
+    {
+      qty_at_quadrature[p] += dfem_qty(i)*dfem_at_quadrature[pos];
+      pos++;
+    }
+  }  
+  
   return;
 }

@@ -4,6 +4,7 @@
 #include "Inputs_Allowed.h"
 #include "Quadrule_New.h"
 #include "Input_Reader.h"
+#include <Eigen/Dense>
 
 #include <vector>
 #include <stdlib.h>
@@ -23,21 +24,22 @@ public:
   Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun);
   virtual ~Fem_Quadrature(){}
   
-  int get_number_of_integration_points(void) const;
+  int get_number_of_integration_points(void) const { return m_n_integration_points; }
   
-  int get_number_of_interpolation_points(void) const ;
+  int get_number_of_interpolation_points(void) const { return m_n_interpolation_points ;}
   
   int get_number_of_xs_point(void) const{ return m_n_xs_evaluation_points; }
   
   /// accept/return vector of local quadrature points where xs will be evaluated
-  void get_xs_eval_points(std::vector<double>& xs_eval_pts) const;
-  void get_xs_eval_weights(std::vector<double>& xs_eval_wts) const;
+  void get_xs_eval_points(std::vector<double>& xs_eval_pts) const { xs_eval_pts = m_xs_eval_points;  return; }
+  
+  void get_xs_eval_weights(std::vector<double>& xs_eval_wts) const {  xs_eval_wts = m_xs_eval_weights;  return; }
   
   /// accept/return dfem basis functions at the xs_evaluation points (used to find temperature at xs evalaution points)
-  void get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const;
+  void get_dfem_at_xs_eval_points(std::vector<double>& dfem_at_xs_pts) const { dfem_at_xs_pts = m_basis_at_xs_points;  return; }
   
   /// accept/return vector of dfem basis functions at dfem integration points
-  void get_dfem_integration_points(std::vector<double>& dfem_integration_pts) const;
+  void get_dfem_integration_points(std::vector<double>& dfem_integration_pts) const { dfem_integration_pts = m_integration_points;  return; }
   
   /// accept/return vectors of dfem basis functions at the left and right edges
   void get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,std::vector<double>& dfem_at_right_edge) const;
@@ -61,10 +63,13 @@ public:
   
   int get_number_of_source_points(void) const;
   
-  void get_dfem_interpolation_point(std::vector<double>& dfem_pts) const;
-  void get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const;
+  void get_dfem_interpolation_point(std::vector<double>& dfem_pts) const { dfem_pts = m_dfem_interpolation_points; return;}  
+  
+  void get_dfem_interpolation_point_weights(std::vector<double>& dfem_weights) const{ dfem_weights = m_dfem_interpolation_weights; return; }
   
   double get_sum_of_dfem_interpolation_weights(void) const {return m_sum_dfem_weights;}
+  
+  void evaluate_variable_at_quadrature_pts(const Eigen::VectorXd& dfem_qty, const std::vector<double>& dfem_at_quadrature , std::vector<double>& qty_at_quadrature ) const;
 private:
 
   void evaluate_lagrange_func(const std::vector<double>& interp_points, 

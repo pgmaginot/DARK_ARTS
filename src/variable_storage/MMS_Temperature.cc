@@ -54,7 +54,7 @@ MMS_Temperature::MMS_Temperature(const Input_Reader& input_reader)
 
 }
 
-double MMS_Temperature::get_mms_temperature(const double position, const double time)
+double MMS_Temperature::get_mms_temperature(const double position, const double time) const
 {
   double time_component = m_time_dep->get_time_component(time);
   double position_component = m_temp_space_dep->get_position_component(position);
@@ -64,7 +64,7 @@ double MMS_Temperature::get_mms_temperature(const double position, const double 
   return val;
 }
 
-double MMS_Temperature::get_mms_temperature_time_derivative(const double position , const double time)
+double MMS_Temperature::get_mms_temperature_time_derivative(const double position , const double time) const
 {
   double time_component = m_time_dep->get_time_derivative(time);
   double position_component = m_temp_space_dep->get_position_component(position);
