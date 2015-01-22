@@ -56,16 +56,11 @@ int main(int argc, char** argv)
     L2_Error_Calculator l2_error_calculator(angular_quadrature,fem_quadrature, cell_data, input_reader);
     const double t_eval = time_data.get_t_start();
     double temperature_err = l2_error_calculator.calculate_l2_error(t_eval , t_old);
-    double intensity_err = l2_error_calculator.calculate_l2_error(t_eval , i_old);
     double phi_err = l2_error_calculator.calculate_l2_error(t_eval , phi);
   
-    std::cout << "Intensity L2 err: " << intensity_err << std::endl;
     std::cout << "Phi L2 err: " << phi_err << std::endl;
     std::cout << "Temperature L2 err: " << temperature_err << std::endl;
-    
-    if(fabs(intensity_err > tol))
-      throw Dark_Arts_Exception(SUPPORT_OBJECT , "Not calculating intensity zero err");
-  
+      
     if(fabs(phi_err > tol))
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "Not calculating phi zero err");
       
@@ -73,16 +68,11 @@ int main(int argc, char** argv)
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "Not calculating temperature zero err");
   
     temperature_err = l2_error_calculator.calculate_cell_avg_error(t_eval , t_old);
-    intensity_err = l2_error_calculator.calculate_cell_avg_error(t_eval , i_old);
     phi_err = l2_error_calculator.calculate_cell_avg_error(t_eval , phi);
   
-    std::cout << "Intensity avg err: " << intensity_err << std::endl;
     std::cout << "Phi avg err: " << phi_err << std::endl;
     std::cout << "Temperature avg err: " << temperature_err << std::endl;
-    
-    if(fabs(intensity_err > tol))
-      throw Dark_Arts_Exception(SUPPORT_OBJECT , "Not calculating intensity zero err");
-  
+      
     if(fabs(phi_err > tol))
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "Not calculating phi zero err");
       

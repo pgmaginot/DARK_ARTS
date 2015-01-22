@@ -16,10 +16,8 @@ L2_Error_Calculator::L2_Error_Calculator(const Angular_Quadrature& angular_quadr
 :
  m_n_dfem( fem_quadrature.get_number_of_interpolation_points() ) , 
  m_n_cells( cell_data.get_total_number_of_cells() ),
- m_n_dir( angular_quadrature.get_number_of_dir() ),
  m_n_quad_pts(fem_quadrature.get_number_of_integration_points() ),
  m_cell_data( cell_data ),
- m_angular_quadrature( angular_quadrature) , 
  m_fem_quadrature( fem_quadrature ),
  m_analytic_temperature(input_reader) , 
  m_analytic_intensity(input_reader, angular_quadrature)
@@ -45,23 +43,6 @@ double L2_Error_Calculator::calculate_l2_error(const double time_eval, const Int
   
   return sqrt(err);
 }
-double L2_Error_Calculator::calculate_l2_error(const double time_eval, const Intensity_Data& intensity) const
-{
-  /// integrate over angle using Sn quadrature weighting
-  double err = 0.;
-  Eigen::VectorXd num_soln = Eigen::VectorXd::Zero(m_n_dfem);
-  for(int dir = 0 ; dir < m_n_dir ; dir++)
-  {
-    double w = m_angular_quadrature.get_w(dir);
-    for(int cell = 0 ; cell < m_n_cells ; cell++)
-    {
-      intensity.get_cell_intensity(cell,0,dir,num_soln);
-      err += w*calculate_local_l2_error(num_soln , m_cell_data.get_cell_left_edge(cell) , m_cell_data.get_cell_width(cell) , time_eval, dir, INTENSITY );
-    }    
-  }
-  
-  return err;
-}
 
 double L2_Error_Calculator::calculate_l2_error(const double time_eval, const Temperature_Data& temperature) const
 {
@@ -73,7 +54,7 @@ double L2_Error_Calculator::calculate_l2_error(const double time_eval, const Tem
     err += calculate_local_l2_error(num_soln , m_cell_data.get_cell_left_edge(cell) , m_cell_data.get_cell_width(cell) ,  time_eval, TEMPERATURE );
   }
   
-  return err;
+  return sqrt(err);
 }
 
 double L2_Error_Calculator::calculate_cell_avg_error(const double time_eval, const Intensity_Moment_Data& phi) const
@@ -89,26 +70,7 @@ double L2_Error_Calculator::calculate_cell_avg_error(const double time_eval, con
     err += calculate_local_cell_avg_error(num_soln , m_cell_data.get_cell_left_edge(cell) , m_cell_data.get_cell_width(cell) , time_eval, PHI );
   }  
   
-  return err;
-}
-
-double L2_Error_Calculator::calculate_cell_avg_error(const double time_eval, const Intensity_Data& intensity) const
-{
-  /// integrate over angle using Sn quadrature weighting
-  double err = 0.;
-  
-  Eigen::VectorXd num_soln = Eigen::VectorXd::Zero(m_n_dfem);
-  for(int dir = 0 ; dir < m_n_dir ; dir++)
-  {
-    double w = m_angular_quadrature.get_w(dir);
-    for(int cell = 0 ; cell < m_n_cells ; cell++)
-    {
-      intensity.get_cell_intensity(cell,0,dir,num_soln);
-      err += w*calculate_local_cell_avg_error(num_soln , m_cell_data.get_cell_left_edge(cell) , m_cell_data.get_cell_width(cell) , time_eval , dir, INTENSITY );
-    }    
-  }
-  
-  return err;
+  return sqrt(err);
 }
 
 double L2_Error_Calculator::calculate_cell_avg_error(const double time_eval, const Temperature_Data& temperature) const
@@ -122,7 +84,7 @@ double L2_Error_Calculator::calculate_cell_avg_error(const double time_eval, con
     err += calculate_local_cell_avg_error(num_soln , m_cell_data.get_cell_left_edge(cell) , m_cell_data.get_cell_width(cell) , time_eval , TEMPERATURE );
   }
   
-  return err;
+  return sqrt(err);
 }
 
 double L2_Error_Calculator::calculate_local_l2_error(
@@ -197,76 +159,11 @@ double L2_Error_Calculator::calculate_local_cell_avg_error(
     analytic_average += m_integration_quadrature_wts[q]* analytic_soln ; 
     numeric_average +=  m_integration_quadrature_wts[q]*numeric_soln[q];
   }
-  err = dx/2.*(analytic_average - numeric_average)*(analytic_average - numeric_average);
+  analytic_average /= 2.;
+  numeric_average /= 2.;
+  err = dx*(analytic_average - numeric_average)*(analytic_average - numeric_average);
   
   return err;
 }
 
-/// for intensity
-double L2_Error_Calculator::calculate_local_l2_error(
-  const Eigen::VectorXd& numeric_at_dfem, const double xL , const double dx , const double time, const int dir, const Data_Type data ) const
-{
-  double err = 0.;
-  
-  /// add in dx/2 contribution
-  std::vector<double> numeric_soln;
-  m_fem_quadrature.evaluate_variable_at_quadrature_pts(numeric_at_dfem , m_dfem_at_integration_pts , numeric_soln);
-  double x_eval = 0.;
-  double analytic_soln = 0.;
-  for(int q = 0 ; q < m_n_quad_pts ; q++)
-  {
-    x_eval = xL + dx/2.*(1. + m_integration_quadrature_pts[q] );
-    switch(data)
-    {
-      case INTENSITY:
-      {
-        analytic_soln = m_analytic_intensity.get_mms_intensity(x_eval, time,dir);
-        break;
-      }      
-      default:
-      {
-        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Trying to find the L2 error of non-intensity data type");
-        break;
-      }
-    }
-    err += m_integration_quadrature_wts[q]*( analytic_soln - numeric_soln[q] )*( analytic_soln - numeric_soln[q] );
-  }
-  err *= dx/2.;
-  return err;
-} 
-
-double L2_Error_Calculator::calculate_local_cell_avg_error(
-  const Eigen::VectorXd& numeric_at_dfem , const double xL , const double dx , const double time, const int dir, const Data_Type data ) const
-{
-    double err = 0.;
-  
-  std::vector<double> numeric_soln;
-  m_fem_quadrature.evaluate_variable_at_quadrature_pts(numeric_at_dfem , m_dfem_at_integration_pts , numeric_soln);
-  double x_eval = 0.;
-  double analytic_soln = 0.;
-  double analytic_average = 0.;
-  double numeric_average = 0.;
-  for(int q = 0 ; q < m_n_quad_pts ; q++)
-  {
-    x_eval = xL + dx/2.*(1. + m_integration_quadrature_pts[q] );
-    switch(data)
-    {
-      case INTENSITY:
-      {
-        analytic_soln = m_analytic_intensity.get_mms_intensity(x_eval, time,dir);
-        break;
-      }
-      default:
-      {
-        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Trying to find the average error of non-intensity data type");
-        break;
-      }
-    }
-    analytic_average += m_integration_quadrature_wts[q]* analytic_soln ; 
-    numeric_average +=  m_integration_quadrature_wts[q]*numeric_soln[q];
-  }
-  err = dx/2.*(analytic_average - numeric_average)*(analytic_average - numeric_average);
-  return err;
-} 
-  
   

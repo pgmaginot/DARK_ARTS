@@ -355,7 +355,9 @@ void Fem_Quadrature::evaluate_lagrange_func_derivatives(const std::vector<double
 void Fem_Quadrature::evaluate_variable_at_quadrature_pts(const Eigen::VectorXd& dfem_qty, const std::vector<double>& dfem_at_quadrature , std::vector<double>& qty_at_quadrature ) const
 {
   int n_pts = dfem_at_quadrature.size()/m_n_interpolation_points;
-  qty_at_quadrature.resize(n_pts,0.);
+  qty_at_quadrature.resize(n_pts);
+  for(int i = 0; i < n_pts ; i++)
+    qty_at_quadrature[i] = 0.;
   int pos = 0;
   for(int i = 0 ; i < m_n_interpolation_points; i++)
   {

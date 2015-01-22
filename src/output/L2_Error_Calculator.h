@@ -12,7 +12,7 @@
   *   @brief Declare Input_Reader class
   *   @class Input_Reader
  */
-enum Data_Type{ PHI , INTENSITY, TEMPERATURE}; 
+enum Data_Type{ PHI , TEMPERATURE}; 
  
 class L2_Error_Calculator
 {
@@ -25,34 +25,24 @@ public:
   virtual ~L2_Error_Calculator(){}
   
   double calculate_l2_error(const double time_eval, const Intensity_Moment_Data& phi) const;
-  double calculate_l2_error(const double time_eval, const Intensity_Data& intensity) const;
   double calculate_l2_error(const double time_eval, const Temperature_Data& temperature) const;
   
   double calculate_cell_avg_error(const double time_eval, const Intensity_Moment_Data& phi) const;
-  double calculate_cell_avg_error(const double time_eval, const Intensity_Data& intensity) const;
   double calculate_cell_avg_error(const double time_eval, const Temperature_Data& temperature) const;
   
 protected:
   /// for temperature and phi
   double calculate_local_l2_error(const Eigen::VectorXd& numeric_at_dfem, const double xL , 
     const double dx , const double time, const Data_Type data ) const;  
+    
   double calculate_local_cell_avg_error(const Eigen::VectorXd& numeric_at_dfem , const double xL , 
     const double dx , const double time,const Data_Type data ) const;
   
-  /// for intensity
-  double calculate_local_l2_error(const Eigen::VectorXd& numeric_at_dfem, const double xL , 
-    const double dx , const double time, const int dir, const Data_Type data ) const;  
-  double calculate_local_cell_avg_error(const Eigen::VectorXd& numeric_at_dfem , const double xL , 
-    const double dx , const double time, const int dir, const Data_Type data ) const;
-  
   const int m_n_dfem;
   const int m_n_cells;
-  const int m_n_dir;
-  
   const int m_n_quad_pts;
   
   const Cell_Data& m_cell_data;
-  const Angular_Quadrature& m_angular_quadrature;
   const Fem_Quadrature& m_fem_quadrature;
   MMS_Temperature m_analytic_temperature;
   MMS_Intensity m_analytic_intensity;
