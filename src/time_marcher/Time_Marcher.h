@@ -37,6 +37,12 @@ private:
   
   /// damping variable, and temperature update err object used to track thermal iteration progress
   double m_damping;
+  int m_iters_before_damping;
+  const double m_damping_decrease_factor;
+  const int m_iteration_increase_factor;
+  const int m_checkpoint_frequency;
+  const int m_max_damps;
+  
   Err_Temperature m_err_temperature;
   Status_Generator m_status_generator;
   Output_Generator m_output_generator;

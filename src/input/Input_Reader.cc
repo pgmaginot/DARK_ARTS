@@ -1632,13 +1632,55 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
 {
   TiXmlElement* solver_type_elem = solver_element->FirstChildElement( "WG_solver_type");
   TiXmlElement* wg_tolerance_elem = solver_element->FirstChildElement( "WG_tolerance");  
+  TiXmlElement* damping_factor_elem = solver_element->FirstChildElement("Damping_factor");
+  TiXmlElement* increase_elem = solver_element->FirstChildElement("Iteration_increase_factor");
+  TiXmlElement* iter_before_damp_elem = solver_element->FirstChildElement("Iterations_before_damping");
+  TiXmlElement* restart_freq_elem = solver_element->FirstChildElement("Restart_output_frequency");
+  TiXmlElement* n_damps_elem = solver_element->FirstChildElement("Max_damping_resets");
   
   if(!solver_type_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Solver_type element") ;
   
   if(!wg_tolerance_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Tolerance element" );
-   
+  
+  if(!damping_factor_elem)
+    throw Dark_Arts_Exception(INPUT, "In solver element: missing Damping_factor element");
+    
+  if(!increase_elem)
+    throw Dark_Arts_Exception(INPUT, "In solver element: missing Iteration_increase_factor element");
+    
+  if(!iter_before_damp_elem)
+    throw Dark_Arts_Exception(INPUT, "In solver element: missing Iterations_before_damping element");
+    
+  if(!restart_freq_elem)
+    throw Dark_Arts_Exception(INPUT, "In solver element, must specify frequency for restart/check pointing to take place with Restart_output_frequency element");
+    
+  if(!n_damps_elem)
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element, must give Max_damping_resets element");
+    
+  m_max_damps = atoi(n_damps_elem->GetText() );
+  m_iters_before_damp = atoi(iter_before_damp_elem->GetText() );
+  m_damping_factor = atof(damping_factor_elem->GetText() );
+  m_iter_increase_factor = atoi(increase_elem->GetText() );
+  m_restart_frequency = atoi(restart_freq_elem->GetText() ) ;
+  
+  if(m_max_damps < 0)
+    throw Dark_Arts_Exception(INPUT, "Number of damps must be greater than 0");
+    
+  if(m_restart_frequency < 1)
+    throw Dark_Arts_Exception(INPUT, "Restart output frequency must be greater than or equal to 1");
+  
+  if( m_iters_before_damp < 2)
+    throw Dark_Arts_Exception(INPUT, "Must have at least 2 thermal iterations before damping");
+    
+  if( (m_damping_factor < 0.) || ( fabs(m_damping_factor) > 1.) )
+    throw Dark_Arts_Exception(INPUT, "Damping factor must be a positive float less than 1.");
+    
+  if( m_iter_increase_factor < 2)
+    throw Dark_Arts_Exception(INPUT, "Must increase iterations by at least a factor of 2 for damping");
+  
+    
   m_wg_tolerance = atof( wg_tolerance_elem->GetText() );
   if( (m_wg_tolerance < 1.E-15) || (m_wg_tolerance> 1.E-4))
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid within group tolerance.  Must be greater 1E-15 and less than 1E-4");

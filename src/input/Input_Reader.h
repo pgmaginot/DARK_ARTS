@@ -146,6 +146,14 @@ public:
   BC_ENERGY_DEPENDENCE get_right_bc_energy_dependence(void) const;
   
   
+  /// Time_Marcher controls
+  int get_iters_before_damping(void) const{ return m_iters_before_damp;}
+  double get_damping_factor(void) const { return m_damping_factor;}
+  int get_iter_increase_factor(void) const { return m_iter_increase_factor;}
+  int get_restart_frequency(void) const { return m_restart_frequency;}
+  int get_max_damp_iters(void) const {return m_max_damps;}
+  
+  
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -249,6 +257,13 @@ protected:
   ARD_SOLVE_TYPE m_ard_solve_type = INVALID_ARD_SOLVE_TYPE;
   int m_max_ard_iterations = -1;
   double m_thermal_tolerance = 1.;
+  
+  /// thermal iteration parameters
+  int m_iters_before_damp =-1;
+  double m_damping_factor = 2.;
+  int m_iter_increase_factor = 0;
+  int m_restart_frequency = -1;
+  int m_max_damps = -1;
   
   /// BC_IC block variables
   TEMPERATURE_IC_TYPE m_temperature_ic_type = INVALID_TEMPERATURE_IC_TYPE;

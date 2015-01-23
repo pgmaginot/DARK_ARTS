@@ -19,7 +19,7 @@ public:
     
   virtual ~Status_Generator(){ m_status_stream.close(); }
   
-  void write_iteration_status(const int step, const int stage, const double dt , const int inners , const double err) ;
+  void write_iteration_status(const int step, const int stage, const double dt , const int inners , const double err, const double damp) ;
 protected:
   std::string m_input;
   std::string m_xml_ext;

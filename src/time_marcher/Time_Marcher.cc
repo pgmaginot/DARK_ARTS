@@ -13,6 +13,11 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_t_star( cell_data.get_total_number_of_cells(), fem_quadrature),
     m_ard_phi( cell_data, angular_quadrature, fem_quadrature, i_old ),
     m_damping(1.),
+    m_iters_before_damping(input_reader.get_iters_before_damping() ),
+    m_damping_decrease_factor(input_reader.get_damping_factor() ),
+    m_iteration_increase_factor(input_reader.get_iter_increase_factor() ),
+    m_checkpoint_frequency(input_reader.get_restart_frequency() ),
+    m_max_damps(input_reader.get_max_damp_iters() ),
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
     m_status_generator(input_filename),
     m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename)
@@ -68,12 +73,15 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   double dt = 0.;
   
   /// set here in order to get to compile on a Firday afternoon
-  int max_thermal_iter = 100;
+  int max_thermal_iter = 1000;
+  int times_damped = 0;
   int inners = 0;
+  
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);
   
   m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
+  
   
   for(int t_step = 0; t_step < max_step; t_step++)
   {
@@ -81,10 +89,11 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     
     /// initial temperature iterate guess is t_old
     m_t_star = t_old;
-    m_damping = 1.;    
     
     for(int stage = 0; stage < m_n_stages ; stage++)
     {
+      m_damping = 1.;  
+      
       double time_stage = time + dt*time_data.get_c(stage);
       for(int i = 0; i< stage; i++)
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
@@ -107,13 +116,35 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
 
         double norm_relative_change = m_err_temperature.get_worst_err();
         
+        /// write to iteration status file
+        m_status_generator.write_iteration_status(t_step, stage, dt , inners , norm_relative_change, m_damping);
+        
         /// check convergence of temperature
         if( norm_relative_change < m_thermal_tolerance)
         {
           break;
-        }        
-        /// write to iteration status file
-        m_status_generator.write_iteration_status(t_step, stage, dt , inners , norm_relative_change);
+        }     
+        else
+        {
+          /// damp if necessary 
+          if(therm_iter > m_iters_before_damping)
+          {
+              therm_iter = 0;
+              m_iters_before_damping *= m_iteration_increase_factor;
+              times_damped++;
+              m_damping *= m_damping_decrease_factor;
+              m_t_star = t_old;
+              if(times_damped > m_max_damps) 
+              {
+                std::stringstream err;
+                err << "Failing to converge thermal iteration.  Exiting now.  Saving Last iterates";
+                m_output_generator.write_xml(false,t_step,i_old);
+                m_output_generator.write_xml(false,t_step,t_old);
+                m_output_generator.write_xml(false,t_step,m_ard_phi);
+                throw Dark_Arts_Exception(TIME_MARCHER, err);
+              }
+          }          
+        }       
       }    
       /** calculate k_I and k_T
        * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
@@ -132,11 +163,22 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
     
+    if( (t_step % m_checkpoint_frequency) == 0)
+    {
+      m_output_generator.write_xml(false,t_step,i_old);
+      m_output_generator.write_xml(false,t_step,t_old);
+      m_output_generator.write_xml(false,t_step,m_ard_phi);    
+    }
+    
     /// check to see if we are at the end of the time marching scheme
     if( abs( (time - time_data.get_t_end() )/time) < 1.0E-6)
       break;
-    
   }
-
+  
+  /// dump final solutions, always!
+  m_output_generator.write_xml(true,0,i_old);
+  m_output_generator.write_xml(true,0,t_old);
+  m_output_generator.write_xml(true,0,m_ard_phi);
+  
   return;
 }

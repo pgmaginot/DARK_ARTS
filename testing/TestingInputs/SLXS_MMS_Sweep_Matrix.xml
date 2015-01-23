@@ -124,6 +124,11 @@
     </WG_solver_type>
     <WG_tolerance> 1.0E-12 </WG_tolerance>
     <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
+    <Damping_factor> 0.75 </Damping_factor>
+    <Iteration_increase_factor> 3 </Iteration_increase_factor>
+    <Iterations_before_damping> 20 </Iterations_before_damping>
+    <Restart_output_frequency> 100 </Restart_output_frequency>
+    <Max_damping_resets> 4 </Max_damping_resets>
   </SOLVER>
   
   <BC_IC>
