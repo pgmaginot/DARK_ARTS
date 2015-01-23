@@ -1,13 +1,9 @@
 #ifndef Output_Generator_h
 #define Output_Generator_h
 
-#include "tinyxml.h"
-#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
-#include <algorithm>
 #include "Input_Reader.h"
 #include "Temperature_Data.h"
 #include "Intensity_Data.h"

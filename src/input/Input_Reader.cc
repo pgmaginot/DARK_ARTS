@@ -27,8 +27,7 @@ void Input_Reader::read_xml(std::string xmlFile)
   
   if(restart_elem)
   {
-    /// mesh refinement or restart run
-    m_is_mesh_refinement = true;
+    /// mesh refinement or restart run    
     load_restart_problem(restart_elem);
   }
   else
@@ -395,10 +394,12 @@ BC_ENERGY_DEPENDENCE Input_Reader::get_right_bc_energy_dependence(void) const
   
   if(type_str == "MESH_REFINEMENT")
   {
+    m_is_mesh_refinement = true;
     m_restart_type = MESH_REFINEMENT;
   }
   else if(type_str == "RESTART")
   {
+    m_is_restart = true;
     m_restart_type = RESTART;
   }
   
@@ -408,25 +409,24 @@ BC_ENERGY_DEPENDENCE Input_Reader::get_right_bc_energy_dependence(void) const
     
   m_data_dump_str = data_dump_path->GetText();
   
+  TiXmlElement* initial_input = type_elem->FirstChildElement( "Initial_inputfile");
+  if(!initial_input)
+    throw Dark_Arts_Exception(INPUT, "Must have Initial_inputfile block for any restart type!");
+  m_initial_input_str = initial_input->GetText();
+  
   switch(m_restart_type)
   {
     case MESH_REFINEMENT:
     {
       /// load everything basically the same as before, but change the number of cells per region from the initial file
       TiXmlElement* refine_factor = type_elem->FirstChildElement( "Refinement_factor");
-      TiXmlElement* initial_input = type_elem->FirstChildElement( "Initial_inputfile");
       
       if(!refine_factor)
-        throw Dark_Arts_Exception(INPUT, "Must have Refinement_factor block for MESH_REFINEMENT restarts");
-        
-      if(!initial_input)
-        throw Dark_Arts_Exception(INPUT, "Must have Initial_inputfile block for MESH_REFINEMENT restarts");
+        throw Dark_Arts_Exception(INPUT, "Must have Refinement_factor block for MESH_REFINEMENT restarts");      
         
       m_refinement_factor = atoi( refine_factor->GetText() );
       if(m_refinement_factor < 2)
-        throw Dark_Arts_Exception(INPUT , "Refinement factor must be an integer greater than 1");
-        
-      m_initial_input_str = initial_input->GetText();
+        throw Dark_Arts_Exception(INPUT , "Refinement factor must be an integer greater than 1");     
       
       TiXmlDocument doc( m_initial_input_str.c_str() );  
       bool loaded = doc.LoadFile();  
@@ -441,13 +441,50 @@ BC_ENERGY_DEPENDENCE Input_Reader::get_right_bc_energy_dependence(void) const
       load_from_scratch_problem(doc);
       
       for(int i =0 ; i < m_number_regions ; i++) 
-        m_cells_per_region[i] *= m_refinement_factor;
-      
+        m_cells_per_region[i] *= m_refinement_factor;      
             
       break;
     }
     case RESTART:
     {
+      /** what do we need to do for this?
+        last time step completed, time in simulation (get new t_start)
+        time that we want to end (new t_end)
+        time stepping parameters, excluding time stepping scheme (MUST remain the same)
+        
+        path where data files that hold I, T , and phi,
+        time step where we want to resume
+        initial input file all other data will remain the same / can be populated with already existing routines        
+      */
+      TiXmlElement* step_element = type_elem->FirstChildElement( "Last_complete_time_step_number" );      
+      
+      if(!step_element)
+        throw Dark_Arts_Exception(INPUT, "RESTART requires previous ending time step (integer)");      
+        
+      m_restart_step = atoi(step_element->GetText());
+      if(m_restart_step < 1)
+        throw Dark_Arts_Exception(INPUT, "Invalid previous time step number.  Must be greater than 0");
+            
+      TiXmlDocument doc( m_initial_input_str.c_str() );  
+      bool loaded = doc.LoadFile();  
+      if( loaded  )
+      {
+        std::cout << "Found initial input file: " << m_initial_input_str << std::endl ;
+      }
+      else{
+        std::cout << "Failed to find initial input file: " << m_initial_input_str << std::endl;
+        throw Dark_Arts_Exception( INPUT , "Error reading initial input file, file non-existent or XML error" );
+      }      
+      
+      load_from_scratch_problem(doc);
+      
+      /// Time stepping data      
+      TiXmlElement* new_time_element = type_elem->FirstChildElement( "New_time_stepping_data");      
+      TIME_SOLVER old_time_step_scheme = m_time_step_scheme;
+      load_time_stepping_data(new_time_element);
+      if(old_time_step_scheme != m_time_step_scheme)
+        throw Dark_Arts_Exception(INPUT, "Restart simulation must use the same time stepping scheme as old simulation");     
+      
       break;
     }
     case INVALID_RESTART_TYPE:

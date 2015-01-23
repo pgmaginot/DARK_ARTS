@@ -29,7 +29,7 @@ public:
     
   virtual ~V_Intensity_Update(){}
 
-  virtual void update_intensity(Intensity_Moment_Data& phi) = 0;
+  virtual int update_intensity(Intensity_Moment_Data& phi) = 0;
   
   void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   

@@ -23,9 +23,13 @@ Cell_Data::Cell_Data(Input_Reader&  input_reader)
   
   try{
     if(input_reader.is_mesh_refinement() )
-     read_mesh_and_refine(input_reader);
+    {
+      read_mesh_and_refine(input_reader);
+    }
     else
+    {
       determine_cell_properties(n_region, cells_per_region, input_reader);
+    }
   }
   catch(const Dark_Arts_Exception& da_exception )
   { 

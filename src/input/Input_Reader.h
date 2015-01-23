@@ -23,12 +23,15 @@ public:
   
   //! read the supplied input file, start populating data objects
   void read_xml(std::string xmlFile);
-  int m_refinement_factor = -1;
-  std::string m_initial_input_str;
-  bool m_is_mesh_refinement = false;
-  std::string m_data_dump_str;
+  
+  /// Output data
+  
+  
+  /// Restart data
   void get_data_dump_path(std::string& dump_path) const { dump_path = m_data_dump_str; return;}
   bool is_mesh_refinement(void) const { return m_is_mesh_refinement; }
+  bool is_restart(void) const {return m_is_restart;}
+  int get_time_step_restart(void) const {return m_restart_step;}
   void get_initial_input_filename(std::string& base_filename) const { base_filename = m_initial_input_str; return;}
   int get_refinement_factor(void) const {return m_refinement_factor; } 
   
@@ -147,8 +150,18 @@ protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
   
+  /// Output block
+  int m_time_steps_per_dump = -1;
+  OUTPUT_TYPE m_output_type = INVALID_OUTPUT_TYPE;
+  bool m_is_restart = false;
+  int m_restart_step = -1;
+  
   /// Restart type
   RESTART_TYPE m_restart_type = INVALID_RESTART_TYPE;
+  int m_refinement_factor = -1;
+  std::string m_initial_input_str;
+  bool m_is_mesh_refinement = false;
+  std::string m_data_dump_str;
   
   /// regions input block
   int m_number_regions = -1;

@@ -20,9 +20,14 @@ Status_Generator::Status_Generator(std::string input_file):
 
 }
 
-void Status_Generator::write_iteration_status(void)
+void Status_Generator::write_iteration_status(const int step, const int stage, const double dt , const int inners , const double err) 
 {
-  m_status_stream << "Time_step:  Stage: dt: number_of_inner_solves \n";
+  m_status_stream <<  "Time_step: " << step  << 
+                      " Stage: " << stage <<                       
+                      " dt: " ;
+  m_status_stream << std::scientific << std::setprecision(15) << dt ;
+  m_status_stream << " number_of_inner_solves: " << inners ;
+  m_status_stream << " Relative_Error: " << std::scientific << std::setprecision(15) << err << std::endl;
   return;
 }  
 

@@ -1,13 +1,10 @@
 #ifndef Status_Generator_h
 #define Status_Generator_h
 
-#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
-#include <algorithm>
-
+#include <iomanip>
 #include "Dark_Arts_Exception.h"
 
 /** @file   Status_Generator.h
@@ -22,7 +19,7 @@ public:
     
   virtual ~Status_Generator(){ m_status_stream.close(); }
   
-  void write_iteration_status(void); 
+  void write_iteration_status(const int step, const int stage, const double dt , const int inners , const double err) ;
 protected:
   std::string m_input;
   std::string m_xml_ext;

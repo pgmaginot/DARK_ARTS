@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone=no>
+<!-- A comment -->
+<RESTART_FILE>
+  <Data_dump_path> /home/pmaginot/Research/dark_arts_local/build/testing/variable_storage/ </Data_dump_path>
+  <Restart_type> RESTART 
+    <Initial_inputfile> /home/pmaginot/Research/dark_arts_local/testing/TestingInputs/LinearSpaceConstantTime.xml </Initial_inputfile>
+    <Last_complete_time_step_number> 1 </Last_complete_time_step_number>
+    <New_time_stepping_data>
+      <Dt_min> 0.1 </Dt_min>
+      <Dt_max> 1.0 </Dt_max>
+      <T_start> 0.0 </T_start>
+      <T_end> 5.0 </T_end>
+      <Time_solver> Implicit_euler </Time_solver>
+      <Starting_method> Vector 
+        <N_vector_stages> 1 </N_vector_stages>
+        <Vector_stage> 0 
+          <Stage_steps> 1 </Stage_steps>
+          <Stage_divisor> 10 </Stage_divisor>
+        </Vector_stage>
+      </Starting_method>
+    </New_time_stepping_data>
+  </Restart_type>
+</RESTART_FILE>

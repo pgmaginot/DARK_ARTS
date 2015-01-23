@@ -15,7 +15,7 @@ public:
   
   virtual ~MF_ARD_Solver_FP_No_LMFGA(){}
   
-  void solve_ard_problem(Intensity_Moment_Data& ard_phi_new) override;
+  int solve_ard_problem(Intensity_Moment_Data& ard_phi_new) override;
 
 protected:
   const int m_max_iterations;

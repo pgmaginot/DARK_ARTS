@@ -40,85 +40,204 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
   m_i_length{m_cells*m_groups*m_dir*m_el_per_cell},
   m_i(m_i_length,0.)
   {    
-    /// load the initial conditions    
-    RADIATION_IC_TYPE ic_type = input_reader.get_radiation_ic_type();
-    if( ic_type == PLANCKIAN_IC)
+    if( input_reader.is_restart() )
     {
-      /// loop over regions.  Each region could have a different initial condition
-      std::vector<int> cell_per_reg;
-      std::vector<double> temp_in_reg;
+      /// load Temperature_Data from a restart file
+      /// name and path of original data that we will be restarting from
+      std::string intensity_filename;
+      input_reader.get_data_dump_path(intensity_filename);
       
-      input_reader.get_cells_per_region_vector(cell_per_reg);           
+      /// name and path of the "RESTART" input file
+      std::string input_file_name_and_path;
+      input_reader.get_initial_input_filename(input_file_name_and_path);
       
-      int cell_cnt = 0;
-      double iso_emission = 0.;
-      for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+      /// get only the input file name
+      unsigned found = input_file_name_and_path.find_last_of("/");  
+      intensity_filename.append( input_file_name_and_path.substr(found+1) );
+      /// remove the .xml and add intensity restart file strings
+      
+      std::string xml_extension = ".xml";
+      int time_step_resume = input_reader.get_time_step_restart();
+      std::string intensity_extension("_IntensityDump_step_");
+      intensity_extension += std::to_string(time_step_resume) ;
+      intensity_extension.append(".xml");
+      intensity_filename.replace(intensity_filename.find(xml_extension),xml_extension.length() , intensity_extension );
+      
+      TiXmlDocument doc( intensity_filename.c_str() );  
+      bool loaded = doc.LoadFile();  
+      if( loaded  )
+        std::cout << "Found Intensity restart file: " << intensity_filename << std::endl;
+      else
       {
-        double temp_eval = input_reader.get_region_radiation_temperature(reg);
-        int n_cell_reg = cell_per_reg[reg];
-        
-        for(int grp = 0; grp < m_groups ; grp++)
-        {        
-          /// assume isotropic planck emission
-          if(m_groups > 1)
-          {          
-            iso_emission = materials.get_mf_planck(temp_eval, grp);
-          }
-          else
-          {
-            iso_emission = materials.get_grey_planck(temp_eval);
-          }          
-          /// planck function returns are per steradian
+        std::stringstream err;
+        err << "Error reading Intensity restart file: " << intensity_filename << std::endl;
+        throw Dark_Arts_Exception( INPUT ,  err.str() );
+      }
+      TiXmlElement* root = doc.FirstChildElement("INTENSITY");
+      
+      if(!root)
+        throw Dark_Arts_Exception(INPUT, "Could not find INTENSITY block in INTENSITY restart file");
+            
+      TiXmlElement* cell_element = root->FirstChildElement("Cell");
+      for(int c=0 ; c<m_cells ; c++)
+      {
+        if(!cell_element)
+        {
+          std::stringstream err;
+          err << "Missing  cell element: " << c << " in temperature restart file";
+          throw Dark_Arts_Exception(VARIABLE_STORAGE , err);
+        }
           
-          for(int cell = 0; cell < n_cell_reg ; cell++)
+        int cell_num = atoi(cell_element->GetText() );
+        if( cell_num != c)
+          throw Dark_Arts_Exception(INPUT , "Cell text not the same as expected cell number");
+        
+        TiXmlElement* group_element = cell_element->FirstChildElement("Group");
+        for(int g=0; g < m_groups; g++)
+        {
+          if(!group_element)
           {
+            std::stringstream err;
+            err << "Missing Group element: " << g << " of cell: " << c;
+            throw Dark_Arts_Exception(VARIABLE_STORAGE, err);
+          }      
+          int group_num = atoi(group_element->GetText());
+          if(group_num != g)
+            throw Dark_Arts_Exception(VARIABLE_STORAGE , "Group number does not match expected group in Intensity restart");
+          
+          
+          TiXmlElement* direction_element = group_element->FirstChildElement("Direction");
+          for(int dir = 0 ; dir < m_dir ; dir++)
+          {
+            if(!direction_element)
+            {
+              std::stringstream err;
+              err << "Missing Direction element:  " << dir << " of group: " << g << " cell: " << c;
+              throw Dark_Arts_Exception(VARIABLE_STORAGE, err);
+            }
+            
+            int dir_num = atoi(direction_element->GetText() );
+            if(dir_num != dir)
+              throw Dark_Arts_Exception(VARIABLE_STORAGE,"Direction Number does not match expected direction in Intensity restart");
+            
+            Eigen::VectorXd local_i = Eigen::VectorXd::Zero(m_el_per_cell);
+            
+            TiXmlElement* element_element = direction_element->FirstChildElement("Element");
+            for(int el = 0 ; el < m_el_per_cell ; el++)
+            {
+              if(!element_element)
+              {
+                std::stringstream err;
+                err << "Missing Element: " << el << " of direction:  " << dir << " group: " << g << " cell: " << c;
+                throw Dark_Arts_Exception(VARIABLE_STORAGE, err);
+              }
+              
+              int el_num = atoi(element_element->GetText() );
+              if(el_num != el)
+                throw Dark_Arts_Exception(VARIABLE_STORAGE , "Element number not equal to expected element number in Intensity restart");
+              
+              TiXmlElement* value_element = element_element->FirstChildElement("Value");
+              if(!value_element)
+              {
+                std::stringstream err;
+                err << "Missing Value element in Element: " << el << " of direction:  " << dir << " group: " << g << " cell: " << c;
+                throw Dark_Arts_Exception(VARIABLE_STORAGE, err);
+              }
+              
+              local_i(el) = atof( value_element->GetText() );
+              
+              element_element = element_element->NextSiblingElement("Element");
+            }
+            set_cell_intensity( c , g, dir, local_i);
+            
+            direction_element = direction_element->NextSiblingElement("Direction");
+          }
+          group_element = group_element->NextSiblingElement("Group");
+        }                
+        cell_element = cell_element->NextSiblingElement("Cell");      
+      }
+    }
+    else{
+      /// load the initial conditions    
+      RADIATION_IC_TYPE ic_type = input_reader.get_radiation_ic_type();
+      if( ic_type == PLANCKIAN_IC)
+      {
+        /// loop over regions.  Each region could have a different initial condition
+        std::vector<int> cell_per_reg;
+        std::vector<double> temp_in_reg;
+        
+        input_reader.get_cells_per_region_vector(cell_per_reg);           
+        
+        int cell_cnt = 0;
+        double iso_emission = 0.;
+        for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+        {
+          double temp_eval = input_reader.get_region_radiation_temperature(reg);
+          int n_cell_reg = cell_per_reg[reg];
+          
+          for(int grp = 0; grp < m_groups ; grp++)
+          {        
+            /// assume isotropic planck emission
+            if(m_groups > 1)
+            {          
+              iso_emission = materials.get_mf_planck(temp_eval, grp);
+            }
+            else
+            {
+              iso_emission = materials.get_grey_planck(temp_eval);
+            }          
+            /// planck function returns are per steradian
+            
+            for(int cell = 0; cell < n_cell_reg ; cell++)
+            {
+              for(int dir=0; dir < m_dir ; dir++)
+              {
+                set_cell_intensity( cell+cell_cnt , grp, dir, iso_emission);
+              }
+            }
+          }
+          cell_cnt += n_cell_reg;
+        }    
+      }
+      else if(ic_type == MMS_RADIATION_IC)
+      {
+        std::vector<int> cell_per_reg;      
+        input_reader.get_cells_per_region_vector(cell_per_reg);           
+        
+        Eigen::VectorXd local_i;
+        local_i = Eigen::VectorXd::Zero(m_el_per_cell);
+        std::vector<double> dfem_loc;
+        fem_quad.get_dfem_interpolation_point(dfem_loc);
+        
+        /// get radiation space angle and temporal components
+        MMS_Intensity i_ic(input_reader,ang_quad);
+        
+        int cell_cnt = 0;
+        const double time = input_reader.get_t_start();
+        for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
+        {
+          int n_cell_reg = cell_per_reg[reg];        
+          for(int c = 0; c < n_cell_reg ; c++)
+          {
+            int cell = c + cell_cnt;       
+            double xL = cell_data.get_cell_left_edge(cell);
+            double dx = cell_data.get_cell_width(cell);
             for(int dir=0; dir < m_dir ; dir++)
             {
-              set_cell_intensity( cell+cell_cnt , grp, dir, iso_emission);
+              for(int el = 0; el < m_el_per_cell ; el++)
+              {
+                double position = xL + dx/2.*( 1. + dfem_loc[el] );
+                local_i(el) = i_ic.get_mms_intensity(position, time, dir);
+              }
+              set_cell_intensity( cell , 0, dir, local_i);
             }
           }
-        }
-        cell_cnt += n_cell_reg;
-      }    
+          cell_cnt += n_cell_reg;
+        }    
+      }
+      else
+        throw Dark_Arts_Exception( VARIABLE_STORAGE , "Unknown intensity initial condition type");
     }
-    else if(ic_type == MMS_RADIATION_IC)
-    {
-      std::vector<int> cell_per_reg;      
-      input_reader.get_cells_per_region_vector(cell_per_reg);           
-      
-      Eigen::VectorXd local_i;
-      local_i = Eigen::VectorXd::Zero(m_el_per_cell);
-      std::vector<double> dfem_loc;
-      fem_quad.get_dfem_interpolation_point(dfem_loc);
-      
-      /// get radiation space angle and temporal components
-      MMS_Intensity i_ic(input_reader,ang_quad);
-      
-      int cell_cnt = 0;
-      const double time = input_reader.get_t_start();
-      for(int reg = 0 ; reg < input_reader.get_n_regions() ; reg++)
-      {
-        int n_cell_reg = cell_per_reg[reg];        
-        for(int c = 0; c < n_cell_reg ; c++)
-        {
-          int cell = c + cell_cnt;       
-          double xL = cell_data.get_cell_left_edge(cell);
-          double dx = cell_data.get_cell_width(cell);
-          for(int dir=0; dir < m_dir ; dir++)
-          {
-            for(int el = 0; el < m_el_per_cell ; el++)
-            {
-              double position = xL + dx/2.*( 1. + dfem_loc[el] );
-              local_i(el) = i_ic.get_mms_intensity(position, time, dir);
-            }
-            set_cell_intensity( cell , 0, dir, local_i);
-          }
-        }
-        cell_cnt += n_cell_reg;
-      }    
-    }
-    else
-      throw Dark_Arts_Exception( VARIABLE_STORAGE , "Unknown intensity initial condition type");
   }
 
 double Intensity_Data::get_intensity(const int el, const int cell, const int group, const int dir) const

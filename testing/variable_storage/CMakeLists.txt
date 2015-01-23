@@ -84,3 +84,25 @@ target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_
 add_test(ErrTemperature_Test ${EXE_NAME} )
 
 set_tests_properties( ErrTemperature_Test PROPERTIES LABELS "variable_storage;Temperature")
+
+# ###################################################################
+
+set(EXE_NAME Restart_File_Dump)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES} )
+
+add_test(Restart_File_Dump_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/LinearSpaceConstantTime.xml )
+
+set_tests_properties( Restart_File_Dump_Test PROPERTIES LABELS "variable_storage;Temperature;Intensity;restart")
+
+# ###################################################################
+
+set(EXE_NAME Restart_Reload)
+
+add_executable(${EXE_NAME} ${EXE_NAME}.cc)
+target_link_libraries(${EXE_NAME} ${${PROJECT_NAME}_LIB_NAME} ${${PROJECT_NAME}_LINKED_LIBRARIES} )
+
+add_test(Restart_Reload_Test ${EXE_NAME} ${PROJECT_SOURCE_DIR}/testing/TestingInputs/Restart_MMS.xml )
+
+set_tests_properties( Restart_Reload_Test PROPERTIES LABELS "variable_storage;Temperature;Intensity;restart")

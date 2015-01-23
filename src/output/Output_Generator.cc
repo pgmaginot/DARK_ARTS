@@ -122,40 +122,40 @@ void Output_Generator::write_xml( const bool is_final, const int time_step, cons
     Want the file to look like this
     <Cell> 0
       <Group> 0 
-        <Legendre_Moment> 0 
+        <Direction> 0 
           <Element>0
             <Value> </Value>
           </Element>
           <Element>1
             <Value> </Value>
           </Element>
-        </Legendre_Moment>
-        <Legendre_Moment> 1 
+        </Direction>
+        <Direction> 1 
           <Element>0
             <Value> </Value>
           </Element>
           <Element>1
             <Value> </Value>
           </Element>
-        </Legendre_Moment>
+        </Direction>
       </Group>
       <Group> 1 
-        <Legendre_Moment> 0 
+        <Direction> 0 
           <Element>0
             <Value> </Value>
           </Element>
           <Element>1
             <Value> </Value>
           </Element>
-        </Legendre_Moment>
-        <Legendre_Moment> 1 
+        </Direction>
+        <Direction> 1 
           <Element>0
             <Value> </Value>
           </Element>
           <Element>1
             <Value> </Value>
           </Element>
-        </Legendre_Moment>
+        </Direction>
       </Group>
     </Cell>
   */

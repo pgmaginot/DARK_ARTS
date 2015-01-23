@@ -17,7 +17,6 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_status_generator(input_filename),
     m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename)
 {   
-  m_status_generator.write_iteration_status();
   try{
     std::vector<double> phi_ref_norm;
     m_ard_phi.get_phi_norm(phi_ref_norm);
@@ -70,10 +69,11 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   /// set here in order to get to compile on a Firday afternoon
   int max_thermal_iter = 100;
+  int inners = 0;
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);
   
-  // m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
+  m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
   
   for(int t_step = 0; t_step < max_step; t_step++)
   {
@@ -98,26 +98,31 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// converge the thermal linearization
         /// first get an intensity given the temperature iterate
         /// Intensity_Update objects are linked to m_star at construction
-        m_intensity_update->update_intensity(m_ard_phi);
+        inners = m_intensity_update->update_intensity(m_ard_phi);
           
         /// then update temperature given the new intensity
         /// give a damping coefficient to possibly control this Newton (like) iteration)
         /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
         m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
 
+        double norm_relative_change = m_err_temperature.get_worst_err();
+        
         /// check convergence of temperature
-        if( m_err_temperature.get_worst_err() < m_thermal_tolerance)
+        if( norm_relative_change < m_thermal_tolerance)
         {
           break;
-        }
-        
+        }        
+        /// write to iteration status file
+        m_status_generator.write_iteration_status(t_step, stage, dt , inners , norm_relative_change);
       }    
       /** calculate k_I and k_T
        * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
        * but let's just call the calculate k_i and k_t functions by passing references to the objects we want to change
        * this will then imply that the more frequently called update functions are not modifying the 
       */
+      
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
+      /// inorder to integrate spatial-temporal error, we must form Phi_stage and T_stage in these function
       m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
     }

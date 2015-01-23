@@ -27,7 +27,7 @@ public:
     
   virtual ~Intensity_Update_Grey(){}
 
-  void update_intensity(Intensity_Moment_Data& phi) override;
+  int update_intensity(Intensity_Moment_Data& phi) override;
 
 };
 

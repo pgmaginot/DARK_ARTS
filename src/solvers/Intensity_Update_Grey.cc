@@ -18,12 +18,12 @@ Intensity_Update_Grey::Intensity_Update_Grey(const Input_Reader& input_reader,
  
 }
 
-void Intensity_Update_Grey::update_intensity(Intensity_Moment_Data& phi)
+int Intensity_Update_Grey::update_intensity(Intensity_Moment_Data& phi)
 {
   /**
     For the grey problem, the entire solve is carried out by the V_WGRS solver, so this looks particluarly emptry.  The MF case is not empty!
   */  
-  m_within_group_radiation_solver->solve(phi);
+  int inners = m_within_group_radiation_solver->solve(phi);
   
-  return;
+  return inners;
 }

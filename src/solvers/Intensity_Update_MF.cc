@@ -49,7 +49,7 @@ Intensity_Update_MF::Intensity_Update_MF(const Input_Reader& input_reader,
 }
 
 
-void Intensity_Update_MF::update_intensity(Intensity_Moment_Data& phi)
+int Intensity_Update_MF::update_intensity(Intensity_Moment_Data& phi)
 {  
   /** there are options for solving the MF absorption re-emission problem
     1) fixed point, no diffusion operator acceleration
@@ -57,7 +57,7 @@ void Intensity_Update_MF::update_intensity(Intensity_Moment_Data& phi)
     3) krylov with LMFG acceleration
   */
   /// use m_within_group_radiation_solver to get a new iterate for phi given an existing iterate for ard_phi
-  m_ard_solver->solve_ard_problem(phi);
+  int inners = m_ard_solver->solve_ard_problem(phi);
 
-  return;
+  return inners;
 }

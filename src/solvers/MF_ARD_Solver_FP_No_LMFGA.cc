@@ -15,18 +15,19 @@ m_ard_old(cell_data, ang_quad, fem_quad, phi_ref_norm )
   
 }
   
-void MF_ARD_Solver_FP_No_LMFGA::solve_ard_problem(Intensity_Moment_Data& ard_phi_new)
+int MF_ARD_Solver_FP_No_LMFGA::solve_ard_problem(Intensity_Moment_Data& ard_phi_new)
 {
+  int inners = 0;
   m_ard_old.clear_angle_integrated_intensity();
   for(int iter = 0; iter < m_max_iterations ; iter++)
   {
     /// set which phi we will be using for ard
     m_wgrs->set_ard_phi_ptr(&m_ard_old);
     /// get a new ard_phi based on the old value
-    m_wgrs->solve(ard_phi_new);
+    inners += m_wgrs->solve(ard_phi_new);
     /// get normalized change
     ard_phi_new.normalized_difference(m_ard_old,m_ard_err);
     /// check if change indciates convergence
   }
-  return;
+  return inners;
 }
