@@ -27,7 +27,7 @@ void Temperature_Update_Grey::update_temperature(const Intensity_Moment_Data& ph
      3. \f$ \left[ \mathbf{I} + \text{m_sn_w}*\Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D} \right] \f$ (m_coeff_matrix)    
     */
     calculate_local_matrices();
-    
+        
     ///calculate \f$ \vec{T}_{n} - \vec{T}^* + \Delta t \sum_{j=1}^{stage-1} a_{ij k_{T,j} \f$
     m_t_old_vec -= m_t_star_vec;
     for(int i=0; i< m_stage; i++)
@@ -42,8 +42,10 @@ void Temperature_Update_Grey::update_temperature(const Intensity_Moment_Data& ph
     m_material.get_grey_planck(m_t_star_vec,m_planck_vec);
     
     m_phi_vec -= m_sn_w * m_planck_vec;
-    m_phi_vec *= m_r_sig_a*m_phi_vec;
-    m_phi_vec += m_driving_source_vec;
+    
+    m_planck_vec = m_r_sig_a*m_phi_vec;
+    
+    m_phi_vec = m_driving_source_vec + m_planck_vec;
         
     /// use all these quantites and calculate \f$ \vec{T}_i \f$
     m_delta = m_coeff_matrix*m_t_old_vec + m_dt*m_rk_a[m_stage]*m_coeff_matrix*m_r_cv*m_phi_vec;

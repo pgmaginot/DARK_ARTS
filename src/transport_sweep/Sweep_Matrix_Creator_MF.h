@@ -24,7 +24,7 @@ public:
     const K_Temperature& kt, 
     const K_Intensity& ki,
     const Temperature_Data& t_star);
-  virtual ~Sweep_Matrix_Creator_MF(){}
+  ~Sweep_Matrix_Creator_MF(){}
   
     /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
   void update_cell_dependencies(const int cell) override;

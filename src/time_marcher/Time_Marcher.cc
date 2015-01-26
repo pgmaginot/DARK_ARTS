@@ -80,7 +80,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);
   
-  m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
+  // m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
   
   
   for(int t_step = 0; t_step < max_step; t_step++)
@@ -102,12 +102,20 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       
+      std::cout << "dt:  " << dt << std::endl;
+      if(dt < 0.)
+        throw Dark_Arts_Exception(TIME_MARCHER, "dt < 0 in time marcher ");
+        
+      if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
+        throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
+      
       for(int therm_iter = 0; therm_iter < max_thermal_iter; therm_iter++)
       {
         /// converge the thermal linearization
         /// first get an intensity given the temperature iterate
-        /// Intensity_Update objects are linked to m_star at construction
+        /// Intensity_Update objects are linked to m_star at construction        
         inners = m_intensity_update->update_intensity(m_ard_phi);
+        std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter << " Number of Transport solves: " << inners << std::endl;
           
         /// then update temperature given the new intensity
         /// give a damping coefficient to possibly control this Newton (like) iteration)

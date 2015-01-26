@@ -125,6 +125,9 @@ int main(int argc, char** argv)
         
         for(int el = 0; el < n_p ; el++)
         {
+          if( isnan(k_i_loc(el)) )
+            throw Dark_Arts_Exception(TRANSPORT , "NAN Ki");
+        
           if( fabs(k_i_loc(el)) > tol)          
             throw Dark_Arts_Exception(TRANSPORT, "Expecting zero k_i");   
         }
@@ -151,16 +154,29 @@ int main(int argc, char** argv)
       }
     }
     
-    Temperature_Update_Grey t_update(fem_quadrature, cell_data, materials,  angular_quadrature, 1);
-    t_update.set_time_data( dt, time_data.get_t_start() + dt , rk_a, stage );
+    std::cout << "Going to temperature_Update_Grey stuff" << std::endl;
+    
+    std::shared_ptr<V_Temperature_Update> t_update;
+    
+    t_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey(fem_quadrature, cell_data, materials,  angular_quadrature, 1) );
+    t_update->set_time_data( dt, time_data.get_t_start() + dt , rk_a, stage );
+    
     Err_Temperature err_temperature(n_p);
-    t_update.update_temperature(phi_new, t_star, t_old, kt, 1.0 , err_temperature ); 
+    
+    std::cout << "Starting to update temperature " << std::endl;
+    
+    t_update->update_temperature(phi_new, t_star, t_old, kt, 1.0 , err_temperature ); 
+    
+    std::cout << "Temperature updated" <<std::endl;
+    
+    std::cout << "Worst T err in temperature update: " << err_temperature.get_worst_err() << std::endl;
     
     if(fabs(err_temperature.get_worst_err() ) > tol )
       throw Dark_Arts_Exception(TIME_MARCHER, "Temperature should not change");
     
     
-    t_update.calculate_k_t(t_star, kt, phi_new);
+    t_update->calculate_k_t(t_star, kt, phi_new);
+    
     /// verify that k_t is zero
     Eigen::VectorXd kt_loc = Eigen::VectorXd::Zero(n_p);
     
@@ -172,6 +188,9 @@ int main(int argc, char** argv)
       {
         if(fabs(kt_loc(el) ) > tol)
           throw Dark_Arts_Exception(TIME_MARCHER , "Non zero kt");
+          
+        if( isnan(kt_loc(el)) )
+          throw Dark_Arts_Exception(TIME_MARCHER, "NAN kt");
       }
     }
     
@@ -187,6 +206,9 @@ int main(int argc, char** argv)
       
       for(int el = 0; el < n_p ; el++)
       {
+        if( isnan(t_old_loc(el)) )
+          throw Dark_Arts_Exception(TIME_MARCHER, "NAN temperature after advancing");
+          
         if(fabs(t_new_loc(el) - t_old_loc(el) ) > tol)
           throw Dark_Arts_Exception(TIME_MARCHER , "Bad temperature advancing");
       }

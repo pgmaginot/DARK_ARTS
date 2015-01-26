@@ -82,6 +82,15 @@ else()
 	remove_package_definitions(MPI)
 endif()
 
+option(USE_EIGEN "Use Eigen Library" ON)
+if(USE_EIGEN)
+  SET( EIGEN_PATH "$ENV{EIGEN_PATH}" )
+  IF( NOT EIGEN_PATH )
+      MESSAGE( FATAL_ERROR "Please point the environment variable EIGEN_PATH to the include directory of your Eigen3 installation.")
+  ENDIF()
+  INCLUDE_DIRECTORIES ( "${EIGEN_PATH}" )
+endif()
+
 ########################################################################################
 #
 #        PETSc

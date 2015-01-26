@@ -97,6 +97,10 @@ int main(int argc, char** argv)
     wgrs.set_time_data( dt, time_eval, rk_a , stage );
     /// phi will be changed in here
     int n_sweeps = wgrs.solve(phi);  
+    
+    if(n_sweeps == 0)
+      throw Dark_Arts_Exception(TRANSPORT , "Used zero sweeps!");
+    
     std::cout << "Needed " << n_sweeps << " sweeps to reach convergence\n";
     
     for(int cell = 0 ; cell < n_cell; cell++)

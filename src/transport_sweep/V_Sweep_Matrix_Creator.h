@@ -25,6 +25,7 @@
   *   @brief Provide a base class that constructs mass, reaction, and gradient matrices, as well as upwind vectors
   *     Concrete cases for  SELF_LUMPING , TRAD_LUMPING , and EXACT integration techniques
  */
+ 
 
 class V_Sweep_Matrix_Creator
 {
@@ -95,20 +96,20 @@ public:
   void k_i_get_planck_vec(Eigen::VectorXd& planck) const;
   
   void get_xi_isotropic(Eigen::VectorXd& xi) const { xi = m_xi_isotropic; return; }
-private:
-  const MATRIX_INTEGRATION m_matrix_type; 
+  
   
 protected:
   /** ****************************************************************
     * Variables that are initialzed in the constructor initialization list
     ****************************************************************
    */
+   const MATRIX_INTEGRATION m_matrix_type; 
    
   /// constants needed to build things
   const double m_sn_w; /// needed here to build source terms in linearization
   const int m_n_l_mom;
   const int m_np; /// needed to know the length/size of vectors/matrices
-  
+    
   /// matrices/vectors that hold sweep matrices (end results after calculating linearization, time dependence quantities)
   Eigen::MatrixXd m_r_sig_t;
   std::vector<Eigen::MatrixXd> m_r_sig_s;

@@ -106,6 +106,9 @@ Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_R
         }
         
         local_t(el) = atof(val_element->GetText() );   
+        if( isnan(local_t(el)) )
+          throw Dark_Arts_Exception(VARIABLE_STORAGE , "Loading a NAN temperature");
+          
         element_element = element_element->NextSiblingElement("Element");
       }
       /// save this data in the Temperature_Data structure

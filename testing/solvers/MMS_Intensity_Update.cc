@@ -66,8 +66,9 @@ int main(int argc, char** argv)
   std::vector<double> phi_ref_norm;
   phi_old.get_phi_norm(phi_ref_norm);
   
-  Intensity_Update_Grey i_update(input_reader, fem_quadrature, cell_data, materials, 
-    angular_quadrature, 1,  t_old, i_old, kt, ki, t_star, phi_ref_norm);
+  std::shared_ptr<V_Intensity_Update> i_update;
+  i_update = std::shared_ptr<V_Intensity_Update> (new  Intensity_Update_Grey(input_reader, fem_quadrature, cell_data, materials, 
+    angular_quadrature, 1,  t_old, i_old, kt, ki, t_star, phi_ref_norm) );
   
   Intensity_Moment_Data phi_comparison(phi_old);
     
@@ -78,8 +79,12 @@ int main(int argc, char** argv)
     rk_a[0] = time_data.get_a(stage,stage);
     const double time_eval = time_data.get_t_start() + dt;
     
-    i_update.set_time_data( dt, time_eval, rk_a, stage );
-    i_update.update_intensity(phi_old);
+    i_update->set_time_data( dt, time_eval, rk_a, stage );
+    int n_inner = i_update->update_intensity(phi_old);
+    
+    std::cout << "N_inner = " << n_inner << std::endl;
+    if(n_inner == 0 )
+      throw Dark_Arts_Exception(TRANSPORT , "Not getting number of inner iterations");
     
     /// verify that phi_old[time^(n+1)] = phi[time_old^n] for constant in time problem
     const int grp = 0;    
@@ -92,11 +97,14 @@ int main(int argc, char** argv)
       std::cout << "Phi_new:\n" << phi_new_loc << "\nPhi_old:\n" << phi_old_loc << std::endl;
       for(int el = 0 ; el < n_p ; el++)
       {
+        if( isnan(phi_old_loc(el) ))
+          throw Dark_Arts_Exception(TRANSPORT , "Nan intensity after update");
+          
         if(fabs(phi_old_loc(el) - phi_new_loc(el)) > tol)
           throw Dark_Arts_Exception(TRANSPORT, "Intensity Update not working correctly");
       }
     }
-    i_update.calculate_k_i(ki, phi_old);
+    i_update->calculate_k_i(ki, phi_old);
     
     Eigen::VectorXd k_i_loc = Eigen::VectorXd::Zero(n_p);
     
@@ -107,8 +115,13 @@ int main(int argc, char** argv)
         ki.get_ki(cell, grp, dir, stage, k_i_loc);        
         std::cout << "K_i for stage: " << stage << " cell: " << cell << " direction: " << dir << " group: " << grp << std::endl << k_i_loc << std::endl; 
         
+        
+        
         for(int el = 0; el < n_p ; el++)
         {
+          if( isnan(k_i_loc(el) ) )
+            throw Dark_Arts_Exception(TRANSPORT , "Nan k_i");
+        
           if( fabs(k_i_loc(el)) > tol)          
             throw Dark_Arts_Exception(TRANSPORT, "Expecting zero k_i");   
         }

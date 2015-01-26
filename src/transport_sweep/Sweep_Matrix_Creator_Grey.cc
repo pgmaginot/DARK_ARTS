@@ -6,6 +6,8 @@
 
 #include "Sweep_Matrix_Creator_Grey.h"
 
+
+
 Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, 
   Materials& materials,
   const int n_stages, 
@@ -17,9 +19,9 @@ Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_q
   const K_Intensity& ki,
   const Temperature_Data& t_star)
 :
-  V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, n_l_mom, t_old,  i_old, kt, ki, t_star ),
-  m_group_num{0},
-  m_hold_matrix(Eigen::MatrixXd::Zero(m_np,m_np))
+ V_Sweep_Matrix_Creator( fem_quadrature, materials, n_stages , sn_w, n_l_mom, t_old,  i_old, kt, ki, t_star ),
+  m_group_num(0),
+  m_hold_matrix( Eigen::MatrixXd::Zero(m_np,m_np) )
 {  
 }
 

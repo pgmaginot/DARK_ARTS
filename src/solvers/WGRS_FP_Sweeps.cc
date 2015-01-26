@@ -29,8 +29,8 @@ int WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
    */
     
    /** perform sweeps until convergence is reaced */   
-  int n_sweep;
-  for(n_sweep = 0; n_sweep < m_max_sweeps ; ++n_sweep)
+  int n_sweep = 0;
+  for(n_sweep = 0; n_sweep < m_max_sweeps ; n_sweep++)
   {
     /// perform a transport sweep, updating phi_new
     const bool is_k_i = false;
@@ -55,7 +55,7 @@ int WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
     {
       m_phi_old = phi_new;
     }
-    
+    std::cout << "N_sweep within WGRS: " << n_sweep << std::endl;
   }
   
   return n_sweep;

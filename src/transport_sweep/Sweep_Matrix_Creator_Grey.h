@@ -8,7 +8,7 @@
   *   @brief Provide a base class that constructs mass, reaction, and gradient matrices, as well as upwind vectors
   *     Concrete cases for  SELF_LUMPING , TRAD_LUMPING , and EXACT integration techniques
  */
-
+ 
 class Sweep_Matrix_Creator_Grey : public V_Sweep_Matrix_Creator
 {
 public:
@@ -24,7 +24,7 @@ public:
     const K_Temperature& kt, 
     const K_Intensity& ki,
     const Temperature_Data& t_star);
-  virtual ~Sweep_Matrix_Creator_Grey(){}
+  ~Sweep_Matrix_Creator_Grey(){}
   
   /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
   void update_cell_dependencies(const int cell) override;

@@ -59,6 +59,7 @@ int main(int argc, char** argv)
   Temperature_Data t_star(n_cell,fem_quadrature);
   t_star = t_old;
   
+  
   std::vector<std::vector<double>> expected_dimensionless_mass( n_dfem_p , std::vector<double> (n_dfem_p , 0.) );   
   std::vector<std::vector<double>> expected_L_mu_positive( n_dfem_p , std::vector<double> (n_dfem_p , 0.) );    
   std::vector<std::vector<double>> expected_L_mu_negative( n_dfem_p , std::vector<double> (n_dfem_p , 0.) ); 
@@ -132,19 +133,38 @@ int main(int argc, char** argv)
   fem_quadrature.get_source_weights(source_quad_wt);
   fem_quadrature.get_dfem_at_source_points(dfem_at_source);
   
+  std::cout << "Entering try loop" << std::endl;
+  
   try{
   
     K_Temperature kt(n_cell , time_data.get_number_of_stages(), fem_quadrature);
     K_Intensity ki(n_cell ,  time_data.get_number_of_stages(),fem_quadrature, angular_quadrature);
     
-    std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator;
-    matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(
+    
+    std::cout << "K SDIRK objects created" << std::endl;
+    
+    // std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator;
+        
+    std::cout << "Declared smart pointer" << std::endl;
+    
+    // std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(
+      // fem_quadrature, materials, time_data.get_number_of_stages(),
+      // angular_quadrature.get_sum_w() , angular_quadrature.get_number_of_leg_moments(),
+      // t_old, i_old, kt, ki, t_star) );
+      
+    std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator = std::make_shared<Sweep_Matrix_Creator_Grey> (
       fem_quadrature, materials, time_data.get_number_of_stages(),
       angular_quadrature.get_sum_w() , angular_quadrature.get_number_of_leg_moments(),
-      t_old, i_old, kt, ki, t_star) );
+      t_old, i_old, kt, ki, t_star) ;
+       
+    
+    std::cout << "Sweep matrix creator formed" << std::endl;
        
     MMS_Temperature temp_mms(input_reader);
     MMS_Intensity i_mms(input_reader,angular_quadrature);
+    
+    
+    std::cout << "MMS solutions created" << std::endl;
     /**
       functions to test out:
         void update_cell_dependencies(const int cell) override;

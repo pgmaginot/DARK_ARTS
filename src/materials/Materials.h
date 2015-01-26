@@ -83,6 +83,8 @@ public:
 
   double get_cell_width(void);
   
+  
+  
 private:
   Planck m_planck;
 
@@ -118,7 +120,7 @@ private:
   
   /// number of quadrature points used to evaluate driving source moments
   const int m_n_source_pts;
-  
+    
   /// what material the current cell is in
   int m_current_material=-1;
   
@@ -162,6 +164,8 @@ private:
   std::vector<double> m_source_quad;
   std::vector<double> m_position_at_source_quad;   
   std::vector<double> m_temperature_at_source_quad;
+  
+  
 };
 
 #endif

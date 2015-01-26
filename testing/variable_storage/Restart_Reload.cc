@@ -72,6 +72,9 @@ int main(int argc, char** argv)
         double x_local = xL + dx/2.*(1. + dfem_pts[el]);
         double t_ref = temperature_reference.get_mms_temperature(x_local,time);
         std::cout << "Expected temperature: " << t_ref << " Restarted temperature: " << t_local(el) << std::endl;
+        if( isnan(t_local(el) ))
+          throw Dark_Arts_Exception(VARIABLE_STORAGE, "NAN in temperature reload");
+        
         if(fabs(t_local(el) - t_ref) > tol)
           throw Dark_Arts_Exception(VARIABLE_STORAGE, "Restart temperature is incorrect");
       }
@@ -85,6 +88,9 @@ int main(int argc, char** argv)
           double x_local = xL + dx/2.*(1. + dfem_pts[el]);
           double i_ref = intensity_reference.get_mms_intensity(x_local,time,d);
           std::cout << "Expected intensity: " << i_ref << " Restarted intensity: " << i_local(el) << std::endl;
+          if( isnan(i_local(el) ))
+            throw Dark_Arts_Exception(VARIABLE_STORAGE, "NAN in intensity reload");
+          
           if(fabs(i_local(el) - i_ref) > tol)
             throw Dark_Arts_Exception(VARIABLE_STORAGE, "Restart intensity is incorrect");
         }

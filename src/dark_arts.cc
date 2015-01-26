@@ -91,13 +91,13 @@ int main(int argc, char** argv)
     std::cout << "Time_Marcher object created"<< std::endl;  
   
   /// this is the entire time loop !
-  // try{
-    // time_marcher.solve(intensity_old, temperature_old, time_data);
-  // }
-  // catch(const Dark_Arts_Exception& da_exception)
-  // {
-    // da_exception.message() ;
-  // }
+  try{
+    time_marcher.solve(intensity_old, temperature_old, time_data);
+  }
+  catch(const Dark_Arts_Exception& da_exception)
+  {
+    da_exception.message() ;
+  }
   
   /**
     End PETSc

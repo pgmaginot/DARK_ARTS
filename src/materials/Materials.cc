@@ -22,7 +22,7 @@ Materials::Materials( const Input_Reader& input_reader,
   m_num_materials(input_reader.get_number_of_materials()),
   m_n_xs_quad( fem_quadrature.get_number_of_xs_point() ),
   m_n_el_cell( fem_quadrature.get_number_of_interpolation_points() ),
-  m_dx{-1.},
+  m_dx(-1.),
   m_cell_data( cell_data),
   m_n_source_pts( fem_quadrature.get_number_of_source_points() )
 { 
