@@ -88,6 +88,10 @@ void Output_Generator::write_xml(const bool is_final, const int time_step, const
       element_number = new TiXmlText(buffer);
       
       value_element = new TiXmlElement( "Value" );
+      
+      if(isnan(temperature(el) ) )
+        throw Dark_Arts_Exception(VARIABLE_STORAGE , "Attempting to write a NAN temperature");
+      
       sprintf( buffer , "%22.14e" , temperature(el) );
       value_number = new TiXmlText(buffer);
       value_element->LinkEndChild( value_number );
@@ -205,6 +209,9 @@ void Output_Generator::write_xml( const bool is_final, const int time_step, cons
           element_element->LinkEndChild( element_number );
           
           value_element = new TiXmlElement( "Value" );
+          if(isnan(i_vec(el) ) )
+            throw Dark_Arts_Exception(VARIABLE_STORAGE , "Attempting to write a NAN temperature");
+          
           sprintf( buffer , "%22.14e" , i_vec(el) );
           value_number = new TiXmlText(buffer);
           value_element->LinkEndChild( value_number );          

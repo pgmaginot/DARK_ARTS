@@ -147,15 +147,15 @@ int main(int argc, char** argv)
         
     std::cout << "Declared smart pointer" << std::endl;
     
-    // std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(
-      // fem_quadrature, materials, time_data.get_number_of_stages(),
-      // angular_quadrature.get_sum_w() , angular_quadrature.get_number_of_leg_moments(),
-      // t_old, i_old, kt, ki, t_star) );
-      
-    std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator = std::make_shared<Sweep_Matrix_Creator_Grey> (
+    std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(
       fem_quadrature, materials, time_data.get_number_of_stages(),
       angular_quadrature.get_sum_w() , angular_quadrature.get_number_of_leg_moments(),
-      t_old, i_old, kt, ki, t_star) ;
+      t_old, i_old, kt, ki, t_star) );
+      
+    // std::shared_ptr<V_Sweep_Matrix_Creator> matrix_creator = std::make_shared<Sweep_Matrix_Creator_Grey> (
+      // fem_quadrature, materials, time_data.get_number_of_stages(),
+      // angular_quadrature.get_sum_w() , angular_quadrature.get_number_of_leg_moments(),
+      // t_old, i_old, kt, ki, t_star) ;
        
     
     std::cout << "Sweep matrix creator formed" << std::endl;
@@ -257,6 +257,9 @@ int main(int argc, char** argv)
       {
         for(int j=0 ; j<n_dfem_p ; j++)
         {
+          if( isnan(r_sig_t(i,j)))
+            throw Dark_Arts_Exception(FEM , "NAN R_sig_t");
+            
           if(j==i)
           {             
             double sig_t = 1./pow(t_star_vec(j),3);

@@ -103,7 +103,167 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   
   m_mtrx_builder->construct_dimensionless_mass_matrix(m_mass);
   
+  /// make sure allocation went smoothly
+  check_all_v_sweep_eigen_variables_for_finite();
   std::cout << "Leaving V_Sweep_Matrix_Creator constructor\n";
+}
+
+bool V_Sweep_Matrix_Creator::check_all_v_sweep_eigen_variables_for_finite(void)
+{
+  bool bad_eigen_variables = false;
+  std::stringstream err;
+  err << std::endl;
+  
+  if(!m_r_sig_t.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_r_sig_t has non finite values!\n";
+  }
+  
+  for(int l = 0 ; l < m_n_l_mom ; l++)
+  {
+    if( !m_r_sig_s[l].allFinite() )
+    {
+      bad_eigen_variables = true;
+      err << "m_r_sig_s[" << l << "] has non finite values!\n";
+    }
+  }
+  
+  if(!m_s_i.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_s_i has non finite values!\n";
+  }
+  
+  if(!m_k_i_r_sig_t.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_k_i_r_sig_t has non finite values!\n";
+  }
+  
+  if(!m_k_i_r_sig_s_zero.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_k_i_r_sig_s_zero has non finite values!\n";
+  }
+
+  if(!m_r_sig_a.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_r_sig_a has non finite values!\n";
+  }
+  
+  if(!m_identity_matrix.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_identity_matrix has non finite values!\n";
+  }
+  
+  if(!m_r_cv.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_r_cv has non finite values!\n";
+  }
+  
+  if(!m_d_matrix.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_d_matrix has non finite values!\n";
+  }
+  
+  if(!m_coefficient.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_coefficient has non finite values!\n";
+  }
+  
+  if(!m_mass.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_mass has non finite values!\n";
+  }
+  
+  if(!m_dx_div_2_mass.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_dx_div_2_mass has non finite values!\n";
+  }
+  
+  if(!m_mass_inv.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_mass_inv has non finite values!\n";
+  }
+  
+  if(!m_xi_isotropic.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_xi_isotropic has non finite values!\n";
+  }
+  
+  if(!m_driving_source.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_driving_source has non finite values!\n";
+  }
+  
+  if(!m_t_old_vec.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_t_old_vec has non finite values!\n";
+  }
+  
+  if(!m_t_star_vec.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_t_star_vec has non finite values!\n";
+  }
+  
+  if(!m_k_vec.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_k_vec has non finite values!\n";
+  }
+  
+  if(!m_planck_vec.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_planck_vec has non finite values!\n";
+  }
+  
+  if(!m_temp_vec.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_temp_vec has non finite values!\n";
+  }
+  
+  if(!m_no_mu_pos_l_matrix.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_no_mu_pos_l_matrix has non finite values!\n";
+  }
+  
+  if(!m_no_mu_neg_l_matrix.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_no_mu_neg_l_matrix has non finite values!\n";
+  }
+  
+  if(!m_no_mu_pos_f_vector.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_no_mu_pos_f_vector has non finite values!\n";
+  }
+
+  if(!m_no_mu_neg_f_vector.allFinite())
+  {
+    bad_eigen_variables = true;
+    err << "m_no_mu_neg_f_vector has non finite values!\n";
+  }
+  
+  std::cout << err.str() << std::endl;
+  
+  return bad_eigen_variables;
 }
 
 void V_Sweep_Matrix_Creator::construct_l_matrix(const double mu, Eigen::MatrixXd& l_matrix)
@@ -130,6 +290,7 @@ void V_Sweep_Matrix_Creator::construct_f_vector(const double mu, Eigen::VectorXd
   {
     f_vector = mu*m_no_mu_neg_f_vector;
   }
+  
   
   return;
 }

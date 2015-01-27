@@ -36,5 +36,5 @@ void V_Intensity_Update::calculate_k_i(K_Intensity& k_i, Intensity_Moment_Data& 
 {
   /// every V_WGRS object has a transport sweep object, and that's how we calculate k_i
   m_within_group_radiation_solver->sweep_for_k_i(k_i,ard_phi);
-  return;
+  return ;
 }

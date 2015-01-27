@@ -95,10 +95,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       m_damping = 1.;  
       
       double time_stage = time + dt*time_data.get_c(stage);
-      for(int i = 0; i< stage; i++)
+      for(int i = 0; i<= stage; i++)
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
         
-      // /// set time (of this stage), dt (of the whole time step), rk_a for this stage
+      // // /// set time (of this stage), dt (of the whole time step), rk_a for this stage
       m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       
@@ -114,7 +114,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// converge the thermal linearization
         /// first get an intensity given the temperature iterate
         /// Intensity_Update objects are linked to m_star at construction        
-        inners = m_intensity_update->update_intensity(m_ard_phi);
+        // inners = m_intensity_update->update_intensity(m_ard_phi);
         std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter << " Number of Transport solves: " << inners << std::endl;
           
         /// then update temperature given the new intensity
@@ -162,13 +162,13 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
       /// inorder to integrate spatial-temporal error, we must form Phi_stage and T_stage in these function
-      m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
+      // m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
     }
     /// advance to the next time step, overwrite t_old
     time += dt;
     /// these are the only functions that change I_old and T_old
-    m_k_i.advance_intensity(i_old,dt,m_time_data);
+    // m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
     
     if( (t_step % m_checkpoint_frequency) == 0)

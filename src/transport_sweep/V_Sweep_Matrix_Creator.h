@@ -97,6 +97,7 @@ public:
   
   void get_xi_isotropic(Eigen::VectorXd& xi) const { xi = m_xi_isotropic; return; }
   
+  bool check_all_v_sweep_eigen_variables_for_finite(void);
   
 protected:
   /** ****************************************************************

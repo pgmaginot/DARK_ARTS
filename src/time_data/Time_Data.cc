@@ -62,6 +62,7 @@ void Time_Data::fill_sdirk_vectors(void)
 
 double Time_Data::get_a(const int stage, const int index) const
 {
+  double a = 0.;
   if( (stage >= m_number_stages) || (stage < 0) )
     throw Dark_Arts_Exception( SUPPORT_OBJECT , "Invalid stage request for DIRK a constant");
   
@@ -70,12 +71,17 @@ double Time_Data::get_a(const int stage, const int index) const
   
   if(stage == 0)
   {
-    return m_a[0];
+    a = m_a[0];
   }
   else
   {
-    return m_a[stage*(stage+1)/2 + index];
+    a =  m_a[stage*(stage+1)/2 + index];
   }
+  
+  if( a < 1.0E-6 )
+    throw Dark_Arts_Exception(TIME_MARCHER, "Returning SDIRK a <= 0" );
+    
+  return a;
 }
 
 double Time_Data::get_b(const int stage) const
@@ -93,6 +99,12 @@ double Time_Data::get_dt(const int step, const double time_now)
   double dt = m_calculate_dt->calculate_dt(step);
   if( (time_now + dt ) > m_t_end)
     dt = m_t_end - time_now;
+    
+  if( dt < 0. )
+    throw Dark_Arts_Exception(TIME_MARCHER , "calculating negative dt");
+    
+  if(dt > m_dt_max)
+    throw Dark_Arts_Exception(TIME_MARCHER , "calculating dt > dt_max");
     
   return dt;
 }

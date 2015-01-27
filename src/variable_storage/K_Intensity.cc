@@ -40,11 +40,19 @@ void K_Intensity::get_ki(const int cell, const int grp, const int dir, const int
 /// Public functions to save values
 void K_Intensity::set_ki(const int cell, const int grp, const int dir, const int stage, Eigen::VectorXd& ki)
 {
+  
   /// find first element location
   int base_loc = ki_data_locator(cell, grp, dir, stage);
   for(int i=0;i<m_el_per_cell;i++)
+  {
+    if( isnan(ki(i)))
+    {
+      std::stringstream err;
+      err << "Trying to set a NAN ki value in cell" << cell << " group: " << grp << " dir: " << dir << " stage: " << stage << std::endl;
+      throw Dark_Arts_Exception(VARIABLE_STORAGE , err);
+    }
     m_ki[base_loc + i]=ki(i);   
-   
+  } 
   return ;
 }
 bool K_Intensity::ki_range_check(const int cell, const int grp, const int dir,const int stage) const

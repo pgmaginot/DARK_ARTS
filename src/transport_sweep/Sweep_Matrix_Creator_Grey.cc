@@ -28,7 +28,7 @@ Sweep_Matrix_Creator_Grey::Sweep_Matrix_Creator_Grey(const Fem_Quadrature& fem_q
 
   /// calculate \f$ \mathbf{R}_{C_v}^{-1} \f$, \f$ \mathbf{M} \f$, get \f$ \vec{T}^*,~\vec{T}_n \f$
 void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
-{
+{  
   /// set cell number
   m_cell_num = cell;
   
@@ -66,6 +66,9 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   */  
 void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
 {  
+  std::cout << "Start of cell: " << m_cell_num << "update group dependencies" << std::endl;
+  if(!m_r_sig_t.allFinite() )
+    throw Dark_Arts_Exception(TRANSPORT , "m_r_sig_t is corrupted at start");
   /** calculate the "coefficient matrix":
     \f[ \mathbf{I} + \text{m_sn_w} \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}
     \f]  ^{-1}  
@@ -87,11 +90,29 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   
   for(int l=0; l< m_n_l_mom ; l++)
     m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
+    
+  if(!m_r_sig_t.allFinite() )
+    throw Dark_Arts_Exception(TRANSPORT , "m_r_sig_t is corrupted prior to addition");
   
   m_r_sig_t = m_r_sig_a + m_r_sig_s[0];
   
+  if(!m_r_sig_t.allFinite() )
+    throw Dark_Arts_Exception(TRANSPORT , "m_r_sig_t is corrupted after addition");
+  
   /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
-  m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass; 
+  std::cout << "Mass matrix \n" << m_dx_div_2_mass << std::endl;
+  
+  double c_val = 1./(m_c*m_dt*m_rk_a[m_stage]);
+  std::cout << "m_c: " << m_c << std::endl;
+  std::cout << "m_dt: " << m_dt << std::endl;
+  std::cout << "m_rk_a[m_stage]: " << m_rk_a[m_stage] << std::endl;
+  
+  std::cout <<"c_val:  " << c_val << std::endl;
+  m_r_sig_t += c_val*m_dx_div_2_mass; 
+  std::cout << "r_tau\n" << m_r_sig_t << std::endl;
+  
+  if(!m_r_sig_t.allFinite() )
+    throw Dark_Arts_Exception(TRANSPORT , "m_r_sig_t after tau addition");
 
   /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
   
