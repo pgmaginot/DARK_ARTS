@@ -10,6 +10,8 @@
 #include "Temperature_Update_MF.h"
 #include "Status_Generator.h"
 #include "Output_Generator.h"
+#include "Final_Space_Error_Calculator.h"
+#include "Space_Time_Error_Calculator.h"
 
 class Time_Marcher
 {
@@ -46,6 +48,12 @@ private:
   Err_Temperature m_err_temperature;
   Status_Generator m_status_generator;
   Output_Generator m_output_generator;
+  
+  const bool m_calculate_space_time_error;
+  const bool m_calculate_final_space_error;
+  
+  std::shared_ptr<Space_Time_Error_Calculator> m_space_time_error_calculator;
+  std::shared_ptr<Final_Space_Error_Calculator> m_final_space_error_calculator;
   
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
   std::shared_ptr<V_Temperature_Update> m_temperature_update;

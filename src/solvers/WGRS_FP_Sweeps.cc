@@ -42,10 +42,7 @@ int WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
     
     /// calculate the error, normalize to phi_new
     m_err.clear();
-    phi_new.normalized_difference(m_phi_old,m_err);
-    
-    // std::cout << "Sweep: " << n_sweep << " Normalized error:  " << m_err.get_worst_err() << std::endl;
-    
+    phi_new.normalized_difference(m_phi_old,m_err);    
     if( (m_err.get_worst_err() < m_wg_tolerance) )
     {
       /// converged !  stop the iteration
@@ -55,7 +52,6 @@ int WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
     {
       m_phi_old = phi_new;
     }
-    std::cout << "N_sweep within WGRS: " << n_sweep << std::endl;
   }
   
   return n_sweep;

@@ -20,7 +20,9 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_max_damps(input_reader.get_max_damp_iters() ),
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
     m_status_generator(input_filename),
-    m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename)
+    m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename),
+    m_calculate_space_time_error( (input_reader.get_output_type() == SPACE_TIME_ERROR) ),
+    m_calculate_final_space_error( (input_reader.get_output_type() == END_SPACE_ERROR) )
 {   
   try{
     std::vector<double> phi_ref_norm;
@@ -57,6 +59,13 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         phi_ref_norm ) );
       m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages ) );
     }
+    
+    if(m_calculate_space_time_error)
+      m_space_time_error_calculator = std::make_shared<Space_Time_Error_Calculator>();
+      
+    if(m_calculate_final_space_error)
+      m_final_space_error_calculator = std::make_shared<Final_Space_Error_Calculator>();
+    
   }
   catch(const Dark_Arts_Exception& da_exception)
   {
@@ -101,11 +110,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       // // /// set time (of this stage), dt (of the whole time step), rk_a for this stage
       m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
-      
-      std::cout << "dt:  " << dt << std::endl;
-      if(dt < 0.)
-        throw Dark_Arts_Exception(TIME_MARCHER, "dt < 0 in time marcher ");
-        
+              
       if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
         throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
       
@@ -114,7 +119,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// converge the thermal linearization
         /// first get an intensity given the temperature iterate
         /// Intensity_Update objects are linked to m_star at construction        
-        // inners = m_intensity_update->update_intensity(m_ard_phi);
+        inners = m_intensity_update->update_intensity(m_ard_phi);
         std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter << " Number of Transport solves: " << inners << std::endl;
           
         /// then update temperature given the new intensity
@@ -161,14 +166,19 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       */
       
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
-      /// inorder to integrate spatial-temporal error, we must form Phi_stage and T_stage in these function
-      // m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
+      m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
+      
+      /// m_ard_phi and m_t_star are the radiation and temperature profiles at this time stage
+      if(m_calculate_space_time_error)
+      {
+      
+      }
     }
     /// advance to the next time step, overwrite t_old
     time += dt;
     /// these are the only functions that change I_old and T_old
-    // m_k_i.advance_intensity(i_old,dt,m_time_data);
+    m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
     
     if( (t_step % m_checkpoint_frequency) == 0)
@@ -181,6 +191,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     /// check to see if we are at the end of the time marching scheme
     if( abs( (time - time_data.get_t_end() )/time) < 1.0E-6)
       break;
+  }
+  if(m_calculate_final_space_error)
+  {
+  
   }
   
   /// dump final solutions, always!

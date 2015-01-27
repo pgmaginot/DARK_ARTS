@@ -24,7 +24,6 @@ int Intensity_Update_Grey::update_intensity(Intensity_Moment_Data& phi)
     For the grey problem, the entire solve is carried out by the V_WGRS solver, so this looks particluarly emptry.  The MF case is not empty!
   */  
   int inners = m_within_group_radiation_solver->solve(phi);
-  std::cout << "Insidge grey intensity_update, number of inners: " << inners << std::endl;
   
   return inners;
 }

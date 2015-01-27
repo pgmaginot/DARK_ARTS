@@ -153,6 +153,8 @@ public:
   int get_restart_frequency(void) const { return m_restart_frequency;}
   int get_max_damp_iters(void) const {return m_max_damps;}
   
+  /// 
+  OUTPUT_TYPE get_output_type(void) const {return m_output_type;}
   
 protected:
   /** variables that will be used to store data from input file

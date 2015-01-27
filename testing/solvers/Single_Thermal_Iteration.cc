@@ -106,10 +106,8 @@ int main(int argc, char** argv)
     double time_stage = time + dt*time_data.get_c(stage);
     std::vector<double> rk_a_of_stage_i(n_stages,0.);
     for(int i = 0; i <= stage; i++)
-    {
       rk_a_of_stage_i[i] = time_data.get_a(stage,i);
-      std::cout << "rk_a: " << rk_a_of_stage_i[i] << std::endl;
-    }
+      
     intensity_update->set_time_data(dt,time_stage,rk_a_of_stage_i , stage);
     
    

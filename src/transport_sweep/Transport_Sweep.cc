@@ -276,22 +276,9 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
   
   if(!m_sweep_type_set)
     throw Dark_Arts_Exception(TRANSPORT, "Must set transport sweep type prior to performing a sweep");
-  
-  
-  bool bad_eigens = m_sweep_matrix_creator->check_all_v_sweep_eigen_variables_for_finite();
-  
-  if(!m_k_i_sweep)
-  {
-    phi_new.clear_angle_integrated_intensity();
-    std::cout << "Start of a normal transport sweep" << std::endl;
-  }
-  else 
-  {  
-    std::cout << "Start of a k_i sweep" << std::endl;
-  }
     
-  if(bad_eigens)
-    throw Dark_Arts_Exception(TRANSPORT, "Corrupt Eigen variables might be used");
+  if(!m_k_i_sweep)
+    phi_new.clear_angle_integrated_intensity();
     
   /// starting and ending number of cells
   int cell_end, cell_start;
@@ -324,30 +311,16 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
         
     for( int cell = cell_start ; cell != (cell_end+incr) ; cell += incr)
     {
-      std::cout << "Calling update cell dependencies\n";        
       m_sweep_matrix_creator->update_cell_dependencies(cell); 
-      bad_eigens = m_sweep_matrix_creator->check_all_v_sweep_eigen_variables_for_finite();
-      if( bad_eigens )
-        throw Dark_Arts_Exception(TRANSPORT, "Bad Eigen variables");
         
       for(int grp = 0; grp < m_n_groups ; grp++)
       {
         /// avoid calculating cross sections as much as possible, call m_sweep_matrix_creator->update_group_dependencies
-        std::cout << "Calling update group dependencies\n";
         m_sweep_matrix_creator->update_group_dependencies(grp);
-        bad_eigens = m_sweep_matrix_creator->check_all_v_sweep_eigen_variables_for_finite();
-        if( bad_eigens )
-          throw Dark_Arts_Exception(TRANSPORT, "Bad Eigen variables");
           
         /// populate V_Sweep_Matrix_Creator m_k_i_r_sig_t and m_k_i_r_sig_s_zero
         if(m_k_i_sweep)
-        { 
-          std::cout << "Calling update k_i_quantities\n";
           m_sweep_matrix_creator->calculate_k_i_quantities();  
-          bad_eigens = m_sweep_matrix_creator->check_all_v_sweep_eigen_variables_for_finite();
-          if( bad_eigens )
-            throw Dark_Arts_Exception(TRANSPORT, "Bad Eigen variables");         
-        }
         
         /// get all the moments of this group's angular flux moments
         phi_old.get_all_moments(m_local_phi,cell,grp);
@@ -356,88 +329,44 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
         {
           dir = d_offset + d;
           mu = m_ang_quad.get_mu(dir);          
-          std::cout << "Calling update direction dependencies\n";
           m_sweep_matrix_creator->update_direction_dependencies(dir);
-          bad_eigens = m_sweep_matrix_creator->check_all_v_sweep_eigen_variables_for_finite();
-          if( bad_eigens )
-            throw Dark_Arts_Exception(TRANSPORT, "Bad Eigen variables");
         
           /// build LHS matrix
           /// overwrite LHS with \f$ \mathbf[L} \f$
           m_sweep_matrix_creator->construct_l_matrix(mu,m_lhs_mat);
           
-          if(m_k_i_sweep)
-          {
-            std::cout << "Position 1- LHS MAT\n" << m_lhs_mat << std::endl;
-          }
-          
           /// add in \f$ \mathbf{R}_{\sigma_t} \f$
           m_sweep_matrix_creator->get_r_sig_t(m_matrix_scratch);   
-          if(m_k_i_sweep)          
-            std::cout << "M_scratch matrix:\n" << m_matrix_scratch << std::endl;
-          else
-            std::cout << "Non ki sweep:\n" << m_matrix_scratch << std::endl;
-          
           
           m_lhs_mat += m_matrix_scratch; 
-          
-          
-          
-          if(m_k_i_sweep)
-          {
-            std::cout << "Position 2- LHS MAT\n" << m_lhs_mat << std::endl;
-          }
           
           /// build RHS vector
           /// overwrite with incident flux contribution
           m_sweep_matrix_creator->construct_f_vector(mu,m_rhs_vec);
-          if(m_k_i_sweep)
-          {
-            std::cout << "Position 2.5- Rhs_vec \n" << m_rhs_vec << std::endl;
-          }
           
           m_rhs_vec *= m_psi_in(grp,dir);     
-
-          if(m_k_i_sweep)
-          {
-            std::cout << "Position 3- Rhs_vec \n" << m_rhs_vec << std::endl;
-          }
           
           /// add in source moments
           m_sweep_source->get_source(m_vector_scratch);          
           m_rhs_vec += m_vector_scratch;
-          
-          if(m_k_i_sweep)
-          {
-            std::cout << "Position 4- RHS vec\n" << m_rhs_vec  << std::endl;
-          }
           
           /// add in scattering moments
           for(int l=0;l<m_n_l_mom;l++)
           {          
             m_sweep_matrix_creator->get_r_sig_s(m_matrix_scratch,l);
             m_rhs_vec += m_ang_quad.get_leg_poly(dir,l)*m_matrix_scratch*m_local_phi[l];
-            if(m_k_i_sweep)
-            {
-              std::cout << "Position 5- RHS vec\n" << m_rhs_vec << std::endl;
-            }
           }
           /// get the local solution
           m_local_soln = m_lhs_mat.partialPivLu().solve(m_rhs_vec);
-          
-          if(m_k_i_sweep)
-          {
-            std::cout << "Position 6- Final solution\n" << m_local_soln << std::endl;
-          }
-          
+                    
           /// save the moments of the local solutions (or calculate k_I), and update outflow
           m_sweep_saver->save_local_solution(phi_new,m_local_soln,m_psi_in,cell,grp,dir);
           
         } /// group loop        
       } /// direction loop
     } /// cell loop
-  } /// direction set loop (positive vs negative mu)
-  
+  } /// direction set loop (positive vs negative mu) 
+    
   m_sweep_type_set = false;
   return;
 }

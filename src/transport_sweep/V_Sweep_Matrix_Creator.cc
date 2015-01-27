@@ -104,8 +104,8 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_mtrx_builder->construct_dimensionless_mass_matrix(m_mass);
   
   /// make sure allocation went smoothly
-  check_all_v_sweep_eigen_variables_for_finite();
-  std::cout << "Leaving V_Sweep_Matrix_Creator constructor\n";
+  if( check_all_v_sweep_eigen_variables_for_finite() )
+    throw Dark_Arts_Exception(FEM , "Problem allocating Eigen variables of V_Sweep_Matrix_Creator correctly");
 }
 
 bool V_Sweep_Matrix_Creator::check_all_v_sweep_eigen_variables_for_finite(void)
@@ -260,9 +260,7 @@ bool V_Sweep_Matrix_Creator::check_all_v_sweep_eigen_variables_for_finite(void)
     bad_eigen_variables = true;
     err << "m_no_mu_neg_f_vector has non finite values!\n";
   }
-  
-  std::cout << err.str() << std::endl;
-  
+    
   return bad_eigen_variables;
 }
 

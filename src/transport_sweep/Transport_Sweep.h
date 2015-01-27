@@ -45,7 +45,10 @@ public:
     const Temperature_Data& t_star,
     const Input_Reader& input_reader);
     
-  virtual ~Transport_Sweep(){}
+  virtual ~Transport_Sweep(){   
+    if( m_sweep_matrix_creator->check_all_v_sweep_eigen_variables_for_finite() )
+      throw Dark_Arts_Exception(TRANSPORT, "Bad Eigen variables in destructor of Transport_Sweep");        
+  }
 
   /** set all of the first time data that the sweep will need
     * this includes: time stepping data (current stage number, rk_a, dt), 
