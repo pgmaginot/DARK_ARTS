@@ -2,6 +2,7 @@
 #include <vector>
 #include <math.h>
 #include <string>
+#include <iomanip>
 
 #include "Input_Reader.h"
 #include "Materials.h"
@@ -14,7 +15,7 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.E-6;
+  const double tol = 1.0E-8;
   
   Input_Reader input_reader;    
   try
@@ -88,7 +89,7 @@ int main(int argc, char** argv)
     for(int i=0 ; i < 2 ; i++)
     {
       std::cout << "Calculated cv: " << calculated_cv_edge[i] << " Expected Cv: " << cv << std::endl;
-      if( fabs( calculated_cv_edge[i] - cv ) > tol )
+      if( fabs( (calculated_cv_edge[i] - cv )/cv) > tol )
         throw Dark_Arts_Exception( SUPPORT_OBJECT, "Incorrect calculation of cv at edges" );
     }
   }
@@ -113,11 +114,11 @@ int main(int argc, char** argv)
   
   try{
     for(int i=0; i<2 ; i++)
-      if(fabs(expected_sig_s_edge[i] - calculated_sig_s_edge[i]) > tol )
+      if(fabs((expected_sig_s_edge[i] - calculated_sig_s_edge[i])/expected_sig_s_edge[i] ) > tol )
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_s");
         
     for(int i=0; i<2 ; i++)
-      if(fabs(expected_sig_a_edge[i] - calculated_sig_a_edge[i]) > tol )
+      if(fabs((expected_sig_a_edge[i] - calculated_sig_a_edge[i])/expected_sig_a_edge[i]) > tol )
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_a");
   }
   catch(const Dark_Arts_Exception& da)
@@ -183,13 +184,13 @@ int main(int argc, char** argv)
     for(int i = 0; i < n_dfem_int_pt ; i++)
     {
       std::cout << "x: " << x_int[i] << " Expected sig_s: " << evaluated_sig_s_at_dfem_int_pts[i] << " Calculated sig_s: " << calcualted_sig_s_at_dfem_int_pts[i] << std::endl;
-      if( fabs( evaluated_sig_s_at_dfem_int_pts[i] - calcualted_sig_s_at_dfem_int_pts[i] ) > tol)
+      if( fabs( (evaluated_sig_s_at_dfem_int_pts[i] - calcualted_sig_s_at_dfem_int_pts[i] )/evaluated_sig_s_at_dfem_int_pts[i]) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating scattering cross section in space");
         
-      if( fabs( evaluated_sig_a_at_dfem_int_pts[i] - calcualted_sig_a_at_dfem_int_pts[i] ) > tol)
+      if( fabs( ( evaluated_sig_a_at_dfem_int_pts[i] - calcualted_sig_a_at_dfem_int_pts[i] )/evaluated_sig_a_at_dfem_int_pts[i]) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating absorption cross section in space");
         
-      if( fabs( evaluated_cv_at_dfem_int_pts[i] - evaluated_cv_at_dfem_int_pts[i] ) > tol)
+      if( fabs( (evaluated_cv_at_dfem_int_pts[i] - evaluated_cv_at_dfem_int_pts[i] )/evaluated_cv_at_dfem_int_pts[i]) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating Cv in space");
         
     }
@@ -200,8 +201,8 @@ int main(int argc, char** argv)
     da.testing_message();
   }
   
-  Eigen::VectorXd planck(n_p);
-  Eigen::MatrixXd d_planck(n_p,n_p);
+  Eigen::VectorXd planck = Eigen::VectorXd::Zero(n_p);
+  Eigen::MatrixXd d_planck = Eigen::MatrixXd::Zero(n_p,n_p);
   
   materials.get_grey_planck(t_vec , planck);
   materials.get_grey_planck_derivative(t_vec, d_planck);
@@ -224,7 +225,10 @@ int main(int argc, char** argv)
           continue;
         else
           if( fabs( d_planck(i,j) ) > tol )
-            throw Dark_Arts_Exception( SUPPORT_OBJECT , "Off-diagonal element of D matrix expected to be zero");
+          {
+            std::cout << std::setprecision(15) << std::scientific << d_planck << std::endl;
+            throw Dark_Arts_Exception( SUPPORT_OBJECT , "Off-diagonal element of D matrix expected to be zero");            
+          }
       }        
     }
   }

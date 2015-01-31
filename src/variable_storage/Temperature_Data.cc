@@ -105,7 +105,7 @@ Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_R
           throw Dark_Arts_Exception(VARIABLE_STORAGE, err);
         }
         
-        local_t(el) = atof(val_element->GetText() );   
+        local_t(el) = std::stod(val_element->GetText() );   
         if( isnan(local_t(el)) )
           throw Dark_Arts_Exception(VARIABLE_STORAGE , "Loading a NAN temperature");
           

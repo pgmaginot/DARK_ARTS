@@ -120,18 +120,18 @@ int main(int argc, char** argv)
     
     for(int i = 0; i < n_int ; i++)
     {
-      if( fabs( expected_sig_s[i] - calculated_sig_s_at_dfem_int_pts[i] ) > tol)
+      if( fabs( (expected_sig_s[i] - calculated_sig_s_at_dfem_int_pts[i] )/expected_sig_s[i]) > tol)
       {
         std::cout << " Expected sig_s: " << expected_sig_s[i] << " Calculated sig_s: " << calculated_sig_s_at_dfem_int_pts[i] << std::endl;
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating scattering cross section in space");           
       }
-      if( fabs( expected_sig_a[i] - calculated_sig_a_at_dfem_int_pts[i] ) > tol)
+      if( fabs( (expected_sig_a[i] - calculated_sig_a_at_dfem_int_pts[i] )/expected_sig_a[i]) > tol)
       {
         std::cout << " Expected sig_a: " << expected_sig_a[i] << " Calculated sig_a: " << calculated_sig_a_at_dfem_int_pts[i] << std::endl;
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating absorption cross section in space");
       }
         
-      if( fabs( expected_cv[i] - calculated_cv_at_dfem_int_pts[i] ) > tol)
+      if( fabs( (expected_cv[i] - calculated_cv_at_dfem_int_pts[i] )/expected_cv[i]) > tol)
       {        
         std::cout << " Expected cv: " << expected_cv[i] << " Calculated cv: " << calculated_cv_at_dfem_int_pts[i] << std::endl;
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating Cv in space");

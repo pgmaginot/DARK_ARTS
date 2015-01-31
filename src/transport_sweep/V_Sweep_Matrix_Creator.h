@@ -99,6 +99,8 @@ public:
   
   bool check_all_v_sweep_eigen_variables_for_finite(void);
   
+  void get_mass(Eigen::MatrixXd& mass) const { mass = m_dx_div_2_mass;}
+  
 protected:
   /** ****************************************************************
     * Variables that are initialzed in the constructor initialization list

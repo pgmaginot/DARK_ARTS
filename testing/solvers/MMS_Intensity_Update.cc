@@ -17,6 +17,7 @@
 #include "K_Temperature.h"
 #include "Intensity_Update_Grey.h"
 #include "Err_Temperature.h"
+#include <math.h>
 
 #include "Dark_Arts_Exception.h"
 
@@ -67,82 +68,85 @@ int main(int argc, char** argv)
   phi_old.get_phi_norm(phi_ref_norm);
   
   std::shared_ptr<V_Intensity_Update> i_update;
-  i_update = std::shared_ptr<V_Intensity_Update> (new  Intensity_Update_Grey(input_reader, fem_quadrature, cell_data, materials, 
-    angular_quadrature, 1,  t_old, i_old, kt, ki, t_star, phi_ref_norm) );
+  i_update = std::make_shared<Intensity_Update_Grey>(input_reader, fem_quadrature, cell_data, materials, 
+    angular_quadrature, 1,  t_old, i_old, kt, ki, t_star, phi_ref_norm) ;
   
-  Intensity_Moment_Data phi_comparison(phi_old);
+  /// initialize as zero
+  Intensity_Moment_Data phi_comparison(cell_data, angular_quadrature, fem_quadrature, phi_ref_norm);
     
   try{
-    const double dt = time_data.get_dt_max();
-    const int stage = 0;
-    std::vector<double> rk_a(1,0.);
-    rk_a[0] = time_data.get_a(stage,stage);
-    const double time_eval = time_data.get_t_start() + dt;
-    
-    i_update->set_time_data( dt, time_eval, rk_a, stage );
-    int n_inner = i_update->update_intensity(phi_old);
-    
-    std::cout << "N_inner = " << n_inner << std::endl;
-    if(n_inner == 0 )
-      throw Dark_Arts_Exception(TRANSPORT , "Not getting number of inner iterations");
-    
-    /// verify that phi_old[time^(n+1)] = phi[time_old^n] for constant in time problem
-    const int grp = 0;    
-    Eigen::VectorXd phi_new_loc = Eigen::VectorXd::Zero(n_p);
-    Eigen::VectorXd phi_old_loc = Eigen::VectorXd::Zero(n_p);
-    for(int cell = 0 ; cell < n_cell; cell++)
+    for(int repeat = 0 ; repeat < 100 ; repeat++)
     {
-      phi_comparison.get_cell_angle_integrated_intensity(cell,grp,0,phi_new_loc);
-      phi_old.get_cell_angle_integrated_intensity(cell,grp,0,phi_old_loc);
-      std::cout << "Phi_new:\n" << phi_new_loc << "\nPhi_old:\n" << phi_old_loc << std::endl;
-      for(int el = 0 ; el < n_p ; el++)
+      std::cout << "repeat: " << repeat << std::endl;
+      const double dt = time_data.get_dt_max();
+      const int stage = 0;
+      std::vector<double> rk_a(1,0.);
+      rk_a[0] = time_data.get_a(stage,stage);
+      const double time_eval = time_data.get_t_start() + double(repeat+1)*dt;
+      
+      i_update->set_time_data( dt, time_eval, rk_a, stage );
+      int n_inner = i_update->update_intensity(phi_comparison);
+      
+      std::cout << "N_inner = " << n_inner << std::endl;
+      // if(n_inner == 0 )
+        // throw Dark_Arts_Exception(TRANSPORT , "Not getting number of inner iterations");
+      
+      /// verify that phi_old[time^(n+1)] = phi[time_old^n] for constant in time problem
+      const int grp = 0;    
+      Eigen::VectorXd phi_new_loc = Eigen::VectorXd::Zero(n_p);
+      Eigen::VectorXd phi_old_loc = Eigen::VectorXd::Zero(n_p);
+      for(int cell = 0 ; cell < n_cell; cell++)
       {
-        if( isnan(phi_old_loc(el) ))
-          throw Dark_Arts_Exception(TRANSPORT , "Nan intensity after update");
-          
-        if(fabs(phi_old_loc(el) - phi_new_loc(el)) > tol)
-          throw Dark_Arts_Exception(TRANSPORT, "Intensity Update not working correctly");
-      }
-    }
-    i_update->calculate_k_i(ki, phi_old);
-    
-    Eigen::VectorXd k_i_loc = Eigen::VectorXd::Zero(n_p);
-    
-    for(int cell = 0 ; cell < n_cell; cell++)
-    {
-      for(int dir = 0; dir < n_dir ; dir++)
-      {
-        ki.get_ki(cell, grp, dir, stage, k_i_loc);        
-        std::cout << "K_i for stage: " << stage << " cell: " << cell << " direction: " << dir << " group: " << grp << std::endl << k_i_loc << std::endl; 
-        
-        
-        
-        for(int el = 0; el < n_p ; el++)
-        {
-          if( isnan(k_i_loc(el) ) )
-            throw Dark_Arts_Exception(TRANSPORT , "Nan k_i");
-        
-          if( fabs(k_i_loc(el)) > tol)          
-            throw Dark_Arts_Exception(TRANSPORT, "Expecting zero k_i");   
-        }
-      }        
-    }
-    
-    ki.advance_intensity(i_old,dt,time_data);
-    
-    Intensity_Data i_repeat(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);
-    Eigen::VectorXd i_old_loc = Eigen::VectorXd::Zero(n_p);
-    Eigen::VectorXd i_new_loc = Eigen::VectorXd::Zero(n_p);
-    for(int cell = 0; cell < n_cell ; cell++)
-    {
-      for(int dir = 0; dir < n_dir ; dir++)
-      {
-        i_old.get_cell_intensity(cell,grp,dir,i_old_loc);
-        i_repeat.get_cell_intensity(cell,grp,dir,i_new_loc);
+        phi_comparison.get_cell_angle_integrated_intensity(cell,grp,0,phi_new_loc);
+        phi_old.get_cell_angle_integrated_intensity(cell,grp,0,phi_old_loc);
+        std::cout << "Phi_new:\n" << phi_new_loc << "\nPhi_old:\n" << phi_old_loc << std::endl;
         for(int el = 0 ; el < n_p ; el++)
         {
-          if(fabs(i_old_loc(el) - i_new_loc(el))>tol)
-            throw Dark_Arts_Exception(TRANSPORT, "Not advancing constant in time intensity");
+          if( isnan(phi_old_loc(el) ))
+            throw Dark_Arts_Exception(TRANSPORT , "Nan intensity after update");
+            
+          if(fabs(phi_old_loc(el) - phi_new_loc(el)) > tol)
+            throw Dark_Arts_Exception(TRANSPORT, "Intensity Update not working correctly");
+        }
+      }
+      i_update->calculate_k_i(ki, phi_comparison);
+      
+      Eigen::VectorXd k_i_loc = Eigen::VectorXd::Zero(n_p);
+      
+      for(int cell = 0 ; cell < n_cell; cell++)
+      {
+        for(int dir = 0; dir < n_dir ; dir++)
+        {
+          ki.get_ki(cell, grp, dir, stage, k_i_loc);        
+          std::cout << "K_i for stage: " << stage << " cell: " << cell << " direction: " << dir << " group: " << grp << std::endl << k_i_loc << std::endl; 
+          
+          for(int el = 0; el < n_p ; el++)
+          {
+            if( !std::isfinite(k_i_loc(el) ) )
+              throw Dark_Arts_Exception(TRANSPORT , "Non finite k_i");
+          
+            if( fabs(k_i_loc(el)) > tol)          
+              throw Dark_Arts_Exception(TRANSPORT, "Expecting zero k_i");   
+          }
+        }        
+      }
+      
+      ki.advance_intensity(i_old,dt,time_data);
+      
+      Intensity_Data i_repeat(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);
+      Eigen::VectorXd i_old_loc = Eigen::VectorXd::Zero(n_p);
+      Eigen::VectorXd i_new_loc = Eigen::VectorXd::Zero(n_p);
+      for(int cell = 0; cell < n_cell ; cell++)
+      {
+        for(int dir = 0; dir < n_dir ; dir++)
+        {
+          i_old.get_cell_intensity(cell,grp,dir,i_old_loc);
+          i_repeat.get_cell_intensity(cell,grp,dir,i_new_loc);
+          for(int el = 0 ; el < n_p ; el++)
+          {
+            if(fabs( (i_old_loc(el) - i_new_loc(el))/i_new_loc(el))>tol)
+              throw Dark_Arts_Exception(TRANSPORT, "Not advancing constant in time intensity");
+          }
         }
       }
     }

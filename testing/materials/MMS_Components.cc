@@ -18,7 +18,7 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.E-4;
+  const double tol = 1.E-8;
   
   Input_Reader input_reader;    
   try
@@ -92,10 +92,10 @@ int main(int argc, char** argv)
       ex_val = 1. + x_trial[i]*0.5 + x_trial[i]*x_trial[i]*3.;
       ex_deriv = 0.5 + 3.*2.*x_trial[i];
       
-      if(fabs(ex_val - space_ptr->get_position_component(x_trial[i]) ) > tol)
+      if(fabs((ex_val - space_ptr->get_position_component(x_trial[i]) )/ex_val) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial spatial component wrong");          
         
-      if(fabs(ex_deriv - space_ptr->get_position_derivative(x_trial[i]) ) > tol)
+      if(fabs( (ex_deriv - space_ptr->get_position_derivative(x_trial[i]) )/ex_deriv) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial spatial deriviative wrong");
     }
     
@@ -109,11 +109,11 @@ int main(int argc, char** argv)
       calc_deriv = space_ptr->get_position_derivative(x_trial[i]);
       
       std::cout << "Calculated: " << calc_val << " Expected:  " << ex_val << std::endl;
-      if(fabs(ex_val - calc_val) > tol)
+      if(fabs( (ex_val - calc_val)/ex_val) > tol)
       {
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos spatial component wrong");          
       }
-      if(fabs(ex_deriv - calc_deriv ) > tol)
+      if(fabs( (ex_deriv - calc_deriv )/ex_deriv) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos spatial deriviative wrong");
     }
     
@@ -126,10 +126,10 @@ int main(int argc, char** argv)
       calc_val = time_ptr->get_time_component(t_trial[i]);
       calc_deriv = time_ptr->get_time_derivative(t_trial[i]);
       
-      if(fabs(ex_val - calc_val ) > tol)
+      if(fabs( (ex_val - calc_val )/ex_val) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial time component wrong");          
         
-      if(fabs(ex_deriv - calc_deriv) > tol)
+      if(fabs( (ex_deriv - calc_deriv)/ex_deriv) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Polynomial time deriviative wrong");
     }
     
@@ -143,10 +143,10 @@ int main(int argc, char** argv)
       calc_val = time_ptr->get_time_component(t_trial[i]);
       calc_deriv = time_ptr->get_time_derivative(t_trial[i]);
       
-      if(fabs(ex_val - calc_val ) > tol)
+      if(fabs((ex_val - calc_val )/ex_val) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos time component wrong");          
         
-      if(fabs(ex_deriv - calc_deriv ) > tol)
+      if(fabs((ex_deriv - calc_deriv )/ex_deriv) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Cos time derivative wrong");
     }
     
@@ -176,10 +176,10 @@ int main(int argc, char** argv)
       
       calc_val = angle_ptr->get_angle_component( i );
       calc_val_2 = angle_ptr->get_angle_component( mu );
-      if( fabs(calc_val - calc_val_2) > tol)
+      if( fabs( (calc_val - calc_val_2)/calc_val) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "Methods of mu retrieval not equal for MMS components");
         
-      if( fabs(calc_val - ex_val ) > tol )
+      if( fabs( (calc_val - ex_val )/calc_val) > tol )
         throw Dark_Arts_Exception(SUPPORT_OBJECT, "Mu component not isotropic for MMS");
     }
       

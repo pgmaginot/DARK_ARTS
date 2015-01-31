@@ -98,8 +98,10 @@ double Time_Data::get_dt(const int step, const double time_now)
 {
   double dt = m_calculate_dt->calculate_dt(step);
   if( (time_now + dt ) > m_t_end)
+  {
+    /// taking full time step suggested by starting method will end time past desired t_end
     dt = m_t_end - time_now;
-    
+  }
   if( dt < 0. )
     throw Dark_Arts_Exception(TIME_MARCHER , "calculating negative dt");
     
@@ -127,12 +129,4 @@ double Time_Data::get_dt_min(void) const
 double Time_Data::get_dt_max(void) const
 {
   return m_dt_max;
-}
-
-void Time_Data::get_b_dt_constants(std::vector<double>& rk_b_dt, const double dt) const
-{
-  for(int s=0 ; s< m_number_stages ; s++)
-    rk_b_dt[s] = dt*m_b[s];
-    
-  return;
 }

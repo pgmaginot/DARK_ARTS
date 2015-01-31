@@ -17,6 +17,9 @@
 #include "K_Temperature.h"
 #include "Intensity_Update_Grey.h"
 #include "Output_Generator.h"
+#include "Temperature_Update_Grey.h"
+#include "Err_Temperature.h"
+#include "L2_Error_Calculator.h"
 
 #include "Dark_Arts_Exception.h"
 
@@ -27,9 +30,7 @@
 
 int main(int argc, char** argv)
 {
-  int val = 0;
-  const double tol = 1.0E-10;
-  
+  int val = 0;  
   Input_Reader input_reader;    
   try
   {
@@ -44,8 +45,8 @@ int main(int argc, char** argv)
   Quadrule_New quad_fun;  
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
   Cell_Data cell_data( input_reader );  
-  Angular_Quadrature angular_quadrature( input_reader , quad_fun );    
-  
+  Angular_Quadrature angular_quadrature( input_reader , quad_fun );   
+  L2_Error_Calculator l2_error_calculator(angular_quadrature,fem_quadrature, cell_data,input_reader);
   const int n_cell = cell_data.get_total_number_of_cells();
   const int n_p = fem_quadrature.get_number_of_interpolation_points();  
   
@@ -55,6 +56,7 @@ int main(int argc, char** argv)
   Temperature_Data t_old(fem_quadrature, input_reader, cell_data);  
   Intensity_Data i_old(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);
   
+  Intensity_Data i_never_change(cell_data, angular_quadrature, fem_quadrature, materials,input_reader);
   
   const int n_stages = time_data.get_number_of_stages();
   
@@ -62,10 +64,11 @@ int main(int argc, char** argv)
   K_Intensity ki(n_cell ,  n_stages, fem_quadrature, angular_quadrature);  
     
   Intensity_Moment_Data ard_phi(cell_data,angular_quadrature,fem_quadrature,i_old);  
+
   
   
   try{
-     std::string input_filename = argv[1];
+    std::string input_filename = argv[1];
     unsigned int found = input_filename.find_last_of("/");
     std::string short_input_filename = input_filename.substr(found+1);  
     Output_Generator output_generator(angular_quadrature,fem_quadrature, cell_data, short_input_filename);
@@ -76,7 +79,7 @@ int main(int argc, char** argv)
     ard_phi.get_phi_norm(phi_ref_norm);
         
     std::shared_ptr<V_Intensity_Update> intensity_update;
-    intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(
+    intensity_update = std::make_shared<Intensity_Update_Grey>(
         input_reader,fem_quadrature, 
         cell_data,
         materials, 
@@ -87,55 +90,47 @@ int main(int argc, char** argv)
         kt, 
         ki, 
         t_star, 
-        phi_ref_norm ) );
+        phi_ref_norm ) ;
+        
+      std::shared_ptr<V_Temperature_Update> temperature_update;
+      temperature_update = std::make_shared<Temperature_Update_Grey>(fem_quadrature, cell_data, materials, angular_quadrature, n_stages );
         
     const int stage = 0;
 
     double time = time_data.get_t_start();
-    
-    double dt = time_data.get_dt(stage,time);
+    int t_step = 0;
+
+    double dt = time_data.get_dt(t_step,time);
     
     t_star = t_old;
-    
-    /// check data before anything is done
-    output_generator.write_xml(false,30,i_old);
-    output_generator.write_xml(false,30,t_old);
-    output_generator.write_xml(false,31,t_star);
-    output_generator.write_xml(false,30,ard_phi);   
-    
+        
     double time_stage = time + dt*time_data.get_c(stage);
     std::vector<double> rk_a_of_stage_i(n_stages,0.);
     for(int i = 0; i <= stage; i++)
       rk_a_of_stage_i[i] = time_data.get_a(stage,i);
       
     intensity_update->set_time_data(dt,time_stage,rk_a_of_stage_i , stage);
-    
+    temperature_update->set_time_data(dt,time_stage,rk_a_of_stage_i , stage);
    
-    int inners;
-    inners = intensity_update->update_intensity(ard_phi);
-    std::cout << " Time step: " << 0 << " Stage: " << stage << " Thermal iteration: " << 0 << " Number of Transport solves: " << inners << std::endl;
-    
-    output_generator.write_xml(false,40,i_old);
-    output_generator.write_xml(false,40,t_old);
-    output_generator.write_xml(false,41,t_star);
-    output_generator.write_xml(false,40,ard_phi);   
-    
-    intensity_update->calculate_k_i(ki, ard_phi);
-    
-    output_generator.write_xml(false,50,i_old);
-    output_generator.write_xml(false,50,t_old);    
-    output_generator.write_xml(false,51,t_star);
-    output_generator.write_xml(false,50,ard_phi);   
-    
-    /// bad shit is happening in here.  I getting corrupted.  Look and see if calculate_k_i is shitting the bed
-    
-    ki.advance_intensity(i_old,dt,time_data);  
-    
-    output_generator.write_xml(false,60,i_old);
-    output_generator.write_xml(false,60,t_old);    
-    output_generator.write_xml(false,61,t_star);
-    output_generator.write_xml(false,60,ard_phi);   
+    Err_Temperature err_temperature(n_p);
+    err_temperature.set_small_number(1.0E-4*t_old.calculate_average());
+ 
+    int inners = intensity_update->update_intensity(ard_phi);
+    temperature_update->update_temperature(ard_phi, t_star, t_old, kt, 1.0, err_temperature);
         
+    if(inners == 0)
+      throw Dark_Arts_Exception(TRANSPORT,"Expecting to take some transport iterations");
+        
+    intensity_update->calculate_k_i(ki, ard_phi);    
+    temperature_update->calculate_k_t(t_star, kt, ard_phi);
+       
+    ki.advance_intensity(i_old, dt, time_data);
+    kt.advance_temperature(t_old, dt, time_data);
+  
+    std::cout << "dt: " << dt << "time_stage: " << time_stage << "t_step: " << t_step << std::endl;
+    std::cout << "Temperature L2 error: " << l2_error_calculator.calculate_l2_error(time_stage, t_old) << std::endl;
+    std::cout << "Phi L2 error: " << l2_error_calculator.calculate_l2_error(time_stage , ard_phi) << std::endl;
+    time = time + dt;         
   }
   catch(const Dark_Arts_Exception& da)
   {

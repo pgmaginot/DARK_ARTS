@@ -66,6 +66,8 @@ int main(int argc, char** argv)
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );  
     
+    
+  double tol = 1.0E-6;
   try{
   
     int n_cells = cell_data.get_total_number_of_cells();
@@ -82,14 +84,14 @@ int main(int argc, char** argv)
       double left_edge = cell_data.get_cell_left_edge( i ) ;
       int mat_num = cell_data.get_cell_material_number( i ) ;
       
-      if( fabs(cell_width - expected_cell_widths[i] ) > 0.01 )
+      if( fabs( (cell_width - expected_cell_widths[i] )/cell_width) > tol )
       {
         std::stringstream err;
         err << "Cell " << i << " width expected to be: " << expected_cell_widths[i] << " actually is: " << cell_width ;
         throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() ) ; 
       }
       
-      if( fabs(left_edge - expected_left_edges[i] ) > 0.01 )
+      if( fabs( (left_edge - expected_left_edges[i] )/left_edge) > tol )
       {
         std::stringstream err;
         err << "Cell " << i << " left edge expected to be: " << expected_left_edges[i] << " actually is: " << left_edge ;

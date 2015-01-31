@@ -27,7 +27,7 @@ public:
   void set_kt(const int cell, const int stage, Eigen::VectorXd& kt);
   
   void advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data& time_data);
-  
+  void clear_kt(void);
 protected:
   
   /// total number of cells in the problem

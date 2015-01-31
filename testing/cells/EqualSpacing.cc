@@ -49,20 +49,20 @@ int main(int argc, char** argv)
       err << "Did not return expected number of cells in LogSpacing.cc Test";
       throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() ) ;
     }
-    
+    double tol = 1.0E-6;
     for(int i=0; i < expected_n_cells ; i++)
     {
       double cell_width = cell_data.get_cell_width( i ) ;
       double left_edge = cell_data.get_cell_left_edge( i ) ;
       
-      if( fabs(cell_width - expected_cell_widths[i] ) > 0.01 )
+      if( fabs((cell_width - expected_cell_widths[i])/cell_width ) > tol)
       {
         std::stringstream err;
         err << "Cell " << i << " width expected to be: " << expected_cell_widths[i] << " actually is: " << cell_width ;
         throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() ) ; 
       }
       
-      if( fabs(left_edge - expected_left_edges[i] ) > 0.01 )
+      if( fabs((left_edge - expected_left_edges[i] )/left_edge) > tol )
       {
         std::stringstream err;
         err << "Cell " << i << " left edge expected to be: " << expected_left_edges[i] << " actually is: " << left_edge ;

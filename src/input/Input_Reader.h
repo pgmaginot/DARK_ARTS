@@ -23,10 +23,7 @@ public:
   
   //! read the supplied input file, start populating data objects
   void read_xml(std::string xmlFile);
-  
-  /// Output data
-  
-  
+   
   /// Restart data
   void get_data_dump_path(std::string& dump_path) const { dump_path = m_data_dump_str; return;}
   bool is_mesh_refinement(void) const { return m_is_mesh_refinement; }
@@ -143,19 +140,20 @@ public:
   INCIDENT_BC_VALUE_TYPE get_right_bc_value_type(void) const;
 
   BC_ENERGY_DEPENDENCE get_left_bc_energy_dependence(void) const;
-  BC_ENERGY_DEPENDENCE get_right_bc_energy_dependence(void) const;
-  
+  BC_ENERGY_DEPENDENCE get_right_bc_energy_dependence(void) const;  
   
   /// Time_Marcher controls
   int get_iters_before_damping(void) const{ return m_iters_before_damp;}
   double get_damping_factor(void) const { return m_damping_factor;}
   int get_iter_increase_factor(void) const { return m_iter_increase_factor;}
-  int get_restart_frequency(void) const { return m_restart_frequency;}
   int get_max_damp_iters(void) const {return m_max_damps;}
   
   /// 
   OUTPUT_TYPE get_output_type(void) const {return m_output_type;}
-  
+  void get_filename_base_for_results(std::string& filename) const{ filename = m_results_file_base; return;}
+  int get_restart_frequency(void) const { return m_restart_frequency;}
+  bool record_final_space_error(void) const { return m_end_space_error;}
+  bool record_space_time_error(void) const {return m_space_time_error;}
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -163,15 +161,18 @@ protected:
   /// Output block
   int m_time_steps_per_dump = -1;
   OUTPUT_TYPE m_output_type = INVALID_OUTPUT_TYPE;
-  bool m_is_restart = false;
-  int m_restart_step = -1;
+  std::string m_results_file_base;
+  bool m_end_space_error = false;
+  bool m_space_time_error = false;
   
   /// Restart type
   RESTART_TYPE m_restart_type = INVALID_RESTART_TYPE;
   int m_refinement_factor = -1;
   std::string m_initial_input_str;
   bool m_is_mesh_refinement = false;
-  std::string m_data_dump_str;
+  std::string m_data_dump_str;  
+  bool m_is_restart = false;
+  int m_restart_step = -1;
   
   /// regions input block
   int m_number_regions = -1;
@@ -302,6 +303,7 @@ protected:
   int load_angular_discretization_data(TiXmlElement* angle_element);
   int load_solver_data(TiXmlElement* solver_element);
   int load_bc_ic_data(TiXmlElement* bc_ic_element);
+  int load_output_data(TiXmlElement* output_element);
   
   /**loaders for MMS types
     I(x,mu,t) = (mu_fun)*(x_fun_rad)*(t_fun_rad)

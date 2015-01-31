@@ -68,7 +68,8 @@ int main(int argc, char** argv)
   std::vector<double> phi_ref_norm;
   phi.get_phi_norm(phi_ref_norm);
   
-  WGRS_FP_Sweeps wgrs(input_reader,fem_quadrature, cell_data, materials, 
+  std::shared_ptr<V_WGRS> wgrs;
+  wgrs = std::make_shared<WGRS_FP_Sweeps>(input_reader,fem_quadrature, cell_data, materials, 
     angular_quadrature, n_stages , t_old,  i_old, kt,  ki, t_star, phi_ref_norm);
 
   try{
@@ -94,9 +95,9 @@ int main(int argc, char** argv)
       }
     }
     
-    wgrs.set_time_data( dt, time_eval, rk_a , stage );
+    wgrs->set_time_data( dt, time_eval, rk_a , stage );
     /// phi will be changed in here
-    int n_sweeps = wgrs.solve(phi);  
+    int n_sweeps = wgrs->solve(phi);  
     
     if(n_sweeps == 0)
       throw Dark_Arts_Exception(TRANSPORT , "Used zero sweeps!");

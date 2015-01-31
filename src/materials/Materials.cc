@@ -42,17 +42,17 @@ Materials::Materials( const Input_Reader& input_reader,
     {
       case SLXS:
       {
-        m_xs_treatment = std::shared_ptr<V_XS_Treatment>( new XS_Treatment_SLXS(fem_quadrature) );
+        m_xs_treatment = std::make_shared<XS_Treatment_SLXS>(fem_quadrature) ;
         break;
       }
       case INTERPOLATING:
       {
-        m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Interpolating(fem_quadrature) );
+        m_xs_treatment =  std::make_shared<XS_Treatment_Interpolating>(fem_quadrature );
         break;
       }
       case MOMENT_PRESERVING:
       {
-        m_xs_treatment =  std::shared_ptr<V_XS_Treatment>( new XS_Treatment_Moment_Preserving(fem_quadrature , input_reader) );
+        m_xs_treatment =  std::make_shared<XS_Treatment_Moment_Preserving>(fem_quadrature , input_reader) ;
         break;
       }
       case INVALID_OPACITY_TREATMENT:
@@ -253,7 +253,7 @@ void Materials::get_mf_planck(const Eigen::VectorXd& t_eval_vec, const int grp, 
 void Materials::get_grey_planck(const Eigen::VectorXd& t_eval_vec, Eigen::VectorXd& planck)
 {
   for(int i=0 ; i < m_n_el_cell ; i++)
-    planck(i) = m_planck.integrate_B_grey(t_eval_vec(i) );
+    planck(i) = m_planck.integrate_B_grey( t_eval_vec(i) );
     
   return;
 }
@@ -301,23 +301,19 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     OPACITY_TYPE abs_op_type = input_reader.get_abs_opacity_type(mat_num);
     if(abs_op_type == CONSTANT_XS)
     {
-      m_abs_opacities[mat_num] = std::shared_ptr<VAbsorption_Opacity> 
-        (new Absorption_Opacity_Constant( input_reader, mat_num)  ) ;
+      m_abs_opacities[mat_num] = std::make_shared<Absorption_Opacity_Constant>( input_reader, mat_num) ;
     }
     else if(abs_op_type == RATIONAL)
     {
-      m_abs_opacities[mat_num] = std::shared_ptr<VAbsorption_Opacity> 
-        (new Absorption_Opacity_Rational( input_reader, mat_num ) );
+      m_abs_opacities[mat_num] = std::make_shared<Absorption_Opacity_Rational>( input_reader, mat_num ) ;
     }
     else if(abs_op_type == TABLE_LOOKUP)
     {
-      m_abs_opacities[mat_num] = std::shared_ptr<VAbsorption_Opacity> 
-        (new Absorption_Opacity_Table( input_reader, mat_num ));
+      m_abs_opacities[mat_num] = std::make_shared<Absorption_Opacity_Table>( input_reader, mat_num );
     }
     else if(abs_op_type == POLYNOMIAL_SPACE)
     {
-      m_abs_opacities[mat_num] = std::shared_ptr<VAbsorption_Opacity> 
-        (new Absorption_Opacity_Polynomial_Space( input_reader, mat_num ));
+      m_abs_opacities[mat_num] = std::make_shared<Absorption_Opacity_Polynomial_Space>( input_reader, mat_num );
     }
     else
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Requesting to create an undefined VAbsorption_Opactiy object");
@@ -326,13 +322,11 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     OPACITY_TYPE scat_op_type = input_reader.get_scat_opacity_type(mat_num);
     if(scat_op_type == CONSTANT_XS)
     {
-      m_scat_opacities[mat_num] = std::shared_ptr<VScattering_Opacity> 
-        (new Scattering_Opacity_Constant( input_reader, mat_num)  ) ;
+      m_scat_opacities[mat_num] = std::make_shared<Scattering_Opacity_Constant>( input_reader, mat_num) ;
     }
     else if(scat_op_type == RATIONAL)
     {
-      m_scat_opacities[mat_num] = std::shared_ptr<VScattering_Opacity>
-        (new Scattering_Opacity_Rational( input_reader, mat_num)  ) ;
+      m_scat_opacities[mat_num] = std::make_shared<Scattering_Opacity_Rational>( input_reader, mat_num) ;
     }
     else if(scat_op_type == TABLE_LOOKUP)
     {
@@ -340,8 +334,7 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     }
     else if(scat_op_type == POLYNOMIAL_SPACE)
     {
-      m_scat_opacities[mat_num] = std::shared_ptr<VScattering_Opacity> 
-        (new Scattering_Opacity_Polynomial_Space( input_reader, mat_num ));
+      m_scat_opacities[mat_num] = std::make_shared<Scattering_Opacity_Polynomial_Space>( input_reader, mat_num );
     }
     else
       throw Dark_Arts_Exception( SUPPORT_OBJECT , "Requesting to create an undefined VScattering_Opactiy object");
@@ -350,11 +343,11 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     CV_TYPE cv_type = input_reader.get_cv_type(mat_num);
     if(cv_type == CONSTANT_CV)
     {
-      m_cv_obj[mat_num] = std::shared_ptr<VCv> (new Cv_Constant( input_reader, mat_num)  ) ;
+      m_cv_obj[mat_num] = std::make_shared<Cv_Constant>( input_reader, mat_num)   ;
     }
     else if(cv_type == RATIONAL_CV)
     {
-      m_cv_obj[mat_num] = std::shared_ptr<VCv> (new Cv_Rational( input_reader, mat_num)  ) ;
+      m_cv_obj[mat_num] = std::make_shared<Cv_Rational>( input_reader, mat_num)   ;
     }
     else
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "Requesting to initialize an undefined VCv object");
@@ -365,13 +358,13 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     {
       case NO_SOURCE:
       {
-        m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_Constant( input_reader, mat_num)  ) ;
+        m_source_i[mat_num] = std::make_shared<Source_I_Constant>( input_reader, mat_num)   ;
         break;
       }
       case MMS_SOURCE:
       {
-        m_source_i[mat_num] = std::shared_ptr<VSource_I> (new Source_I_MMS( input_reader , 
-          angular_quadrature , m_abs_opacities , m_scat_opacities, mat_num , m_planck)  ) ;
+        m_source_i[mat_num] = std::make_shared<Source_I_MMS>( input_reader , 
+          angular_quadrature , m_abs_opacities , m_scat_opacities, mat_num , m_planck)   ;
         break;
       }
       case INVALID_FIXED_SOURCE_TYPE:
@@ -387,13 +380,13 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
       case NO_SOURCE:
       {
       /// default is to set source to 0
-        m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_Constant( input_reader, mat_num)  ) ;
+        m_source_t[mat_num] = std::make_shared<Source_T_Constant>( input_reader, mat_num)   ;
         break;
       }
       case MMS_SOURCE:
       {
-        m_source_t[mat_num] = std::shared_ptr<VSource_T> (new Source_T_MMS( input_reader , angular_quadrature,
-          m_abs_opacities , m_cv_obj , mat_num , m_planck) );
+        m_source_t[mat_num] = std::make_shared<Source_T_MMS>( input_reader , angular_quadrature,
+          m_abs_opacities , m_cv_obj , mat_num , m_planck) ;
         break;
       }
       case INVALID_FIXED_SOURCE_TYPE:

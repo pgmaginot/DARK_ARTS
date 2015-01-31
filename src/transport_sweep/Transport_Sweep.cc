@@ -18,11 +18,11 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   m_n_l_mom( angular_quadrature.get_number_of_leg_moments() ),
   m_np( fem_quadrature.get_number_of_interpolation_points() ), 
   m_ang_quad(angular_quadrature),
-  m_matrix_scratch( Eigen::MatrixXd(m_np,m_np) ),
+  m_matrix_scratch( Eigen::MatrixXd::Zero(m_np,m_np) ),
   m_vector_scratch( Eigen::VectorXd::Zero(m_np) ),
   m_local_phi(m_n_l_mom, Eigen::VectorXd::Zero(m_np) ),
   m_rhs_vec( Eigen::VectorXd::Zero(m_np) ),
-  m_lhs_mat( Eigen::MatrixXd(m_np,m_np)),
+  m_lhs_mat( Eigen::MatrixXd::Zero(m_np,m_np)),
   m_local_soln( Eigen::VectorXd::Zero(m_np)  ),
   m_time(-1.),
   m_psi_in(m_n_groups,m_n_dir),
@@ -261,7 +261,7 @@ void Transport_Sweep::set_sweep_type(const bool is_krylov, const bool is_get_k_i
   return;
 }
 
-void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new)
+void Transport_Sweep::sweep_mesh(Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new)
 {
   /** perform a single transport sweep across the mesh
     * Do not save the full intensity vector
@@ -357,11 +357,17 @@ void Transport_Sweep::sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity
             m_rhs_vec += m_ang_quad.get_leg_poly(dir,l)*m_matrix_scratch*m_local_phi[l];
           }
           /// get the local solution
-          m_local_soln = m_lhs_mat.partialPivLu().solve(m_rhs_vec);
+          m_local_soln = m_lhs_mat.fullPivLu().solve(m_rhs_vec);
                     
           /// save the moments of the local solutions (or calculate k_I), and update outflow
-          m_sweep_saver->save_local_solution(phi_new,m_local_soln,m_psi_in,cell,grp,dir);
-          
+          if(m_k_i_sweep)
+          {
+            m_sweep_saver->save_local_solution(phi_old,m_local_soln,m_psi_in,cell,grp,dir);
+          }
+          else
+          {
+            m_sweep_saver->save_local_solution(phi_new,m_local_soln,m_psi_in,cell,grp,dir);
+          }
         } /// group loop        
       } /// direction loop
     } /// cell loop

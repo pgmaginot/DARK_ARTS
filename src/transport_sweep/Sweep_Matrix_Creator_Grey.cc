@@ -44,17 +44,16 @@ void Sweep_Matrix_Creator_Grey::update_cell_dependencies(const int cell)
   m_dx = m_materials.get_cell_width();
   
   /// calculate \f$ \mathbf{M} \f$ by getting generic mass matrix and multiplying by cell width
-  m_dx_div_2_mass = m_dx/2.*m_mass;
+  m_dx_div_2_mass = (m_dx/2.)*m_mass;
   
-  m_mass_inv = m_dx_div_2_mass.inverse();
+  m_mass_inv = m_dx_div_2_mass.fullPivLu().solve(m_identity_matrix);
     
   /// load \f$ \mathbf{R}_{C_v} \f$ here
-  m_mtrx_builder->construct_r_cv(m_r_cv);
+  m_mtrx_builder->construct_r_cv(m_coefficient);
   
  /// then invert it and store in a temporary matrix
-  m_coefficient = m_r_cv.inverse(); 
+  m_r_cv = m_coefficient.fullPivLu().solve(m_identity_matrix); 
   /// put this back into m_r_cv
-  m_r_cv = m_coefficient;
   
   return;
 }
@@ -80,9 +79,13 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   m_materials.get_grey_planck_derivative(m_t_star_vec,m_d_matrix);
   
   m_coefficient = m_identity_matrix;
-  m_coefficient += m_sn_w*m_dt*m_rk_a[m_stage]*m_r_cv*m_r_sig_a*m_d_matrix;
+  m_hold_matrix = m_r_sig_a*m_d_matrix;
   
-  m_hold_matrix = m_coefficient.inverse();
+  Eigen::MatrixXd hold2 = Eigen::MatrixXd::Zero(m_np,m_np);
+  hold2 = m_r_cv*m_hold_matrix;
+  m_coefficient += m_sn_w*m_dt*m_rk_a[m_stage]*hold2;
+  
+  m_hold_matrix = m_coefficient.fullPivLu().solve(m_identity_matrix); //inverse();
   m_coefficient = m_hold_matrix;
   
   for(int l=0; l< m_n_l_mom ; l++)
@@ -94,8 +97,14 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass; 
 
   /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
+  ///   m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a
+  m_hold_matrix = m_r_cv*m_r_sig_a;
   
-  m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a;
+  hold2 = m_d_matrix*m_coefficient;
+  Eigen::MatrixXd hold3 = Eigen::MatrixXd::Zero(m_np,m_np);
+  hold3 = hold2*m_hold_matrix;
+  hold2 = m_r_sig_a*hold3;
+  m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*hold2;
     
   /// start building the isotropic portion of \f$ \bar{\bar{\xi}} \f$
   

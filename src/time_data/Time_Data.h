@@ -32,10 +32,7 @@ public:
   double get_t_end(void) const;
   double get_dt_min(void) const;
   double get_dt_max(void) const;
-  
-  
-  void get_b_dt_constants(std::vector<double>& rk_b_dt, const double dt) const;
-  
+    
 protected:  
   int m_number_stages;
   

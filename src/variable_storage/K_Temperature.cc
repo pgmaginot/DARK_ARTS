@@ -12,19 +12,28 @@ K_Temperature::K_Temperature(const int n_cells, const int n_stages,
     m_el_per_cell(fem_quadrature.get_number_of_interpolation_points() ) ,
     m_n_stages(n_stages ),
     m_k_length( m_cells*m_el_per_cell*m_n_stages )   ,
-    m_vec_sum{ Eigen::VectorXd::Zero(m_el_per_cell) },
-    m_vec_retrieve{ Eigen::VectorXd::Zero(m_el_per_cell) }
+    m_vec_sum( Eigen::VectorXd::Zero(m_el_per_cell) ),
+    m_vec_retrieve( Eigen::VectorXd::Zero(m_el_per_cell) ),
+    m_kt(m_k_length,0.),
+    m_rk_b(m_n_stages,0.)
   {   
-    m_rk_b.resize(m_n_stages,0.);
-    m_kt.resize(m_k_length,0.);
+    
   }
+  
+void K_Temperature::clear_kt(void)
+{
+  for(int i = 0 ; i < m_k_length ; i++)
+    m_kt[i] = 0.;
+    
+  return;
+}
   
 /// Public accessor functions
 void K_Temperature::get_kt(const int cell, const int stage, Eigen::VectorXd& kt) const
 {  
   /// find first element location
   int base_loc = kt_data_locator(cell, stage);
-  for(int i=0;i<m_el_per_cell;i++)
+  for(int i=0; i<m_el_per_cell ; i++)
     kt(i) = m_kt[base_loc + i];
     
   return;
@@ -35,8 +44,8 @@ void K_Temperature::set_kt(const int cell, const int stage, Eigen::VectorXd& kt)
 {
   /// find first element location
   int base_loc = kt_data_locator(cell, stage);
-  for(int i=0;i<m_el_per_cell;i++)
-    m_kt[base_loc + i]=kt(i);   
+  for(int i=0; i<m_el_per_cell; i++)
+    m_kt[base_loc + i]= kt(i);   
    
   return ;
 }
@@ -81,20 +90,21 @@ bool K_Temperature::kt_bounds_check(const int loc) const
 
 void K_Temperature::advance_temperature(Temperature_Data& t_old, const double dt, const Time_Data& time_data)
 {
-  time_data.get_b_dt_constants(m_rk_b,dt);
   /// loop over all stages in a given cell then advance (based on layout of k_t  
   for(int cell = 0; cell < m_cells ; cell++)
-  {
+  {    
     m_vec_sum = Eigen::VectorXd::Zero(m_el_per_cell);
     for(int stage = 0; stage < m_n_stages; stage++)
-    {           
+    {         
+      m_vec_retrieve = Eigen::VectorXd::Zero(m_el_per_cell);
       get_kt(cell,stage,m_vec_retrieve);
-      m_vec_sum += m_rk_b[stage]*m_vec_retrieve;
+      m_vec_sum += time_data.get_b(stage)*dt*m_vec_retrieve;
     }
     t_old.get_cell_temperature(cell,m_vec_retrieve);
     m_vec_sum += m_vec_retrieve;
     t_old.set_cell_temperature(cell,m_vec_sum);
   }
+  
   return;
 }
 

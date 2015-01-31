@@ -24,7 +24,7 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   
   m_r_sig_t(Eigen::MatrixXd::Zero(m_np,m_np) ),
   m_r_sig_s(m_n_l_mom, Eigen::MatrixXd::Zero(m_np,m_np) ),
-  m_s_i(Eigen::VectorXd(m_np) ),
+  m_s_i(Eigen::VectorXd::Zero(m_np) ),
   
     m_k_i_r_sig_t(Eigen::MatrixXd::Zero(m_np,m_np)),
   /// just scattering.  No absorption or re-emission or linearization terms
@@ -41,8 +41,8 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   m_mass(Eigen::MatrixXd::Zero(m_np,m_np) ),
   m_dx_div_2_mass(Eigen::MatrixXd::Zero(m_np,m_np) ), 
   m_mass_inv(Eigen::MatrixXd::Zero(m_np,m_np) ),
-  m_xi_isotropic(Eigen::VectorXd(m_np) ),
-  m_driving_source(Eigen::VectorXd(m_np)),
+  m_xi_isotropic(Eigen::VectorXd::Zero(m_np) ),
+  m_driving_source(Eigen::VectorXd::Zero(m_np)),
     
   m_t_old_vec(Eigen::VectorXd::Zero(m_np) ),
   m_t_star_vec(Eigen::VectorXd::Zero(m_np)),
@@ -80,18 +80,15 @@ V_Sweep_Matrix_Creator::V_Sweep_Matrix_Creator(const Fem_Quadrature& fem_quadrat
   /// initialize matrix constructor
   if(m_matrix_type ==  EXACT)
   {
-    m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new    
-      Matrix_Construction_Exact(fem_quadrature,materials) );
+    m_mtrx_builder = std::make_shared<Matrix_Construction_Exact>(fem_quadrature,materials) ;
   }
   else if(m_matrix_type == TRAD_LUMPING)
   {
-    m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new 
-      Matrix_Construction_Trad_Lumping(fem_quadrature,materials) );
+    m_mtrx_builder = std::make_shared<Matrix_Construction_Trad_Lumping>(fem_quadrature,materials) ;
   }
   else if(m_matrix_type == SELF_LUMPING)
   {
-    m_mtrx_builder = std::shared_ptr<V_Matrix_Construction> (new 
-      Matrix_Construction_Self_Lumping(fem_quadrature,materials) );
+    m_mtrx_builder = std::make_shared<Matrix_Construction_Self_Lumping>(fem_quadrature,materials) ;
   }
   
   /// construct gradient terms once
@@ -260,6 +257,8 @@ bool V_Sweep_Matrix_Creator::check_all_v_sweep_eigen_variables_for_finite(void)
     bad_eigen_variables = true;
     err << "m_no_mu_neg_f_vector has non finite values!\n";
   }
+  
+  std::cout << err.str();
     
   return bad_eigen_variables;
 }

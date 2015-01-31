@@ -23,16 +23,6 @@ public:
   void calculate_k_t(const Temperature_Data& t_star, K_Temperature& k_t, const Intensity_Moment_Data& ard_phi) override;
 private:  
     
-
-/* ****************************************************
-*
-*     Protected Functions
-*
-  **************************************************** */
-  /// just need the cell number to access the material ptr correctly
-  /// all local variables (cell_num, t_star_vec, dt, time, a_ii, are already saved in the V_Temperature_Update object
-  void calculate_local_matrices(void);
-  
 };
 
 #endif

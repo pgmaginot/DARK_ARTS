@@ -220,11 +220,11 @@ int main(int argc, char** argv)
   try{
     for(int i=0; i < n_dfem_pt ; i++)
     {
-      if(fabs(da_dfem_pt[i] - dfem_pts[i] ) > tol)
+      if(fabs( (da_dfem_pt[i] - dfem_pts[i] )/dfem_pts[i]) > tol)
         throw Dark_Arts_Exception(FEM , "DFEM interpolation points not correct" );
     }
     
-    if( fabs(fem_quadrature.get_sum_of_dfem_interpolation_weights() - sum_dfem_weights ) > tol )
+    if( fabs( (fem_quadrature.get_sum_of_dfem_interpolation_weights() - sum_dfem_weights )/sum_dfem_weights) > tol )
       throw Dark_Arts_Exception(FEM, "DFEM interpolation points weights are not summing to 2");
     
   }
@@ -237,7 +237,7 @@ int main(int argc, char** argv)
   try{
     for(int i=0; i < n_xs_pt ; i++)
     {
-      if(fabs(da_xs_pt[i] - xs_pts[i] ) > tol)
+      if(fabs( (da_xs_pt[i] - xs_pts[i] )/xs_pts[i]) > tol)
         throw Dark_Arts_Exception(FEM , "XS interpolation points not correct" );
     }
   }
@@ -250,7 +250,7 @@ int main(int argc, char** argv)
   try{
     for(int i=0; i < n_int_pt ; i++)
     {
-      if(fabs(da_int_pt[i] - integration_pts[i] ) > tol)
+      if(fabs( (da_int_pt[i] - integration_pts[i] )/da_int_pt[i] ) > tol)
         throw Dark_Arts_Exception(FEM , "Integration points not correct" );
     }
   }
@@ -269,7 +269,7 @@ int main(int argc, char** argv)
     }
     for(int i=0; i< (n_int_pt*n_dfem_pt) ; i++)
     {
-      if(fabs( da_dfem_at_int_pt[i] - dfem_at_integration_pts[i] ) > tol )
+      if(fabs( (da_dfem_at_int_pt[i] - dfem_at_integration_pts[i] )/ dfem_at_integration_pts[i]) > tol )
         throw Dark_Arts_Exception(FEM , "Basis functions at integration points not correct" );
     }      
   }
@@ -289,7 +289,7 @@ int main(int argc, char** argv)
     for(int i=0; i< (n_int_pt*n_dfem_pt) ; i++)
     {
       std::cout << "Expected derivative: " << dfem_deriv_at_integration_pts[i] << " calcualted derivative: " << da_dfem_deriv_at_int_pt[i] << std::endl;
-      if(fabs( da_dfem_deriv_at_int_pt[i] - dfem_deriv_at_integration_pts[i] ) > tol )
+      if(fabs( (da_dfem_deriv_at_int_pt[i] - dfem_deriv_at_integration_pts[i] )/da_dfem_deriv_at_int_pt[i]) > tol )
         throw Dark_Arts_Exception(FEM , "Basis derivatives at integration points not correct" );
     }      
   }
@@ -308,7 +308,7 @@ int main(int argc, char** argv)
     }
     for(int i=0; i < (n_int_pt*n_xs_pt) ; i++)
     {
-      if(fabs( da_xs_at_int_pt[i] - xs_at_integration_pts[i] ) > tol )
+      if(fabs( (da_xs_at_int_pt[i] - xs_at_integration_pts[i] )/da_xs_at_int_pt[i] ) > tol )
         throw Dark_Arts_Exception(FEM , "XS functions at integration points not correct" );
     }      
   }
@@ -327,7 +327,7 @@ int main(int argc, char** argv)
     }
     for(int i=0; i < n_dfem_pt ; i++)
     {
-      if(fabs( da_dfem_left[i] - dfem_at_left_edge[i] ) > tol )
+      if(fabs( (da_dfem_left[i] - dfem_at_left_edge[i] )/da_dfem_left[i]) > tol )
         throw Dark_Arts_Exception(FEM , "dfem functions at left edge incorrect" );
     }      
   }
@@ -346,7 +346,7 @@ int main(int argc, char** argv)
     }
     for(int i=0; i < n_dfem_pt ; i++)
     {
-      if(fabs( da_dfem_right[i] - dfem_at_right_edge[i] ) > tol )
+      if(fabs( (da_dfem_right[i] - dfem_at_right_edge[i] )/da_dfem_right[i]) > tol )
         throw Dark_Arts_Exception(FEM , "dfem functions at right edge incorrect" );
     }      
   }

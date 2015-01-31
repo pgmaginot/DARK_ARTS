@@ -66,11 +66,11 @@ int main(int argc, char** argv)
     fem_quadrature.get_dfem_integration_points(integration_points);
     
     for(int i=0; i< n_p ; i++)
-      if( fabs( dfem_interp_points[i] - xs_quad[i] ) > tol)
+      if( fabs( (dfem_interp_points[i] - xs_quad[i] )/xs_quad[i]) > tol)
         throw Dark_Arts_Exception(FEM, "For SLXS, dfem interpolation points must be the same as the xs evaluation point quadrature");
         
     for(int i=0; i< n_p ; i++)
-      if( fabs( integration_points[i] - xs_quad[i] ) > tol)
+      if( fabs( (integration_points[i] - xs_quad[i] )/xs_quad[i]) > tol)
         throw Dark_Arts_Exception(FEM, "For SLXS, integration quadrature must be the same as the xs evaluation point quadrature");
   // }
   // catch(const Dark_Arts_Exception& da)
@@ -125,13 +125,13 @@ int main(int argc, char** argv)
       
       for(int i=0 ; i < 2 ; i++)
       {
-        if( fabs( calculated_cv_edge[i] - cv ) > tol )
+        if( fabs( (calculated_cv_edge[i] - cv )/cv) > tol )
           throw Dark_Arts_Exception( SUPPORT_OBJECT, "Incorrect calculation of cv at edges" );
 
-        if(fabs(sig_s - calculated_sig_s_edge[i]) > tol )
+        if(fabs((sig_s - calculated_sig_s_edge[i])/sig_s) > tol )
           throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_s");
 
-        if(fabs(calculated_sig_a_edge[i] - sig_a ) > tol )
+        if(fabs((calculated_sig_a_edge[i] - sig_a )/sig_a) > tol )
           throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_a");
       }
       
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
         // if( fabs( sig_a - calcualted_sig_a_at_dfem_int_pts[i] ) > tol)
           // throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating absorption cross section in space");
           
-        if( fabs( cv - calculated_cv_at_dfem_int_pts[i] ) > tol)
+        if( fabs( (cv - calculated_cv_at_dfem_int_pts[i] )/cv) > tol)
           throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating Cv in space");          
       }      
     }    

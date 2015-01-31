@@ -14,7 +14,7 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.0E-4;
+  const double tol = 1.0E-8;
   
   Input_Reader input_reader;    
   try
@@ -101,19 +101,19 @@ int main(int argc, char** argv)
     /// verify that correct input are being read
     
     for(unsigned int i=0;i < ex_temp_space_coeff.size() ; i++)
-      if(fabs( calc_temp_space_coeff[i] - ex_temp_space_coeff[i] ) > tol )
+      if(fabs( (calc_temp_space_coeff[i] - ex_temp_space_coeff[i] )/ex_temp_space_coeff[i]) > tol )
         throw Dark_Arts_Exception(INPUT, "Difference in MMS temperature space coeff");
         
     for(unsigned int i=0;i < ex_rad_space_coeff.size() ; i++)
-      if(fabs( calc_rad_space_coeff[i] - ex_rad_space_coeff[i] ) > tol )
+      if(fabs( (calc_rad_space_coeff[i] - ex_rad_space_coeff[i] )/ex_rad_space_coeff[i] ) > tol )
         throw Dark_Arts_Exception(INPUT, "Difference in MMS radiation space coeff");
         
     for(unsigned int i=0;i < ex_time_coeff.size() ; i++)
-      if(fabs( calc_time_coeff[i] - ex_time_coeff[i] ) > tol )
+      if(fabs( (calc_time_coeff[i] - ex_time_coeff[i] )/calc_time_coeff[i]) > tol )
         throw Dark_Arts_Exception(INPUT, "Difference in MMS time coeff");
         
     for(unsigned int i=0;i < ex_rad_angle_coeff.size() ; i++)
-      if(fabs( calc_angle_coeff[i] - ex_rad_angle_coeff[i] ) > tol )
+      if(fabs( (calc_angle_coeff[i] - ex_rad_angle_coeff[i] )/calc_angle_coeff[i]) > tol )
         throw Dark_Arts_Exception(INPUT, "Difference in MMS radiation angle coeff");
   
     const int n_dir = angular_quadrature.get_number_of_dir();
@@ -143,25 +143,25 @@ int main(int argc, char** argv)
     const double space_eval = 1.4;
     
     const double ex_temp = time_component->get_time_component(time_eval) * temp_space_component->get_position_component(space_eval);
-    if( fabs(ex_temp - calc_temperature.get_mms_temperature(space_eval,time_eval) ) > tol)
+    if( fabs( (ex_temp - calc_temperature.get_mms_temperature(space_eval,time_eval) )/ex_temp) > tol)
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "MMS_tmperature not equal to expected components product");
       
     const double ex_temp_d = time_component->get_time_derivative(time_eval) * temp_space_component->get_position_component(space_eval);
-    if( fabs(ex_temp_d - calc_temperature.get_mms_temperature_time_derivative(space_eval,time_eval) ) > tol)
+    if( fabs( (ex_temp_d - calc_temperature.get_mms_temperature_time_derivative(space_eval,time_eval) )/ex_temp_d) > tol)
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "MMS_tmperature tiem derivative not equal to expected components product");
       
     for(int d = 0 ; d < n_dir ; d++)
     {
       double ex_intensity = time_component->get_time_component(time_eval) * rad_space_component->get_position_component(space_eval) * rad_angle_component->get_angle_component(d);
-       if( fabs(ex_intensity - calc_intensity.get_mms_intensity(space_eval,time_eval,d) ) > tol)
+       if( fabs((ex_intensity - calc_intensity.get_mms_intensity(space_eval,time_eval,d) )/ex_intensity) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "MMS_Intensity not equal to expected components product");
         
       double ex_intensity_dt = time_component->get_time_derivative(time_eval) * rad_space_component->get_position_component(space_eval) * rad_angle_component->get_angle_component(d);
-       if( fabs(ex_intensity_dt - calc_intensity.get_mms_intensity_time_derivative(space_eval,time_eval,d) ) > tol)
+       if( fabs( (ex_intensity_dt - calc_intensity.get_mms_intensity_time_derivative(space_eval,time_eval,d) )/ex_intensity_dt) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "MMS_Intensity d wrt time not equal to expected components product");
         
       double ex_intensity_dx = time_component->get_time_component(time_eval) * rad_space_component->get_position_derivative(space_eval) * rad_angle_component->get_angle_component(d);
-       if( fabs(ex_intensity_dx - calc_intensity.get_mms_intensity_space_derivative(space_eval,time_eval,d) ) > tol)
+       if( fabs( (ex_intensity_dx - calc_intensity.get_mms_intensity_space_derivative(space_eval,time_eval,d) )/ex_intensity_dx) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "MMS_Intensity d wrt x not equal to expected components product");
     }
     
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
     {
       double ex_intensity = time_component->get_time_component(time_eval) * rad_space_component->get_position_component(space_eval) * rad_angle_component->get_angle_component(d);
       double calc_i = calc_intensity.get_mms_intensity(space_eval,time_eval,d) ;
-      if( fabs(ex_intensity - calc_i ) > tol)
+      if( fabs( (ex_intensity - calc_i )/ex_intensity) > tol)
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "MMS_Intensity not equal to expected components product");
       
       sum_phi += angular_quadrature.get_w(d)* calc_i;
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
     double calc_phi = calc_intensity.get_mms_phi(space_eval,time_eval);
     std::cout << "Expected phi: " << ex_phi << " Calculated_phi: " << calc_phi << std::endl;
  
-    if(fabs(ex_phi - calc_phi ) > tol)
+    if(fabs( (ex_phi - calc_phi )/ex_phi) > tol)
       throw Dark_Arts_Exception(SUPPORT_OBJECT, "MMS_phi does not agree with expected phi");
     
     /// verify temperature source
@@ -212,7 +212,7 @@ int main(int argc, char** argv)
         expected_t_sources[p] -= sig_a*(calc_intensity.get_mms_phi(x,time_eval) - pow(calc_temperature.get_mms_temperature(x,time_eval),4) );
       
         std::cout << "Calculated t_source: " << calculated_temperature_source[p] << " Expected t_source: " << expected_t_sources[p] << std::endl;
-        if(fabs(expected_t_sources[p] - calculated_temperature_source[p])>tol )
+        if(fabs( (expected_t_sources[p] - calculated_temperature_source[p])/expected_t_sources[p])>tol )
           throw Dark_Arts_Exception(SUPPORT_OBJECT, "Difference in MMS temperature evaluations");
       }
     
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
           ex_i_src[p] -= sig_a/sn_w*pow(calc_temperature.get_mms_temperature(x,time_eval),4);
         
           std::cout << "Calculated I source: " << calc_i_source[p] << " Expected i src: " << ex_i_src[p] << std::endl;
-          if(fabs(ex_i_src[p] - calc_i_source[p] ) > tol )
+          if(fabs( (ex_i_src[p] - calc_i_source[p] )/ex_i_src[p]) > tol )
             throw Dark_Arts_Exception(SUPPORT_OBJECT, "Miscalculating intensity mms sources");
         
         }        

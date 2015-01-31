@@ -20,6 +20,8 @@
 #include "Eigen/Dense"
 
 #include "Err_Temperature.h"
+#include <iomanip>
+#include <iostream>
 
 #include <memory>
 
@@ -56,32 +58,21 @@ protected:
   const int m_n_cells;
   
   const int m_n_source_quad_pts;
-  
-  /// \f$ \mathbf{R}_{\sigma_a} \f$
-  Eigen::MatrixXd m_r_sig_a; 
-  /// \f$ \mathbf{R}_{C_v} \f$
-  Eigen::MatrixXd m_r_cv;
-  /// \f$ \mathbf{I} \f$
+
   const Eigen::MatrixXd m_i_matrix;
-  /// \f$ \mathbf{D} \f$
-  Eigen::MatrixXd m_d_matrix;
-  /// \f$ \mathbf{I} + 4\pi \Delta t a_{ii} \mathbf{R}_{C_v}^{-1} \mathbf{R}_{\sigma_a} \mathbf{D}  \f$
-  Eigen::MatrixXd m_coeff_matrix;
   
-  /// \f$ \vec{\phi}_i \f$
-  Eigen::VectorXd m_phi_vec; 
-  /// \f$ \vec{\widehat{B}} \f$
-  Eigen::VectorXd m_planck_vec;
-  /// \f$ \vec{T}_n \f$
+  bool m_time_data_set;
+  
+  Eigen::VectorXd m_t_star_vec;
   Eigen::VectorXd m_t_old_vec;
-  /// \f$ \vec{T}^* \f$
-  Eigen::VectorXd m_t_star_vec; 
-  /// \f$ \vec{S}_T \f$
   Eigen::VectorXd m_driving_source_vec;
-  /// \f$ k_{T,i} \f$
-  Eigen::VectorXd m_k_vec; 
-  /// delta T vector
-  Eigen::VectorXd m_delta;
+  Eigen::VectorXd m_phi_vec;
+  Eigen::VectorXd m_planck_vec;
+  Eigen::VectorXd m_k_vec;
+  
+  Eigen::MatrixXd m_r_sig_a;
+  Eigen::MatrixXd m_r_cv;
+  Eigen::MatrixXd m_d_matrix;
     
   /// object that will build all local matrices for the temperature update
   std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
@@ -94,11 +85,11 @@ protected:
   double m_dt = 0.;
   double m_time = 0.;
   int m_stage  = 0;
+  
+  bool check_eigen_variables_finite(void) const;
 
 private:  
 
-  /// lumping type
-  MATRIX_INTEGRATION m_matrix_type;
 };
 
 #endif

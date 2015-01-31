@@ -60,7 +60,7 @@ public:
   void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   
   /// sweep the mesh, calculating a phi_new
-  void sweep_mesh(const Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new);
+  void sweep_mesh(Intensity_Moment_Data& phi_old, Intensity_Moment_Data& phi_new);
   
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   

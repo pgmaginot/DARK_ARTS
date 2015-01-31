@@ -131,14 +131,14 @@ int main(int argc, char** argv)
       double left_edge = cell_data.get_cell_left_edge( i ) ;
       int mat_num = cell_data.get_cell_material_number( i ) ;
       
-      if( fabs(cell_width - expected_cell_widths[i] ) > tol )
+      if( fabs( (cell_width - expected_cell_widths[i] )/cell_width) > tol )
       {
         std::stringstream err;
         err << "Cell " << i << " width expected to be: " << expected_cell_widths[i] << " actually is: " << cell_width ;
         throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() ) ; 
       }
       
-      if( fabs(left_edge - expected_left_edges[i] ) > tol )
+      if( fabs( (left_edge - expected_left_edges[i] )/left_edge) > tol )
       {
         std::stringstream err;
         err << "Cell " << i << " left edge expected to be: " << expected_left_edges[i] << " actually is: " << left_edge ;

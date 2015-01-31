@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   std::vector<double> calculated_roots(n_p,0.);
   std::vector<double> calculated_weights(n_p,0.);
   
-  
+  double tol = 1.0E-6;
   try{
     std::cout << "ncc_compute \n";
     for(int i=0; i < n_p; i++)
@@ -46,14 +46,14 @@ int main(int argc, char** argv)
     for(int i=0; i < n_p ; i++)
     {
       std::cout << "Calculated x["<<i<<"]: " << calculated_roots[i] << " w["<<i<<"]: " << calculated_weights[i] <<std::endl;
-      if( (fabs(calculated_weights[i] - expected_weights[i] ) > 0.0001) )
+      if( (fabs( (calculated_weights[i] - expected_weights[i] )/calculated_weights[i]) > tol) )
       {
         std::stringstream err;
         err << "Newotn Cotes Quadrature: Too large of difference in calculated weight " << i << " actual weight should be: " << expected_weights[i] ;
         throw Dark_Arts_Exception(SUPPORT_OBJECT , err.str() );
         break;
       }
-      if( (fabs(calculated_roots[i] - expected_roots[i] ) > 0.0001 ) )
+      if( (fabs( (calculated_roots[i] - expected_roots[i] )/calculated_roots[i]) > tol) )
       {
         std::stringstream err;
         err << "Newton Cotes Quadrature: Too large of difference in calculated root " << i << " actual root should be: " << expected_roots[i] ;
@@ -80,14 +80,14 @@ int main(int argc, char** argv)
     for(int i=0; i < n_p ; i++)
     {
       std::cout << "Calculated x["<<i<<"]: " << calculated_roots[i] << " w["<<i<<"]: " << calculated_weights[i] <<std::endl;
-      if( (fabs(calculated_weights[i] - expected_weights[i] ) > 0.0001) )
+      if( (fabs( (calculated_weights[i] - expected_weights[i] )/calculated_weights[i] ) > tol) )
       {
         std::stringstream err;
         err << "Gauss Quadrature: Too large of difference in calculated weight " << i << " actual weight should be: " << expected_weights[i] ;
         throw Dark_Arts_Exception(SUPPORT_OBJECT , err.str() );
         break;
       }
-      if( (fabs(calculated_roots[i] - expected_roots[i] ) > 0.0001) )
+      if( (fabs( (calculated_roots[i]  - expected_roots[i] )/calculated_roots[i]) > tol ) )
       {
         std::stringstream err;
         err << "Gauss Quadrature: Too large of difference in calculated root " << i << " actual root should be: " << expected_roots[i] ;

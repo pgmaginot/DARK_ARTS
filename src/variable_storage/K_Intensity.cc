@@ -23,9 +23,15 @@ K_Intensity::K_Intensity(const int n_cells, const int n_stages,
   m_vec_sum{ Eigen::VectorXd::Zero(m_el_per_cell) },
   m_vec_retrieve{ Eigen::VectorXd::Zero(m_el_per_cell) }  
 {  
-  m_ki.resize(m_k_length,0.) ;
-  m_rk_b.resize(m_el_per_cell,0.);
+  m_ki.resize(m_k_length,0.0) ;
+  m_rk_b.resize(m_el_per_cell,0.0);
 }
+void K_Intensity::clear_ki(void)
+{
+  for(int i = 0 ; i < m_k_length ; i++)
+    m_ki[i] = 0.0;
+}
+
 /// Public accessor functions
 void K_Intensity::get_ki(const int cell, const int grp, const int dir, const int stage, Eigen::VectorXd& ki) const
 {  
@@ -146,7 +152,6 @@ void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, cons
   int incr = -1;
   int offset = 0;
   int dir = 0;
-  time_data.get_b_dt_constants(m_rk_b,dt);
   for(int dir_set = 0; dir_set < 2; dir_set++)
   {
     if(dir_set ==0)
@@ -176,9 +181,11 @@ void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, cons
           m_vec_sum = Eigen::VectorXd::Zero(m_el_per_cell) ;
           for(int s = 0; s < m_n_stages ; s++)
           {
+            m_vec_retrieve = Eigen::VectorXd::Zero(m_el_per_cell);
             get_ki(c,g,dir,s,m_vec_retrieve);
-            m_vec_sum += m_rk_b[s]*m_vec_retrieve;
+            m_vec_sum += time_data.get_b(s)*m_vec_retrieve;
           }
+          m_vec_sum *= dt;
           i_old.get_cell_intensity(c,g,dir,m_vec_retrieve);
           m_vec_sum += m_vec_retrieve;
           i_old.set_cell_intensity(c,g,dir,m_vec_sum);

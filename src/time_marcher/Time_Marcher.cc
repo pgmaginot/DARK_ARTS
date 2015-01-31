@@ -21,8 +21,8 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
     m_status_generator(input_filename),
     m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename),
-    m_calculate_space_time_error( (input_reader.get_output_type() == SPACE_TIME_ERROR) ),
-    m_calculate_final_space_error( (input_reader.get_output_type() == END_SPACE_ERROR) )
+    m_calculate_space_time_error( input_reader.record_space_time_error() ),
+    m_calculate_final_space_error( input_reader.record_final_space_error() )
 {   
   try{
     std::vector<double> phi_ref_norm;
@@ -42,7 +42,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_k_i, 
         m_t_star, 
         phi_ref_norm ) );
-      m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages) );
+      // m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages) );
     }
     else{
       m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(
@@ -57,14 +57,22 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_k_i, 
         m_t_star, 
         phi_ref_norm ) );
-      m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_Grey( fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages ) );
+      m_temperature_update = std::make_shared<Temperature_Update_Grey>( fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages ) ;
     }
     
+    std::string filename_base;
+    std::string filename_base1;
+    input_reader.get_filename_base_for_results(filename_base);
+    filename_base1 = filename_base;
+    
     if(m_calculate_space_time_error)
-      m_space_time_error_calculator = std::make_shared<Space_Time_Error_Calculator>();
+      m_space_time_error_calculator = std::make_shared<Space_Time_Error_Calculator>(angular_quadrature,
+        fem_quadrature, cell_data,  input_reader, time_data, filename_base);
       
     if(m_calculate_final_space_error)
-      m_final_space_error_calculator = std::make_shared<Final_Space_Error_Calculator>();
+      m_final_space_error_calculator = 
+        std::make_shared<Final_Space_Error_Calculator>(angular_quadrature,
+        fem_quadrature, cell_data,  input_reader, time_data, filename_base1);
     
   }
   catch(const Dark_Arts_Exception& da_exception)
@@ -80,20 +88,21 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   int max_step = int( (time_data.get_t_end() - time_data.get_t_start() )/time_data.get_dt_min() );
   
   double dt = 0.;
+  double time_stage = 0.;
   
-  /// set here in order to get to compile on a Firday afternoon
   int max_thermal_iter = 1000;
   int times_damped = 0;
   int inners = 0;
-  
+  int t_step = 0;
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);
   
-  // m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );
   
-  
-  for(int t_step = 0; t_step < max_step; t_step++)
+  for(t_step = 0; t_step < max_step; t_step++)
   {
+    if( (t_step % 20) == 0)
+      m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );  
+    
     dt = time_data.get_dt(t_step,time);
     
     /// initial temperature iterate guess is t_old
@@ -101,9 +110,14 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     
     for(int stage = 0; stage < m_n_stages ; stage++)
     {
-      m_damping = 1.;  
+      m_damping = 1.; 
+      times_damped = 0;
       
-      double time_stage = time + dt*time_data.get_c(stage);
+      time_stage = time + dt*time_data.get_c(stage);
+      std::cout << "Time stage: " << time_stage << std::endl;
+      
+      std::cout << "Time step: " << t_step << " Time Old: " << time << " dt: " << dt << " Time stage: " << time_stage << std::endl;
+      
       for(int i = 0; i<= stage; i++)
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
         
@@ -116,6 +130,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       
       for(int therm_iter = 0; therm_iter < max_thermal_iter; therm_iter++)
       {
+        
         /// converge the thermal linearization
         /// first get an intensity given the temperature iterate
         /// Intensity_Update objects are linked to m_star at construction        
@@ -125,10 +140,11 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// then update temperature given the new intensity
         /// give a damping coefficient to possibly control this Newton (like) iteration)
         /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
+        m_err_temperature.clear();
         m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
 
         double norm_relative_change = m_err_temperature.get_worst_err();
-        
+        std::cout << "Thermal iteration: " << therm_iter << " Error: " << norm_relative_change << std::endl;
         /// write to iteration status file
         m_status_generator.write_iteration_status(t_step, stage, dt , inners , norm_relative_change, m_damping);
         
@@ -171,9 +187,8 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       
       /// m_ard_phi and m_t_star are the radiation and temperature profiles at this time stage
       if(m_calculate_space_time_error)
-      {
+        m_space_time_error_calculator->record_error(dt, stage, time_stage, m_ard_phi, m_t_star);
       
-      }
     }
     /// advance to the next time step, overwrite t_old
     time += dt;
@@ -189,14 +204,15 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     }
     
     /// check to see if we are at the end of the time marching scheme
-    if( abs( (time - time_data.get_t_end() )/time) < 1.0E-6)
+    if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-6)
       break;
   }
+  
+  /// call for end spatial error only
+  /// we were fancy with space_time error and output the error during the destructor call
   if(m_calculate_final_space_error)
-  {
-  
-  }
-  
+    m_final_space_error_calculator->record_error(time_data.get_t_end(),t_old, m_ard_phi);
+
   /// dump final solutions, always!
   m_output_generator.write_xml(true,0,i_old);
   m_output_generator.write_xml(true,0,t_old);

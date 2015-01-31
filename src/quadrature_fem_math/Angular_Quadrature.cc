@@ -64,7 +64,7 @@ Angular_Quadrature::Angular_Quadrature(const Input_Reader& input_reader, const Q
     m_mu_most_glancing = m_mu[m_n_dir/2];
     m_mu_most_normal = m_mu[0];
     
-    if(abs(m_mu_most_normal) < abs(m_mu_most_glancing) )
+    if(fabs(m_mu_most_normal) < fabs(m_mu_most_glancing) )
       throw Dark_Arts_Exception( SUPPORT_OBJECT ,  "Angular_Quadrature: Most glancing angle found to be more directly incident than most normal angle");
 
   }

@@ -101,7 +101,7 @@ int main(int argc, char** argv)
   
   try
   {
-    if( (angular_quadrature.get_sum_w() - 2.0) > 1.0E-4)
+    if( (angular_quadrature.get_sum_w() - 2.0) > 1.0E-6)
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "Unexpected sum of quadrature weights");
   }
   catch(const Dark_Arts_Exception da_exception)
@@ -126,12 +126,12 @@ int main(int argc, char** argv)
     {
       std::cout << "Expected mu: " << expected_mu[d] << " Got mu= " << angular_quadrature.get_mu(d) << std::endl;
       std::cout << "Expected w: " << expected_w[d] << " Got w= " << angular_quadrature.get_w(d) << std::endl;
-      if( fabs( expected_mu[d] - angular_quadrature.get_mu(d) ) > 1.E-4 )
+      if( fabs( expected_mu[d] - angular_quadrature.get_mu(d) ) > 1.E-6 )
       {
         throw Dark_Arts_Exception( SUPPORT_OBJECT , "mu not matching up");
         break;
       }
-      if( fabs( expected_w[d] - angular_quadrature.get_w(d) ) > 1.E-4 )
+      if( fabs( expected_w[d] - angular_quadrature.get_w(d) ) > 1.E-6 )
       {
         throw Dark_Arts_Exception( SUPPORT_OBJECT , "w not matching up");   
         break;        

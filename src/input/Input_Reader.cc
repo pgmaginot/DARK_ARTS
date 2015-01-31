@@ -511,6 +511,7 @@ void Input_Reader::load_from_scratch_problem(TiXmlDocument& doc)
   TiXmlElement* angle_elem = inp_block->FirstChildElement( "ANGULAR_DISCRETIZATION" );
   TiXmlElement* solver_elem = inp_block->FirstChildElement( "SOLVER" );
   TiXmlElement* bc_ic_elem = inp_block->FirstChildElement( "BC_IC" );  
+  TiXmlElement* output_elem = inp_block->FirstChildElement( "OUTPUT");
   
   if(!reg_elem)
     throw Dark_Arts_Exception( INPUT , "REGIONS block not found.");
@@ -532,6 +533,9 @@ void Input_Reader::load_from_scratch_problem(TiXmlDocument& doc)
  
   if(!bc_ic_elem)
     throw Dark_Arts_Exception( INPUT , "BC_IC block not found. ");  
+    
+  if(!output_elem)
+    throw Dark_Arts_Exception(INPUT , "OUTPUT block not found");
      
   //! Load Data Appropriately from each input block
   load_region_data(reg_elem);  
@@ -542,9 +546,71 @@ void Input_Reader::load_from_scratch_problem(TiXmlDocument& doc)
   load_spatial_discretization_data(discr_elem);
   load_solver_data(solver_elem);
   load_bc_ic_data(bc_ic_elem);
+  load_output_data(output_elem);
   
   return;
 }  
+
+int Input_Reader::load_output_data(TiXmlElement* output_element)
+{
+  /**
+    Need to load the following data, output type, checkpointing frequency, filename base if 
+  */
+  TiXmlElement* type_elem = output_element->FirstChildElement( "Output_type" );
+  TiXmlElement* check_point_elem = output_element->FirstChildElement( "Checkpoint_frequency" );
+  if(!type_elem)
+    throw Dark_Arts_Exception(INPUT, "Missing Output_type element");
+    
+  if(!check_point_elem)
+    throw Dark_Arts_Exception(INPUT, "In OUTPUT element, missing Checkpoint_frequency element"); 
+    
+  std::string type_str  = type_elem->GetText();
+  transform(type_str.begin() , type_str.end() , type_str.begin() , toupper);
+  if(type_str == "DUMP")
+  {
+    m_output_type = DUMP;
+  }
+  else if(type_str =="SPACE_TIME_ERROR")
+  {
+    m_output_type = SPACE_TIME_ERROR;
+  }
+  else if(type_str=="END_SPACE_ERROR")
+  {
+    m_output_type = END_SPACE_ERROR;
+  } 
+  else if(type_str == "BOTH_ERRORS")
+  {
+    m_output_type = BOTH_ERRORS;
+  }
+  
+  if(m_output_type == INVALID_OUTPUT_TYPE)
+    throw Dark_Arts_Exception(INPUT , "Invalid output type");
+    
+  if( m_output_type == END_SPACE_ERROR) 
+    m_end_space_error = true;
+  else if(m_output_type == SPACE_TIME_ERROR)
+    m_space_time_error = true;
+  else if(m_output_type == BOTH_ERRORS)
+  {
+    m_end_space_error = true;
+    m_space_time_error = true;
+  }
+  
+  if(m_end_space_error || m_space_time_error)
+  {
+    TiXmlElement* filename_elem = type_elem->FirstChildElement( "Results_filename_base" );
+    if(!filename_elem)
+      throw Dark_Arts_Exception(INPUT , "Must have Results_filename_base for END_SPACE_ERROR or SPACE_TIME_ERROR or BOTH_ERRORS types");
+      
+    m_results_file_base = filename_elem->GetText();
+  }  
+    
+  m_restart_frequency = atoi(check_point_elem->GetText() ) ;
+  if(m_restart_frequency < 1)
+    throw Dark_Arts_Exception(INPUT , "Restart frequency must be a positive integer >= 1");
+  
+  return 0;
+}
  
 int Input_Reader::load_region_data(TiXmlElement* region_element)
 {  
@@ -651,14 +717,14 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
         throw Dark_Arts_Exception( INPUT , err.str() );        
       }
       
-      m_region_spacing_constant[i] = atof( space_factor->GetText() );
+      m_region_spacing_constant[i] = std::stod( space_factor->GetText() );
       if(m_region_spacing_constant[i] < 0.)
       {
         std::stringstream err;
         err << "In REGIONS element:   Region " << i << " Log spacing factors must be > 0" ;
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
-      m_region_min_size[i] = atof( min_dx->GetText() );
+      m_region_min_size[i] = std::stod( min_dx->GetText() );
       if(m_region_min_size[i] < 0.)
       {
         std::stringstream err;
@@ -668,8 +734,8 @@ int Input_Reader::load_region_data(TiXmlElement* region_element)
     }
     
     /// get left and right values of region, check that x_L < x_R
-    m_region_left_bounds[i] = atof( x_left->GetText() ) ;
-    m_region_right_bounds[i] = atof(x_right->GetText() ) ;
+    m_region_left_bounds[i] = std::stod( x_left->GetText() ) ;
+    m_region_right_bounds[i] = std::stod(x_right->GetText() ) ;
     if(m_region_left_bounds[i] > m_region_right_bounds[i] )
     {
       std::stringstream err;
@@ -814,7 +880,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         err      << "In MATERIALS block:Missing constant_value tag for material: " << mat_num << " absorption opacity" ;
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
-      m_abs_opacity_double_constants_1[mat_num] = atof( const_val->GetText() ); 
+      m_abs_opacity_double_constants_1[mat_num] = std::stod( const_val->GetText() ); 
     }
     else if(abs_opacity_str == "RATIONAL")
     {
@@ -840,8 +906,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         err  << "In MATERIALS block: Missing Denominator_offset tag for material " << mat_num << " RATIONAL absorption opacity";
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
-      m_abs_opacity_double_constants_1[mat_num] = atof(mult_val->GetText() );
-      m_abs_opacity_double_constants_2[mat_num] = atof(denom_offset_val->GetText() );
+      m_abs_opacity_double_constants_1[mat_num] = std::stod(mult_val->GetText() );
+      m_abs_opacity_double_constants_2[mat_num] = std::stod(denom_offset_val->GetText() );
       m_abs_opacity_integer_constants[mat_num] = atoi(denom_power_val->GetText() );
     }
     else if(abs_opacity_str == "TABLE_LOOKUP")
@@ -903,7 +969,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
           }
           else
           {
-            m_abs_opacity_poly[mat_num][p] = atof( poly_val->GetText() );            
+            m_abs_opacity_poly[mat_num][p] = std::stod( poly_val->GetText() );            
           }
         }
         
@@ -929,7 +995,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         err  << "In MATERIALS block: Missing constant_value tag for material: " << mat_num << " scattering opacity" ;
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
-      m_scat_opacity_double_constants_1[mat_num] = atof( const_val->GetText() ); 
+      m_scat_opacity_double_constants_1[mat_num] = std::stod( const_val->GetText() ); 
     }
     else if(scat_opacity_str == "RATIONAL")
     {
@@ -955,8 +1021,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         err  << "In MATERIALS block: Missing Denominator_offset tag for material " << mat_num << " RATIONAL scattering opacity";
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
-      m_scat_opacity_double_constants_1[mat_num] = atof(mult_val->GetText() );
-      m_scat_opacity_double_constants_2[mat_num] = atof(denom_offset_val->GetText() );
+      m_scat_opacity_double_constants_1[mat_num] = std::stod(mult_val->GetText() );
+      m_scat_opacity_double_constants_2[mat_num] = std::stod(denom_offset_val->GetText() );
       m_scat_opacity_integer_constants[mat_num] = atoi(denom_power_val->GetText() );
     }
     else if(scat_opacity_str == "TABLE_LOOKUP")
@@ -1012,7 +1078,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
           }
           else
           {
-            m_scat_opacity_poly[mat_num][p] = atof( poly_val->GetText() );            
+            m_scat_opacity_poly[mat_num][p] = std::stod( poly_val->GetText() );            
           }
         }
         
@@ -1221,7 +1287,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         err  << "In MATERIALS block:   Missing Cv_constant tag in material " << mat_num;
         throw Dark_Arts_Exception( INPUT , err.str() );
       }
-      m_cv_constants[mat_num] = atof(cv_const->GetText() );
+      m_cv_constants[mat_num] = std::stod(cv_const->GetText() );
       if(m_cv_constants[mat_num] < 0. )
       {
         std::stringstream err;
@@ -1243,9 +1309,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         throw Dark_Arts_Exception(INPUT, err.str() );
       }
       
-      m_cv_constants[mat_num] = atof(cv_const_rat->GetText() );
+      m_cv_constants[mat_num] = std::stod(cv_const_rat->GetText() );
       m_cv_rational_powers[mat_num] = atoi(cv_power->GetText() );
-      m_cv_rational_offsets[mat_num] = atof( cv_offset->GetText() );
+      m_cv_rational_offsets[mat_num] = std::stod( cv_offset->GetText() );
       
       if( m_cv_constants[mat_num]  < 0.)
       {
@@ -1310,10 +1376,10 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   if(!start_meth_elem)
     throw Dark_Arts_Exception( INPUT , "In TIME block:  Missing Starting_method element in TIME input block" );
   
-  m_dt_min = atof(dt_min_elem->GetText() );
-  m_dt_max = atof(dt_max_elem->GetText() );
-  m_t_start = atof(t_start_elem->GetText() );
-  m_t_end = atof(t_end_elem->GetText() );
+  m_dt_min = std::stod(dt_min_elem->GetText() );
+  m_dt_max = std::stod(dt_max_elem->GetText() );
+  m_t_start = std::stod(t_start_elem->GetText() );
+  m_t_end = std::stod(t_end_elem->GetText() );
   
   if( (m_dt_min < 0.) || (m_dt_max < 0.) )
     throw Dark_Arts_Exception( INPUT , "In TIME block:  Time step sizes must be positive floats" );
@@ -1356,7 +1422,7 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
       if(!exp_incr_fact)
         throw Dark_Arts_Exception( INPUT , "In TIME block: Missing Increase_factor element.  Required for Starting_method EXPONENTIAL" );
      
-      m_exponential_ratio = atof( exp_incr_fact->GetText() );
+      m_exponential_ratio = std::stod( exp_incr_fact->GetText() );
       if(m_exponential_ratio < 1.)
         throw Dark_Arts_Exception( INPUT , "In TIME block: Starting time step increase must be greater than 1.0");
     
@@ -1408,7 +1474,7 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
           throw Dark_Arts_Exception( INPUT , "In TIME block: Expect a Stage_steps and Stage_divisor element in each Vector_stage element" );
         
         int stages = atoi( stage_steps->GetText() );
-        double divisor = atof( stage_factor->GetText() );        
+        double divisor = std::stod( stage_factor->GetText() );        
         if(stages < 1)
           throw Dark_Arts_Exception( INPUT , "In TIME block:  Stage_steps must be an integer greater than 1");
           
@@ -1578,7 +1644,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
       throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:  Group Bounds not entered in order");
       
       TiXmlElement* grp_edge_val = grp_bounds->FirstChildElement("Edge_value");
-      double edge = atof( grp_edge_val->GetText() );
+      double edge = std::stod( grp_edge_val->GetText() );
       
       /// the lower the group number, the higher the average frequency group energy (by convention)
       if(edge_cnt < m_number_groups)
@@ -1635,7 +1701,6 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   TiXmlElement* damping_factor_elem = solver_element->FirstChildElement("Damping_factor");
   TiXmlElement* increase_elem = solver_element->FirstChildElement("Iteration_increase_factor");
   TiXmlElement* iter_before_damp_elem = solver_element->FirstChildElement("Iterations_before_damping");
-  TiXmlElement* restart_freq_elem = solver_element->FirstChildElement("Restart_output_frequency");
   TiXmlElement* n_damps_elem = solver_element->FirstChildElement("Max_damping_resets");
   
   if(!solver_type_elem)
@@ -1652,25 +1717,18 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     
   if(!iter_before_damp_elem)
     throw Dark_Arts_Exception(INPUT, "In solver element: missing Iterations_before_damping element");
-    
-  if(!restart_freq_elem)
-    throw Dark_Arts_Exception(INPUT, "In solver element, must specify frequency for restart/check pointing to take place with Restart_output_frequency element");
-    
+       
   if(!n_damps_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element, must give Max_damping_resets element");
     
   m_max_damps = atoi(n_damps_elem->GetText() );
   m_iters_before_damp = atoi(iter_before_damp_elem->GetText() );
-  m_damping_factor = atof(damping_factor_elem->GetText() );
+  m_damping_factor = std::stod(damping_factor_elem->GetText() );
   m_iter_increase_factor = atoi(increase_elem->GetText() );
-  m_restart_frequency = atoi(restart_freq_elem->GetText() ) ;
   
   if(m_max_damps < 0)
     throw Dark_Arts_Exception(INPUT, "Number of damps must be greater than 0");
-    
-  if(m_restart_frequency < 1)
-    throw Dark_Arts_Exception(INPUT, "Restart output frequency must be greater than or equal to 1");
-  
+      
   if( m_iters_before_damp < 2)
     throw Dark_Arts_Exception(INPUT, "Must have at least 2 thermal iterations before damping");
     
@@ -1681,7 +1739,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     throw Dark_Arts_Exception(INPUT, "Must increase iterations by at least a factor of 2 for damping");
   
     
-  m_wg_tolerance = atof( wg_tolerance_elem->GetText() );
+  m_wg_tolerance = std::stod( wg_tolerance_elem->GetText() );
   if( (m_wg_tolerance < 1.E-15) || (m_wg_tolerance> 1.E-4))
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid within group tolerance.  Must be greater 1E-15 and less than 1E-4");
     
@@ -1722,7 +1780,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     if(!bg_tolerance_elem)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element: MF problems require specification of between group tolerance, BG_Tolerance.  Element not found");
         
-    m_bg_tolerance = atof(bg_tolerance_elem->GetText() );
+    m_bg_tolerance = std::stod(bg_tolerance_elem->GetText() );
     if( m_bg_tolerance < m_wg_tolerance)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element: Invalid between group tolerance.  Must be greater than the within group scattering tolerance.");
     
@@ -1764,7 +1822,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   if(!thermal_tolerance_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element:Thermal_Tolerance element required");
    
-  m_thermal_tolerance = atof( thermal_tolerance_elem->GetText() );
+  m_thermal_tolerance = std::stod( thermal_tolerance_elem->GetText() );
   if(m_thermal_tolerance < 1.E-14)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element:Too small of thermal tolerance.") ; 
     
@@ -1950,7 +2008,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Time_Dependence element in Left Incident_BC block");
     
     /// get value for and error check incident energy value
-    m_left_bc_value = atof( rad_left_bc_value_elem->GetText() ); 
+    m_left_bc_value = std::stod( rad_left_bc_value_elem->GetText() ); 
     if(m_left_bc_value < 0.)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Left Incident_Energy.  Must be > 0");
     
@@ -2017,8 +2075,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       if(!bc_left_start_elem || !bc_left_end_elem)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Burst in left BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements");
       
-      m_bc_left_start_time = atof( bc_left_start_elem->GetText() );
-      m_bc_left_end_time = atof( bc_left_end_elem->GetText() );
+      m_bc_left_start_time = std::stod( bc_left_start_elem->GetText() );
+      m_bc_left_end_time = std::stod( bc_left_end_elem->GetText() );
       
       if(m_bc_left_end_time < m_bc_left_start_time)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Turn_Off must be later (in time) than BC_Turn_Off in left BC block");
@@ -2081,7 +2139,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Time_Dependence element in Right Incident_BC block");
     
     /// get value for and error check incident energy value
-    m_right_bc_value = atof( rad_right_bc_value_elem->GetText() ); 
+    m_right_bc_value = std::stod( rad_right_bc_value_elem->GetText() ); 
     if(m_right_bc_value < 0.)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Right Incident_Energy.  Must be > 0");
     
@@ -2149,8 +2207,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Burst in right BC_Time_Dependence block requires BC_Turn_On and BC_Turn_Off elements");
       
       
-      m_bc_right_start_time = atof( bc_right_start_elem->GetText() );
-      m_bc_right_end_time = atof( bc_right_end_elem->GetText() );
+      m_bc_right_start_time = std::stod( bc_right_start_elem->GetText() );
+      m_bc_right_end_time = std::stod( bc_right_end_elem->GetText() );
       
       if(m_bc_right_end_time < m_bc_right_start_time)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:BC_Turn_Off must be later (in time) than BC_Turn_Off");
@@ -2201,7 +2259,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
           throw Dark_Arts_Exception(INPUT,  err.str() );
         }
         
-        m_region_radiation_temperature[reg] = atof( rad_temp_value->GetText() );
+        m_region_radiation_temperature[reg] = std::stod( rad_temp_value->GetText() );
         
         
         if(m_region_radiation_temperature[reg] < 0.)
@@ -2261,7 +2319,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
           err << "Missing required Material_Temperature element for region: " << reg ;
           throw Dark_Arts_Exception(INPUT,  err.str() );
         }
-        m_region_temperature[reg] = atof( temp_value->GetText() );
+        m_region_temperature[reg] = std::stod( temp_value->GetText() );
         if(m_region_temperature[reg] < 0.)
         {
           std::stringstream err;
@@ -2324,7 +2382,7 @@ void Input_Reader::load_mms_poly_constants(TiXmlElement* mms_element, std::vecto
       err << "Missing Coefficient element for " << poly_val_elem->Value() << " in " << mms_element->Value();
       throw Dark_Arts_Exception(INPUT, err.str() );
     }
-    poly_constants[p] = atof( poly_coeff->GetText() );
+    poly_constants[p] = std::stod( poly_coeff->GetText() );
     
     poly_val_elem = poly_val_elem->NextSiblingElement( "MMS_poly_coefficient" );    
   }  
@@ -2356,10 +2414,10 @@ void Input_Reader::load_mms_cos_constants(TiXmlElement* mms_element, std::vector
     throw Dark_Arts_Exception(INPUT, err.str() );
   
   cos_constants.resize(4,0.);
-  cos_constants[0] = atof( a_elem->GetText() );
-  cos_constants[1] = atof( b_elem->GetText() );
-  cos_constants[2] = atof( c_elem->GetText() );
-  cos_constants[3] = atof( d_elem->GetText() );
+  cos_constants[0] = std::stod( a_elem->GetText() );
+  cos_constants[1] = std::stod( b_elem->GetText() );
+  cos_constants[2] = std::stod( c_elem->GetText() );
+  cos_constants[3] = std::stod( d_elem->GetText() );
   
   return;
 }

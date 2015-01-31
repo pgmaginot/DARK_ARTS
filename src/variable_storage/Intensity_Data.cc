@@ -144,7 +144,7 @@ Intensity_Data::Intensity_Data(const Cell_Data& cell_data,
                 throw Dark_Arts_Exception(VARIABLE_STORAGE, err);
               }
               
-              local_i(el) = atof( value_element->GetText() );
+              local_i(el) = std::stod( value_element->GetText() );
               if( isnan(local_i(el)) )
                 throw Dark_Arts_Exception(VARIABLE_STORAGE , "Loading NAN itnensity on restart");
               

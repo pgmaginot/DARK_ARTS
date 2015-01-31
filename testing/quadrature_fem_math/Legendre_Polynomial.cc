@@ -48,7 +48,7 @@ int main(int argc, char** argv)
   std::vector<double> expected_leg_evals(n_leg_moment+1, 0.);
   
   const int offset = 0;
-  
+  double tol = 1.0E-6;
   /// try at a variety of x_eval points, first being -1
   double x_eval = -1.;
   leg_poly.get_evaluated_legendre_polynomials(x_eval,n_leg_moment , offset , calculated_leg_evals);
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     for(int i=0; i<= n_leg_moment ; i++)
     {
       std::cout << "For P_"<< i << " Expected poly of: " << expected_leg_evals[i] << " Got: " << calculated_leg_evals[i] << std::endl ;
-      if( fabs(expected_leg_evals[i] - calculated_leg_evals[i] ) > 1.E-4)
+      if( fabs( (expected_leg_evals[i] - calculated_leg_evals[i] )/calculated_leg_evals[i]) > tol)
       {
         std::stringstream err;
         err << "For x= " << x_eval << " difference in Legendre polynomial detected\n";
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
     for(int i=0; i<= n_leg_moment ; i++)
     {
       std::cout << "For P_"<< i << " Expected poly of: " << expected_leg_evals[i] << " Got: " << calculated_leg_evals[i] << std::endl ;
-      if( fabs(expected_leg_evals[i] - calculated_leg_evals[i] ) > 1.E-4)
+      if( fabs( (expected_leg_evals[i] - calculated_leg_evals[i] )/calculated_leg_evals[i]) > tol )
       {
         std::stringstream err;
         err << "For x= " << x_eval << " difference in Legendre polynomial detected\n";
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
     for(int i=0; i<= n_leg_moment ; i++)
     {
       std::cout << "For P_"<< i << " Expected poly of: " << expected_leg_evals[i] << " Got: " << calculated_leg_evals[i] << std::endl ;
-      if( fabs(expected_leg_evals[i] - calculated_leg_evals[i] ) > 1.E-4)
+      if( fabs( (expected_leg_evals[i] - calculated_leg_evals[i] )/calculated_leg_evals[i]) > tol)
       {
         std::stringstream err;
         err << "For x= " << x_eval << " difference in Legendre polynomial detected\n";
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
     for(int i=0; i<= n_leg_moment ; i++)
     {
       std::cout << "For P_"<< i << " Expected poly of: " << expected_leg_evals[i] << " Got: " << calculated_leg_evals[i] << std::endl ;
-      if( fabs(expected_leg_evals[i] - calculated_leg_evals[i] ) > 1.E-4)
+      if( fabs( (expected_leg_evals[i] - calculated_leg_evals[i] )/expected_leg_evals[i]) > tol)
       {
         std::stringstream err;
         err << "For x= " << x_eval << " difference in Legendre polynomial detected\n";
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
     for(int i=0; i<= n_leg_moment ; i++)
     {
       std::cout << "For P_"<< i << " Expected poly of: " << expected_leg_evals[i] << " Got: " << calculated_leg_evals[i] << std::endl ;
-      if( fabs(expected_leg_evals[i] - calculated_leg_evals[i] ) > 1.E-4)
+      if( fabs( (expected_leg_evals[i] - calculated_leg_evals[i] )/expected_leg_evals[i] ) > tol)
       {
         std::stringstream err;
         err << "For x= " << x_eval << " difference in Legendre polynomial detected\n";

@@ -17,6 +17,7 @@ Matrix_Construction_Exact::Matrix_Construction_Exact(const Fem_Quadrature& fem_q
 
 void Matrix_Construction_Exact::construct_dimensionless_mass_matrix(Eigen::MatrixXd& mass) 
 {
+  mass = Eigen::MatrixXd::Zero(m_n_basis_pts,m_n_basis_pts);
   for(int i=0;i<m_n_basis_pts;i++)
   {
     for(int j=0;j<m_n_basis_pts;j++)
@@ -35,6 +36,7 @@ void Matrix_Construction_Exact::construct_dimensionless_mass_matrix(Eigen::Matri
 void Matrix_Construction_Exact::construct_reaction_matrix(
   Eigen::MatrixXd& rx_mat, std::vector<double>& xs) 
 {
+  rx_mat = Eigen::MatrixXd::Zero(m_n_basis_pts,m_n_basis_pts);
   for(int i=0;i<m_n_basis_pts;i++)
   {
     for(int j=0;j<m_n_basis_pts;j++)

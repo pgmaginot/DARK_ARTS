@@ -115,7 +115,7 @@ int main(int argc, char** argv)
     {
       for(int j=0; j < n_dfem_p ; j++)
       {
-        if(fabs( expected_dimensionless_mass[i][j] - matrix(i,j) ) > tol )
+        if(fabs( (expected_dimensionless_mass[i][j] - matrix(i,j) )) > tol )
         {
           std::stringstream err;
           err << "Discrepancy calculating dimensionless mass matrix in row: " << i << " column: " << j <<std::endl;
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
     {
       for(int j=0; j < n_dfem_p ; j++)
       {
-        if(fabs( expected_L_mu_positive[i][j] - matrix(i,j) ) > tol )
+        if(fabs( (expected_L_mu_positive[i][j] - matrix(i,j) )) > tol )
         {
           std::stringstream err;
           err << "Discrepancy calculating L for mu > 0 in row: " << i << " column: " << j <<std::endl;
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
     {
       for(int j=0; j < n_dfem_p ; j++)
       {
-        if(fabs( expected_L_mu_negative[i][j] - matrix(i,j) ) > tol )
+        if(fabs( (expected_L_mu_negative[i][j] - matrix(i,j) )) > tol )
         {
           std::stringstream err;
           err << "Discrepancy calculating L for mu < 0 in row: " << i << " column: " << j <<std::endl;
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
     matrix_construction->construct_neg_upwind_vector(vector);
     for(int i= 0 ; i < n_dfem_p ; i++)
     {
-      if(fabs( expected_f_mu_negative[i] - vector(i) ) > tol )
+      if(fabs( (expected_f_mu_negative[i] - vector(i) )) > tol )
       {
         std::stringstream err;
         err << "Discrepancy calculating f for mu < 0 in row: " << i << std::endl;
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
     matrix_construction->construct_pos_upwind_vector(vector);
     for(int i= 0 ; i < n_dfem_p ; i++)
     {
-      if(fabs( expected_f_mu_positive[i] - vector(i) ) > tol )
+      if(fabs( (expected_f_mu_positive[i] - vector(i) )) > tol )
       {
         std::stringstream err;
         err << "Discrepancy calculating f for mu > 0 in row: " << i << std::endl;

@@ -26,6 +26,40 @@ LogSpacingRefinementTest - LogSpacingRefinement.cc - 2Region_Log_Spacing_Refinem
 
 #################################################################################
 
+materials/
+
+Unity_Grey_Planck_Test - Unity_Grey_Planck.cc
+-- check get_c(), get_planck_grey, get_planck_derivative_grey all work correctly
+
+Materials_Interface_Test - Materials_Interface.cc - One_Cell_Angle_Quadrature.xml
+-Test all materials interface functions
+-Test MOMENT_PRESERVING cross secction treatment
+-Sig_a : Rational
+-Sig_s : Polynomial space
+-Cv : constant_cv
+
+Interpolating_Test - Interpolating.cc - Crazy_Fem_Strategy.xml
+-Test INTERPOLATING cross section treatment
+-sig_a : polynomial_space
+-sig_s : Rational
+-Cv : rational_cv
+
+SLXS_Test - SLXS.cc - SLXS.cc - 2Region_Log_Spacing.xml
+-Test SLXS cross section treatment
+-sig_a : constant
+-sig_s: constant
+-Cv : Constant
+
+MMS_Components_Test - MMS_Components.cc - MMS_Sources.xml
+-Test all V_MMS_Angle , V_MMS_Space, V_MMS_Time concrete classes for accuracy
+-Verify composite MMS_Intensity and MMS_Temperature classes evaluate quantities correctly
+
+MMS_Sources_Test - MMS_Sources.cc - MMS_Sources.xml
+-Verify pointwise evaluation of S_I and S_T for MMS problems
+
+
+#################################################################################
+
 quadrature_fem_math/
 P3_Lobatto_Test - P3_Lobatto.cc
 --Testing Lobatto Quadrature evaluations (in Quadrule function)
@@ -59,38 +93,7 @@ Lobatto_Self_Lumping_Test - Lobatto_Self_Lumping.cc - 1Region_Equal_Spacing.xml
 
 Traditional_Lumping_Test - Traditional_Lumping.cc - Exponential_Time.xml
 -P3 equal spacing, traditional lumping
-#################################################################################
 
-materials/
-
-Unity_Grey_Planck_Test - Unity_Grey_Planck.cc
--- check get_c(), get_planck_grey, get_planck_derivative_grey all work correctly
-
-Materials_Interface_Test - Materials_Interface.cc - One_Cell_Angle_Quadrature.xml
--Test all materials interface functions
--Test MOMENT_PRESERVING cross secction treatment
--Sig_a : Rational
--Sig_s : Polynomial space
--Cv : constant_cv
-
-Interpolating_Test - Interpolating.cc - Crazy_Fem_Strategy.xml
--Test INTERPOLATING cross section treatment
--sig_a : polynomial_space
--sig_s : Rational
--Cv : rational_cv
-
-SLXS_Test - SLXS.cc - SLXS.cc - 2Region_Log_Spacing.xml
--Test SLXS cross section treatment
--sig_a : constant
--sig_s: constant
--Cv : Constant
-
-MMS_Components_Test - MMS_Components.cc - MMS_Sources.xml
--Test all V_MMS_Angle , V_MMS_Space, V_MMS_Time concrete classes for accuracy
--Verify composite MMS_Intensity and MMS_Temperature classes evaluate quantities correctly
-
-MMS_Sources_Test - MMS_Sources.cc - MMS_Sources.xml
--Verify pointwise evaluation of S_I and S_T for MMS problems
 
 #################################################################################
 
@@ -100,7 +103,9 @@ FP_Sweeps_Test - FP_Sweeps.cc - LinearSpaceConstantTime.xml
 -- verification of WGRS_FP_Sweeps object using constant time, linear space solution with P4 finite elements
 
 MMS_Intensity_Update_Test - MMS_Intensity_Update.cc - LinearSpaceConstantTime.xml
--- verification of Intensity_Update_Grey object (that uses WGRS_FP_Sweeps)
+-- verification of Intensity_Update_Grey object (that uses WGRS_FP_Sweeps) and use as a shared-ptr
+
+Single_Thermal_Iteration_Test - Single_Thermal_Iteration.cc - 
 
 #################################################################################
 

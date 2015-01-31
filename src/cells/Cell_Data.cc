@@ -106,9 +106,9 @@ void Cell_Data::read_mesh_and_refine(const Input_Reader& input_reader)
     TiXmlElement* dx_old_element = cell_element->FirstChildElement("Cell_width");
     TiXmlElement* x_left_old_element = cell_element->FirstChildElement("X_left");
       
-    double dx_old = atof(dx_old_element->GetText() );
+    double dx_old = std::stod(dx_old_element->GetText() );
     int material_old = atoi(material_element->GetText() );
-    int x_left_old = atof(x_left_old_element->GetText() );
+    int x_left_old = std::stod(x_left_old_element->GetText() );
     
     if(dx_old < 0.)
     {

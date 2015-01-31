@@ -152,21 +152,6 @@ int main(int argc, char** argv)
     val = -1;
   }
   
-  // std::vector<double> b_rk(n_stage,1.);
-  // try{
-    // time_data.get_b_dt_constants(b_rk , 0.1);
-    // if( b_rk[0] != 0.1)
-      // throw Dark_Arts_Exception( SUPPORT_OBJECT , "Time_Data get_b_dt not calculating as expected for Implicit euler");
-  // }
-  // catch(const Dark_Arts_Exception& da)
-  // {
-    // val = -1;
-    // da.testing_message();
-  // }
-  
-  
-  // void get_b_dt_constants(std::vector<double>& rk_b_dt, const double dt) const;
-  
   // Return 0 if tests passed, something else if failing
   return val;
 }

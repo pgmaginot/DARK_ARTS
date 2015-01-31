@@ -1,6 +1,11 @@
 <?xml version="1.0" standalone=no>
 <!-- A comment -->
 <INPUT_FILE>
+  <OUTPUT>
+    <Output_type> DUMP </Output_type>
+    <Checkpoint_frequency> 10 </Checkpoint_frequency>
+  </OUTPUT>
+  
   <REGIONS>
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
@@ -127,7 +132,6 @@
     <Damping_factor> 0.75 </Damping_factor>
     <Iteration_increase_factor> 3 </Iteration_increase_factor>
     <Iterations_before_damping> 20 </Iterations_before_damping>
-    <Restart_output_frequency> 100 </Restart_output_frequency>
     <Max_damping_resets> 4 </Max_damping_resets>
   </SOLVER>
   
