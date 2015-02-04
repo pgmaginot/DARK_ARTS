@@ -17,9 +17,9 @@
 #include "K_Temperature.h"
 #include "Intensity_Update_Grey.h"
 #include "Output_Generator.h"
-#include "Temperature_Update_Grey.h"
 #include "Err_Temperature.h"
 #include "L2_Error_Calculator.h"
+#include "Temperature_Update.h"
 
 #include "Dark_Arts_Exception.h"
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     std::string input_filename = argv[1];
     unsigned int found = input_filename.find_last_of("/");
     std::string short_input_filename = input_filename.substr(found+1);  
-    Output_Generator output_generator(angular_quadrature,fem_quadrature, cell_data, short_input_filename);
+    Output_Generator output_generator(angular_quadrature,fem_quadrature, cell_data,input_reader);
     
     Temperature_Data t_star( cell_data.get_total_number_of_cells(), fem_quadrature);
   
@@ -92,8 +92,7 @@ int main(int argc, char** argv)
         t_star, 
         phi_ref_norm ) ;
         
-      std::shared_ptr<V_Temperature_Update> temperature_update;
-      temperature_update = std::make_shared<Temperature_Update_Grey>(fem_quadrature, cell_data, materials, angular_quadrature, n_stages );
+      Temperature_Update temperature_update(fem_quadrature, cell_data, materials, angular_quadrature, n_stages, t_old, ard_phi);
         
     const int stage = 0;
 
@@ -110,19 +109,19 @@ int main(int argc, char** argv)
       rk_a_of_stage_i[i] = time_data.get_a(stage,i);
       
     intensity_update->set_time_data(dt,time_stage,rk_a_of_stage_i , stage);
-    temperature_update->set_time_data(dt,time_stage,rk_a_of_stage_i , stage);
+    temperature_update.set_time_data(dt,time_stage,rk_a_of_stage_i , stage);
    
     Err_Temperature err_temperature(n_p);
     err_temperature.set_small_number(1.0E-4*t_old.calculate_average());
  
     int inners = intensity_update->update_intensity(ard_phi);
-    temperature_update->update_temperature(ard_phi, t_star, t_old, kt, 1.0, err_temperature);
+    temperature_update.update_temperature(t_star, kt, 1.0, err_temperature);
         
     if(inners == 0)
       throw Dark_Arts_Exception(TRANSPORT,"Expecting to take some transport iterations");
         
     intensity_update->calculate_k_i(ki, ard_phi);    
-    temperature_update->calculate_k_t(t_star, kt, ard_phi);
+    temperature_update.calculate_k_t(t_star, kt);
        
     ki.advance_intensity(i_old, dt, time_data);
     kt.advance_temperature(t_old, dt, time_data);

@@ -26,7 +26,7 @@ public:
     
   virtual ~Final_Space_Error_Calculator(){}
   
-  void record_error(const double time_final , const Temperature_Data& temperature, const Intensity_Moment_Data& phi);
+  void record_error(const double time_final , const int n_steps, const Temperature_Data& temperature, const Intensity_Moment_Data& phi);
 
 protected:
 
@@ -40,6 +40,9 @@ protected:
   const int m_n_cell;
   const int m_dfem_ord;
   const double m_dt_max;
+  const double m_wg_tolerance;
+  const double m_bg_tolerance; 
+  const double m_thermal_tolerance;
   
   std::string m_phi_l2_filename;
   std::string m_phi_A_filename;

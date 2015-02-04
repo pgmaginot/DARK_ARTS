@@ -4,6 +4,7 @@
   <OUTPUT>
     <Output_type> DUMP </Output_type>
     <Checkpoint_frequency> 10 </Checkpoint_frequency>
+    <Output_directory> /home/pmaginot/Research/dark_arts_local/output_files/ </Output_directory>
   </OUTPUT>
   
   <REGIONS>

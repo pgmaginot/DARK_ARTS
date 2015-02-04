@@ -49,6 +49,8 @@ public:
   void add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib);
   
   void get_phi_norm(std::vector<double>& norm_vec) const;  
+  
+  void mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double> dfem_interp_points, const Input_Reader& input_reader, const Angular_Quadrature& angular_quadrature);
 
 private:  
   /// total number of cells in the problem

@@ -143,6 +143,14 @@ add_subdirectory(transport_sweep)
 PropagateSG(transport_sweep)
 
 #----------------------------------------
+# Stuff unique to updating temperature
+#----------------------------------------
+
+add_subdirectory(temperature_update)
+PropagateSG(temperature_update)
+
+
+#----------------------------------------
 # Propagate variables to parents scope
 #----------------------------------------
 Propagate(${PROJECT_NAME}_HEADER_FILES)

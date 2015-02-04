@@ -2,9 +2,10 @@
 <!-- A comment -->
 <INPUT_FILE>
   <OUTPUT>
-    <Output_type> BOTH_ERRORS 
-      <Results_filename_base> /home/pmaginot/Research/dark_arts_local/output_files/Linear_Space_Constant_Time_MMS </Results_filename_base>
+    <Output_type> END_SPACE_ERROR 
+      <Results_filename_base> Linear_Space_Constant_Time_MMS </Results_filename_base>
     </Output_type>
+    <Output_directory> /home/pmaginot/Research/dark_arts_local/output_files/ </Output_directory>
     <Checkpoint_frequency> 5 </Checkpoint_frequency>
   </OUTPUT>
   
@@ -117,8 +118,8 @@
     <WG_solver_type> FP_SWEEPS 
       <Max_within_group_sweeps> 200 </Max_within_group_sweeps>
     </WG_solver_type>
-    <WG_tolerance> 1.0E-14 </WG_tolerance>
-    <Thermal_tolerance> 1.0E-12 </Thermal_tolerance>
+    <WG_tolerance> 1.0E-12 </WG_tolerance>
+    <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
     <Damping_factor> 0.75 </Damping_factor>
     <Iteration_increase_factor> 3 </Iteration_increase_factor>
     <Iterations_before_damping> 20 </Iterations_before_damping>

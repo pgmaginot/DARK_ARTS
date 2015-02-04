@@ -16,7 +16,6 @@
 #include "K_Intensity.h"
 #include "K_Temperature.h"
 #include "Transport_Sweep.h"
-#include "Temperature_Update_Grey.h"
 #include "Err_Temperature.h"
 
 #include "Dark_Arts_Exception.h"

@@ -24,7 +24,6 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.0E-10;
   
   Input_Reader input_reader;    
   try
@@ -78,7 +77,7 @@ int main(int argc, char** argv)
 
     /// Time Marcher.  This object will take care of solving the problem
     Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
-    cell_data, materials, temperature_old, intensity_old, time_data,short_input_filename);    
+    cell_data, materials, temperature_old, intensity_old, time_data);    
     std::cout << "Time_Marcher object created"<< std::endl;  
   }
   catch(const Dark_Arts_Exception& da)

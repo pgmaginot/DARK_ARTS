@@ -2,8 +2,11 @@
 <!-- A comment -->
 <INPUT_FILE>
   <OUTPUT>
-    <Output_type> DUMP </Output_type>
+    <Output_type> END_SPACE_ERROR 
+      <Results_filename_base> Debug </Results_filename_base>
+    </Output_type>
     <Checkpoint_frequency> 10 </Checkpoint_frequency>
+    <Output_directory> /home/pmaginot/Research/dark_arts_local/output_files/ </Output_directory>
   </OUTPUT>
   
   <REGIONS>
@@ -23,7 +26,7 @@
     <Integration_type> Exact</Integration_type>
     <DFEM_interpolation_point_type> EQUAL_SPACED </DFEM_interpolation_point_type>
     <Opacity_treatment> Moment_Preserving
-      <Opacity_polynomial_degree> 0 </Opacity_polynomial_degree>
+      <Opacity_polynomial_degree> 1 </Opacity_polynomial_degree>
     </Opacity_treatment>    
   </SPATIAL_DISCRETIZATION>
   
@@ -83,9 +86,9 @@
   
   <TIME>
     <Dt_min> 0.1 </Dt_min>
-    <Dt_max> 1.9 </Dt_max>
-    <T_start> 1.2 </T_start>
-    <T_end> 5.0 </T_end>
+    <Dt_max> 0.2 </Dt_max>
+    <T_start> 1.1 </T_start>
+    <T_end> 5.2 </T_end>
     <Time_solver> Implicit_euler </Time_solver>
     <!--
       <Starting_method> Exponential </Starting_method>
@@ -96,7 +99,7 @@
       <N_vector_stages> 1 </N_vector_stages>
       <Vector_stage> 0 
         <Stage_steps> 1 </Stage_steps>
-        <Stage_divisor> 1. </Stage_divisor>
+        <Stage_divisor> 1 </Stage_divisor>
       </Vector_stage>
     </Starting_method>
   </TIME>
@@ -115,11 +118,11 @@
     <WG_solver_type> FP_SWEEPS 
       <Max_within_group_sweeps> 200 </Max_within_group_sweeps>
     </WG_solver_type>
-    <WG_tolerance> 1.0E-14 </WG_tolerance>
-    <Thermal_tolerance> 1.0E-12 </Thermal_tolerance>
+    <WG_tolerance> 1.0E-12 </WG_tolerance>
+    <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
     <Damping_factor> 0.75 </Damping_factor>
     <Iteration_increase_factor> 3 </Iteration_increase_factor>
-    <Iterations_before_damping> 20 </Iterations_before_damping>
+    <Iterations_before_damping> 200 </Iterations_before_damping>
     <Max_damping_resets> 4 </Max_damping_resets>
   </SOLVER>
   

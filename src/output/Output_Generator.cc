@@ -12,16 +12,19 @@
 Output_Generator::Output_Generator(const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, 
     const Cell_Data& cell_data, 
-    std::string input_filename)
+    const Input_Reader& input_reader)
 :
  m_n_dfem( fem_quadrature.get_number_of_interpolation_points() ) , 
  m_n_cells( cell_data.get_total_number_of_cells() ),
  m_n_groups( angular_quadrature.get_number_of_groups()),
  m_n_l_mom( angular_quadrature.get_number_of_leg_moments() ),
  m_n_dir( angular_quadrature.get_number_of_dir() ),
- m_input_filename(input_filename),
  m_cell_data( cell_data )
 {
+  input_reader.get_output_directory(m_filename);
+  std::string short_input;
+  input_reader.get_short_input_filename(short_input);
+  m_filename+=short_input;
   output_cell_data();
 }
 
@@ -568,7 +571,7 @@ void Output_Generator::construct_filename( const int data_type , const bool is_f
 
   new_str << ".xml";
   
-  output_filename = m_input_filename;
+  output_filename = m_filename;
   output_filename.replace(output_filename.find(xml_extension),xml_extension.length() , new_str.str() );
 
   return;

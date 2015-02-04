@@ -3,7 +3,7 @@
 Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data, std::string input_filename)
+    const Time_Data& time_data)
     :
     m_n_stages(time_data.get_number_of_stages()),
     m_time_data( time_data),
@@ -13,17 +13,21 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_t_star( cell_data.get_total_number_of_cells(), fem_quadrature),
     m_ard_phi( cell_data, angular_quadrature, fem_quadrature, i_old ),
     m_damping(1.),
+    cell_data(cell_data),
+    input_reader(input_reader),
+    angular_quadrature(angular_quadrature),
     m_iters_before_damping(input_reader.get_iters_before_damping() ),
     m_damping_decrease_factor(input_reader.get_damping_factor() ),
     m_iteration_increase_factor(input_reader.get_iter_increase_factor() ),
     m_checkpoint_frequency(input_reader.get_restart_frequency() ),
     m_max_damps(input_reader.get_max_damp_iters() ),
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
-    m_status_generator(input_filename),
-    m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_filename),
+    m_status_generator(input_reader.get_output_directory() + input_reader.get_short_input_filename() ),
+    m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_reader),
     m_calculate_space_time_error( input_reader.record_space_time_error() ),
-    m_calculate_final_space_error( input_reader.record_final_space_error() )
-{   
+    m_calculate_final_space_error( input_reader.record_final_space_error() ),
+    m_temperature_update(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, t_old, m_ard_phi)
+{     
   try{
     std::vector<double> phi_ref_norm;
     m_ard_phi.get_phi_norm(phi_ref_norm);
@@ -42,10 +46,9 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_k_i, 
         m_t_star, 
         phi_ref_norm ) );
-      // m_temperature_update = std::shared_ptr<V_Temperature_Update> (new Temperature_Update_MF(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages) );
     }
     else{
-      m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_Grey(
+      m_intensity_update = std::make_shared<Intensity_Update_Grey>(
         input_reader,fem_quadrature, 
         cell_data,
         materials, 
@@ -56,24 +59,26 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_k_t, 
         m_k_i, 
         m_t_star, 
-        phi_ref_norm ) );
-      m_temperature_update = std::make_shared<Temperature_Update_Grey>( fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages ) ;
+        phi_ref_norm ) ;
     }
     
-    std::string filename_base;
-    std::string filename_base1;
-    input_reader.get_filename_base_for_results(filename_base);
-    filename_base1 = filename_base;
+    std::string output_directory = input_reader.get_output_directory();
+    output_directory += input_reader.get_filename_base_for_results();
+        
+    // std::cout << "L2 error should be in " << filename_base1 << std::endl;
     
     if(m_calculate_space_time_error)
       m_space_time_error_calculator = std::make_shared<Space_Time_Error_Calculator>(angular_quadrature,
-        fem_quadrature, cell_data,  input_reader, time_data, filename_base);
+        fem_quadrature, cell_data,  input_reader, time_data, output_directory);
       
     if(m_calculate_final_space_error)
-      m_final_space_error_calculator = 
-        std::make_shared<Final_Space_Error_Calculator>(angular_quadrature,
-        fem_quadrature, cell_data,  input_reader, time_data, filename_base1);
+    {
+      std::cout << "trying to calculate L2 error\n";
+      m_final_space_error_calculator = std::make_shared<Final_Space_Error_Calculator>(angular_quadrature,
+        fem_quadrature, cell_data,  input_reader, time_data,  output_directory);
+    }
     
+    fem_quadrature.get_dfem_interpolation_point(dfem_interp_points);
   }
   catch(const Dark_Arts_Exception& da_exception)
   {
@@ -95,8 +100,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   int inners = 0;
   int t_step = 0;
   
-  std::vector<double> rk_a_of_stage_i(m_n_stages,0.);
-  
+  std::vector<double> rk_a_of_stage_i(m_n_stages,0.);  
   
   for(t_step = 0; t_step < max_step; t_step++)
   {
@@ -114,16 +118,13 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       times_damped = 0;
       
       time_stage = time + dt*time_data.get_c(stage);
-      std::cout << "Time stage: " << time_stage << std::endl;
-      
-      std::cout << "Time step: " << t_step << " Time Old: " << time << " dt: " << dt << " Time stage: " << time_stage << std::endl;
-      
+            
       for(int i = 0; i<= stage; i++)
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
         
       // // /// set time (of this stage), dt (of the whole time step), rk_a for this stage
       m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
-      m_temperature_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
+      m_temperature_update.set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
               
       if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
         throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
@@ -135,16 +136,18 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// first get an intensity given the temperature iterate
         /// Intensity_Update objects are linked to m_star at construction        
         inners = m_intensity_update->update_intensity(m_ard_phi);
-        std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter << " Number of Transport solves: " << inners << std::endl;
+        
+        // m_ard_phi.mms_cheat(time_stage,cell_data,dfem_interp_points,input_reader,angular_quadrature);
           
         /// then update temperature given the new intensity
         /// give a damping coefficient to possibly control this Newton (like) iteration)
         /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
         m_err_temperature.clear();
-        m_temperature_update->update_temperature(m_ard_phi, m_t_star, t_old, m_k_t, m_damping, m_err_temperature );       
-
+        m_temperature_update.update_temperature(m_t_star, m_k_t, m_damping, m_err_temperature ); 
+        // m_t_star.mms_cheat(time_stage,cell_data,dfem_interp_points,input_reader);
         double norm_relative_change = m_err_temperature.get_worst_err();
-        std::cout << "Thermal iteration: " << therm_iter << " Error: " << norm_relative_change << std::endl;
+        std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter <<
+          " Number of Transport solves: " << inners << " Thermal error: " << norm_relative_change << std::endl;
         /// write to iteration status file
         m_status_generator.write_iteration_status(t_step, stage, dt , inners , norm_relative_change, m_damping);
         
@@ -183,7 +186,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
       m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
-      m_temperature_update->calculate_k_t(m_t_star, m_k_t, m_ard_phi);
+      m_temperature_update.calculate_k_t(m_t_star, m_k_t);
       
       /// m_ard_phi and m_t_star are the radiation and temperature profiles at this time stage
       if(m_calculate_space_time_error)
@@ -195,7 +198,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     /// these are the only functions that change I_old and T_old
     m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
-    
+    // t_old = m_t_star;
     if( (t_step % m_checkpoint_frequency) == 0)
     {
       m_output_generator.write_xml(false,t_step,i_old);
@@ -211,8 +214,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   /// call for end spatial error only
   /// we were fancy with space_time error and output the error during the destructor call
   if(m_calculate_final_space_error)
-    m_final_space_error_calculator->record_error(time_data.get_t_end(),t_old, m_ard_phi);
-
+  {
+    std::cout << "recording final L2 errors\n";
+    m_final_space_error_calculator->record_error(time_data.get_t_end(),t_step,t_old, m_ard_phi);
+  }
   /// dump final solutions, always!
   m_output_generator.write_xml(true,0,i_old);
   m_output_generator.write_xml(true,0,t_old);

@@ -6,8 +6,7 @@
 #include "Intensity_Update_Grey.h"
 #include "Intensity_Update_MF.h"
 
-#include "Temperature_Update_Grey.h"
-// #include "Temperature_Update_MF.h"
+#include "Temperature_Update.h"
 #include "Status_Generator.h"
 #include "Output_Generator.h"
 #include "Final_Space_Error_Calculator.h"
@@ -20,7 +19,7 @@ public:
   Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data, std::string input_filename);
+    const Time_Data& time_data);
     
   virtual ~Time_Marcher(){}
   
@@ -45,6 +44,10 @@ private:
   const int m_checkpoint_frequency;
   const int m_max_damps;
   
+  const Cell_Data& cell_data;
+  const Input_Reader& input_reader;
+  const Angular_Quadrature& angular_quadrature;
+  
   Err_Temperature m_err_temperature;
   Status_Generator m_status_generator;
   Output_Generator m_output_generator;
@@ -56,7 +59,10 @@ private:
   std::shared_ptr<Final_Space_Error_Calculator> m_final_space_error_calculator;
   
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
-  std::shared_ptr<V_Temperature_Update> m_temperature_update;
+  Temperature_Update m_temperature_update;
+  
+  std::vector<double> dfem_interp_points;
+  
 };
 
 #endif

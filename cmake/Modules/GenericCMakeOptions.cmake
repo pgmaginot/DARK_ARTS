@@ -95,9 +95,9 @@ ENDMACRO(OPTION_CREATE_VERSION_FILE)
 # Fast Math Option
 ######################################################################################
 
-MACRO(OPTION_FAST_MATH DEFAULT)
+MACRO(OPTION_FAST_MATH FALSE)
     IF(CMAKE_COMPILER_IS_GNUCXX)
-        OPTION(FAST_MATH "Use -ffast-math for GCC 4.0" FALSE)
+        OPTION(FAST_MATH "Use -ffast-math for GCC 4.0" DEFAULT)
 
         IF(FAST_MATH)
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")

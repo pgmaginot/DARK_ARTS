@@ -2,15 +2,18 @@
 <!-- A comment -->
 <INPUT_FILE>
   <OUTPUT>
-    <Output_type> DUMP </Output_type>
+    <Output_type> END_SPACE_ERROR 
+      <Results_filename_base> Linear_Linear_Debug </Results_filename_base>
+    </Output_type>
     <Checkpoint_frequency> 10 </Checkpoint_frequency>
+    <Output_directory> /home/pmaginot/Research/dark_arts_local/output_files/ </Output_directory>
   </OUTPUT>
   
   <REGIONS>
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
     <Region> 0 
-      <N_cells> 10 </N_cells>
+      <N_cells> 20 </N_cells>
       <Left_bound> 0.0 </Left_bound>
       <Right_bound> 5.0 </Right_bound>
       <Spacing> Equal   </Spacing>
@@ -76,8 +79,8 @@
   </MATERIALS>
   
   <TIME>
-    <Dt_min> 0.1 </Dt_min>
-    <Dt_max> 1.0 </Dt_max>
+    <Dt_min> 0.005 </Dt_min>
+    <Dt_max> 0.05 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 5.0 </T_end>
     <Time_solver> Implicit_euler </Time_solver>
@@ -89,14 +92,14 @@
     <Starting_method> Vector 
       <N_vector_stages> 1 </N_vector_stages>
       <Vector_stage> 0 
-        <Stage_steps> 1 </Stage_steps>
+        <Stage_steps> 2 </Stage_steps>
         <Stage_divisor> 10 </Stage_divisor>
       </Vector_stage>
     </Starting_method>
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
-    <DFEM_degree> 2 </DFEM_degree>
+    <DFEM_degree>2 </DFEM_degree>
     <Integration_type> Self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Gauss </DFEM_interpolation_point_type>
     <Opacity_treatment> SLXS

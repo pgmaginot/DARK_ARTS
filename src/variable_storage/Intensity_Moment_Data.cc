@@ -54,6 +54,23 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Intensity_Moment_Data& intens
 {    
 }
 
+void Intensity_Moment_Data::mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double> dfem_interp_points, const Input_Reader& input_reader, const Angular_Quadrature& angular_quadrature)
+{
+  MMS_Intensity mms( input_reader, angular_quadrature);
+  Eigen::VectorXd phi_loc = Eigen::VectorXd::Zero(m_el_per_cell);
+  for(int c  = 0 ; c < m_cells ; c++)
+  {
+    double dx = cell_data.get_cell_width(c);
+    double xL = cell_data.get_cell_left_edge(c);
+    for(int el = 0 ; el < m_el_per_cell ; el++)
+    {
+      double x = xL +dx/2.*(1. + dfem_interp_points[el]);
+      phi_loc(el) = mms.get_mms_phi(x,time_stage);
+    }
+    set_cell_angle_integrated_intensity(c,0,0,phi_loc);
+  }
+}
+
 Intensity_Moment_Data& Intensity_Moment_Data::operator= (const Intensity_Moment_Data& intensity_moment)
 {
   if( (m_phi_length != intensity_moment.m_phi_length) ||

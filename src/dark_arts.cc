@@ -2,7 +2,6 @@ static char help[] = "A character array that PETSc might be expecting";
 #include <petscksp.h>
 
 #include "Input_Reader.h"
-#include "Output_Generator.h"
 #include "Fem_Quadrature.h"
 #include "Cell_Data.h"
 #include "Time_Data.h"
@@ -12,7 +11,6 @@ static char help[] = "A character array that PETSc might be expecting";
 #include "Temperature_Data.h"
 #include "Materials.h"
 #include "Status_Generator.h"
-#include "Output_Generator.h"
 
 #include "Dark_Arts_Exception.h"
 
@@ -79,10 +77,13 @@ int main(int argc, char** argv)
     std::string input_filename = argv[1];
     unsigned int found = input_filename.find_last_of("/");
     std::string short_input_filename = input_filename.substr(found+1);  
+    std::string output_directory;
+    input_reader.get_output_directory(output_directory);
+    output_directory.append(short_input_filename);
     
     /// Time Marcher.  This object will take care of solving the problem
     Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
-      cell_data, materials, temperature_old, intensity_old, time_data,short_input_filename);    
+      cell_data, materials, temperature_old, intensity_old, time_data);    
       std::cout << "Time_Marcher object created"<< std::endl;  
   
   /// this is the entire time loop !

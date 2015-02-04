@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     unsigned int found = input_filename.find_last_of("/");
     std::string short_input_filename = input_filename.substr(found+1);  
   
-    Output_Generator output_generator(angular_quadrature, fem_quadrature, cell_data, short_input_filename);
+    Output_Generator output_generator(angular_quadrature, fem_quadrature, cell_data,input_reader);
     
     for(int c = 0 ; c < n_cell ; c++)
     {

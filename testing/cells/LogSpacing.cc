@@ -69,6 +69,8 @@ int main(int argc, char** argv)
     
   double tol = 1.0E-6;
   try{
+    /// declare an Output_Generator here so that the Cell_Data is dumped
+    Output_Generator output_generator(angular_quadrature, fem_quadrature, cell_data, input_reader);
   
     int n_cells = cell_data.get_total_number_of_cells();
     if( n_cells != expected_n_cells)

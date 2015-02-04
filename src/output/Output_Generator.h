@@ -21,7 +21,7 @@ public:
   Output_Generator(const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, 
     const Cell_Data& cell_data, 
-    std::string input_filename);
+    const Input_Reader& input_reader);
     
   virtual ~Output_Generator(){}
   
@@ -42,7 +42,7 @@ protected:
   const int m_n_l_mom;
   const int m_n_dir;
   
-  const std::string m_input_filename;
+  std::string m_filename;
   
   const Cell_Data& m_cell_data;
   

@@ -37,6 +37,8 @@ public:
   /// calculate the numerical average of temperature in every cell.  NOT the volume average!
   double calculate_average(void);
   
+  void mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double>& dfem_interp_points, const Input_Reader& input_reader);
+  
 protected:
     /// total number of cells in the problem
   const int m_cells;

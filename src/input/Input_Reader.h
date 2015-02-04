@@ -148,12 +148,18 @@ public:
   int get_iter_increase_factor(void) const { return m_iter_increase_factor;}
   int get_max_damp_iters(void) const {return m_max_damps;}
   
-  /// 
+  /// Output variables
   OUTPUT_TYPE get_output_type(void) const {return m_output_type;}
   void get_filename_base_for_results(std::string& filename) const{ filename = m_results_file_base; return;}
   int get_restart_frequency(void) const { return m_restart_frequency;}
   bool record_final_space_error(void) const { return m_end_space_error;}
   bool record_space_time_error(void) const {return m_space_time_error;}
+  void get_output_directory(std::string& out_path) const {out_path = m_output_directory; return;}
+  void get_short_input_filename(std::string& short_input) const{short_input = m_short_input_file; return;}
+  
+  std::string get_output_directory(void) const {return m_output_directory;}
+  std::string get_short_input_filename(void) const{return m_short_input_file; }
+  std::string get_filename_base_for_results(void) const{ return m_results_file_base; }
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -164,6 +170,8 @@ protected:
   std::string m_results_file_base;
   bool m_end_space_error = false;
   bool m_space_time_error = false;
+  std::string m_output_directory;
+  std::string m_short_input_file;
   
   /// Restart type
   RESTART_TYPE m_restart_type = INVALID_RESTART_TYPE;

@@ -185,6 +185,23 @@ Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_R
     }  
   }
 }
+
+void Temperature_Data::mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double>& dfem_interp_points, const Input_Reader& input_reader)
+{
+  MMS_Temperature mms( input_reader);
+  Eigen::VectorXd t_loc = Eigen::VectorXd::Zero(m_el_per_cell);
+  for(int c  = 0 ; c < m_cells ; c++)
+  {
+    double dx = cell_data.get_cell_width(c);
+    double xL = cell_data.get_cell_left_edge(c);
+    for(int el = 0 ; el < m_el_per_cell ; el++)
+    {
+      double x = xL +dx/2.*(1. + dfem_interp_points[el]);
+      t_loc(el) = mms.get_mms_temperature(x,time_stage);
+    }
+    set_cell_temperature(c,t_loc);
+  }
+}
   
 /// Public accessor functions
 double Temperature_Data::get_temperature(const int el, const int cell) const

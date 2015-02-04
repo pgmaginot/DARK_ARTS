@@ -95,11 +95,11 @@ double L2_Error_Calculator::calculate_local_l2_error(
   /// add in dx/2 contribution
   std::vector<double> numeric_soln;
   m_fem_quadrature.evaluate_variable_at_quadrature_pts(numeric_at_dfem , m_dfem_at_integration_pts , numeric_soln);
-  double x_eval = 0.0;
-  double analytic_soln = 0.0;
+  double x_eval = 0.;
+  double analytic_soln = 0.;
   for(int q = 0 ; q < m_n_quad_pts ; q++)
   {
-    x_eval = xL + dx/2.0*(1.0 + m_integration_quadrature_pts[q] );
+    x_eval = xL + dx/2.*(1. + m_integration_quadrature_pts[q] );
     switch(data)
     {
       case PHI:
@@ -118,26 +118,27 @@ double L2_Error_Calculator::calculate_local_l2_error(
         break;
       }
     }
-    err += m_integration_quadrature_wts[q]*( analytic_soln - numeric_soln[q] )*( analytic_soln - numeric_soln[q] );
+    // err += m_integration_quadrature_wts[q]*( analytic_soln*analytic_soln - 2.*numeric_soln[q]*analytic_soln +  numeric_soln[q]*numeric_soln[q] );
+    err += m_integration_quadrature_wts[q]*( analytic_soln - numeric_soln[q])*( analytic_soln - numeric_soln[q]) ;
   }
-  err *= dx/2.0;
+    err *= dx/2.;
   return err;
 }
  
 double L2_Error_Calculator::calculate_local_cell_avg_error(
   const Eigen::VectorXd& numeric_at_dfem , const double xL , const double dx , const double time, const Data_Type data ) const
 {
-  double err = 0.0;
+  double err = 0.;
   
   std::vector<double> numeric_soln;
   m_fem_quadrature.evaluate_variable_at_quadrature_pts(numeric_at_dfem , m_dfem_at_integration_pts , numeric_soln);
-  double x_eval = 0.0;
-  double analytic_soln = 0.0;
-  double analytic_average = 0.0;
-  double numeric_average = 0.0;
+  double x_eval = 0.;
+  double analytic_soln = 0.;
+  double analytic_average = 0.;
+  double numeric_average = 0.;
   for(int q = 0 ; q < m_n_quad_pts ; q++)
   {
-    x_eval = xL + dx/2.0*(1.0 + m_integration_quadrature_pts[q] );
+    x_eval = xL + dx/2.*(1. + m_integration_quadrature_pts[q] );
     switch(data)
     {
       case PHI:
@@ -159,10 +160,11 @@ double L2_Error_Calculator::calculate_local_cell_avg_error(
     analytic_average += m_integration_quadrature_wts[q]* analytic_soln ; 
     numeric_average +=  m_integration_quadrature_wts[q]*numeric_soln[q];
   }
-  analytic_average /= 2.0;
-  numeric_average /= 2.0;
-  err = dx*(analytic_average - numeric_average)*(analytic_average - numeric_average);
+  analytic_average /= 2.;
+  numeric_average /= 2.;
+  // err = dx*(analytic_average*analytic_average - 2.*analytic_average*numeric_average + numeric_average*numeric_average);
   
+  err = dx*(analytic_average-numeric_average)*(analytic_average-numeric_average) ;
   return err;
 }
 
