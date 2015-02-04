@@ -18,7 +18,7 @@ public:
   void calculate_update_quantities(const int cell, const Eigen::VectorXd& t_star, const K_Temperature& k_t,
     Eigen::MatrixXd& coefficient , Eigen::VectorXd& rhs) override;
     
-  void calculate_k_t(const int cell, const Eigen::VectorXd t_star, Eigen::VectorXd k_t) override;
+  void calculate_k_t(const int cell, const Eigen::VectorXd& t_star, Eigen::VectorXd& k_t) override;
     
 protected:
   Eigen::VectorXd scratch1;

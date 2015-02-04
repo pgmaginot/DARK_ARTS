@@ -105,6 +105,7 @@
   
   <SOLVER>
     <!-- Valid options are FP_SWEEPS, FP_DSA, KRYLOV_SWEEPS, KRYLOV_DSA   -->
+    <Max_thermal_iterations_per_stage> 200 </Max_thermal_iterations_per_stage>
     <WG_solver_type> FP_SWEEPS 
       <Max_within_group_sweeps> 10 </Max_within_group_sweeps>
     </WG_solver_type>

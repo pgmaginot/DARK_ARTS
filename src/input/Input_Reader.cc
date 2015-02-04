@@ -237,37 +237,7 @@ void Input_Reader::get_absorption_poly_coeff(const int mat_num , std::vector<dou
 double Input_Reader::get_cv_constant(const int mat_num) const
 {
   return m_cv_constants[mat_num];
-}
-
-WG_SOLVE_TYPE Input_Reader::get_within_group_solve_type(void) const
-{
-  return m_wg_solve_type;
-}
-
-double Input_Reader::get_within_group_solve_tolerance(void) const
-{
-  return m_wg_tolerance;
-}
-
-double Input_Reader::get_between_group_solve_tolerance(void) const
-{
-  return m_bg_tolerance;
-}
-
-int Input_Reader::get_max_number_sweeps(void) const
-{
-  return m_max_num_sweeps;
-}
-
-int Input_Reader::get_max_ard_iterations(void) const
-{
-  return m_max_ard_iterations;
-}
-  
-ARD_SOLVE_TYPE Input_Reader::get_ard_solve_type(void) const
-{
-  return m_ard_solve_type;
-}
+} 
 
 bool Input_Reader::use_weird_units(void) const
 {
@@ -277,16 +247,6 @@ bool Input_Reader::use_weird_units(void) const
 UNITS_TYPE Input_Reader::get_units_type(void) const
 {
   return m_units_type;
-}
-
-double Input_Reader::get_thermal_tolerance(void) const
-{
-  return m_thermal_tolerance;
-}
-
-TEMPERATURE_IC_TYPE Input_Reader::get_temperature_ic_type(void) const
-{
-  return m_temperature_ic_type;
 }
 
 double Input_Reader::get_region_temperature(const int reg_num) const
@@ -1712,6 +1672,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   TiXmlElement* increase_elem = solver_element->FirstChildElement("Iteration_increase_factor");
   TiXmlElement* iter_before_damp_elem = solver_element->FirstChildElement("Iterations_before_damping");
   TiXmlElement* n_damps_elem = solver_element->FirstChildElement("Max_damping_resets");
+  TiXmlElement* n_thermals_elem = solver_element->FirstChildElement("Max_thermal_iterations_per_stage");
   
   if(!solver_type_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Solver_type element") ;
@@ -1731,10 +1692,18 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   if(!n_damps_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element, must give Max_damping_resets element");
     
+  if(!n_thermals_elem)
+    throw Dark_Arts_Exception(INPUT, "In SOLVER element, must provide a Max_thermal_iterations_per_stage element");
+    
+    
   m_max_damps = atoi(n_damps_elem->GetText() );
   m_iters_before_damp = atoi(iter_before_damp_elem->GetText() );
   m_damping_factor = atof(damping_factor_elem->GetText() );
   m_iter_increase_factor = atoi(increase_elem->GetText() );
+  m_max_thermals = atoi(n_thermals_elem->GetText() );
+  
+  if(m_max_thermals < 1)
+    throw Dark_Arts_Exception(INPUT, "Max_thermal_iteration_per_stage must be >=1");
   
   if(m_max_damps < 0)
     throw Dark_Arts_Exception(INPUT, "Number of damps must be greater than 0");

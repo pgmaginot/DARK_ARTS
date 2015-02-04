@@ -152,7 +152,9 @@ void V_Matrix_Construction::construct_source_moments(Eigen::VectorXd& source_mom
   for(int j=0; j<m_n_basis_pts;j++)
   {
     for(int q=0;q<m_n_source_quad_pts;q++)
+    {
       source_mom(j) += m_source_weights[q]*m_dfem_at_source_quad[q+j*m_n_source_quad_pts]*source_evals[q];
+    }
   }
   
   source_mom *= m_materials.get_cell_width()/2.;

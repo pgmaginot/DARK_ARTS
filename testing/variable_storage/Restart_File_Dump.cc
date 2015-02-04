@@ -23,7 +23,6 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.0E-10;
   
   Input_Reader input_reader;    
   try

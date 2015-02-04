@@ -28,7 +28,7 @@ public:
   virtual void calculate_update_quantities(const int cell, const Eigen::VectorXd& t_star, const K_Temperature& k_t,
     Eigen::MatrixXd& coefficient , Eigen::VectorXd& rhs) = 0;
     
-  virtual void calculate_k_t(const int cell, const Eigen::VectorXd t_star, Eigen::VectorXd k_t) = 0;
+  virtual void calculate_k_t(const int cell, const Eigen::VectorXd& t_star, Eigen::VectorXd& k_t) = 0;
     
   void set_time_data(const std::vector<double>& rk_a, const double dt, const double time_stage, const int stage_num);    
 protected:

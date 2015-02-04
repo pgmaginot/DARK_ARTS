@@ -107,6 +107,7 @@
     <Iteration_increase_factor> 3 </Iteration_increase_factor>
     <Iterations_before_damping> 20 </Iterations_before_damping>
     <Max_damping_resets> 4 </Max_damping_resets>
+    <Max_thermal_iterations_per_stage> 200 </Max_thermal_iterations_per_stage>
   </SOLVER>
   
   <BC_IC>

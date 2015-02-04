@@ -225,6 +225,7 @@ void Materials::get_temperature_source(const double time, std::vector<double>& t
 {
   for(int i=0; i < m_n_source_pts; i++)
   {  
+    // std::cout << "x eval in materials: " << m_position_at_source_quad[i] << std::endl;
     t_source_evals[i] = m_source_t[m_current_material]->get_temperature_source(m_position_at_source_quad[i], time);
   }
   return;

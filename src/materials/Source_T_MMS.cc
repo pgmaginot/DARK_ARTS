@@ -30,18 +30,17 @@ double  Source_T_MMS::get_temperature_source(const double position, const double
     S_T = C_v \frac{\partial T}{\partial t} - \sigma_a \left( \phi - m_sn_w B \right)
     
   */
+  
   double temperature = m_temperature.get_mms_temperature(position,time);
   double cv = m_cv->get_cv(position,temperature);
   double sig_a = m_abs_op->get_absorption_opacity(0,temperature,position);
+  double planck = m_planck.integrate_B_grey(temperature);
+  double dT_dt = m_temperature.get_mms_temperature_time_derivative(position,time);
+  double phi = m_intensity.get_mms_phi(position,time);
   
-  // std::cout << "cv: " << cv << "sig_a: " << sig_a <<std::endl;
-  // std::cout << "d f(t)/dt: " << dt_time <<std::endl;
-  // std::cout << "angle integration: " << m_angle_integration << std::endl;
- 
+  // std::cout << "sig_a: " << sig_a <<  " cv: " << cv <<  " temperature: " << temperature <<  " planck: " << planck << " phi: " << phi << " dT_dt: " << dT_dt <<std::endl;
   
-  val = cv*m_temperature.get_mms_temperature_time_derivative(position,time)
-    - sig_a*( m_intensity.get_mms_phi(position,time) 
-               - m_sn_w*m_planck.integrate_B_grey(temperature) );
+  val = cv*dT_dt - sig_a*( phi - m_sn_w*planck);
                
   return val;
 }

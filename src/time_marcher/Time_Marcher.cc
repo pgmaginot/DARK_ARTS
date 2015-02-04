@@ -21,6 +21,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_iteration_increase_factor(input_reader.get_iter_increase_factor() ),
     m_checkpoint_frequency(input_reader.get_restart_frequency() ),
     m_max_damps(input_reader.get_max_damp_iters() ),
+    m_max_thermal_iter( input_reader.get_max_thermal_iteration() ),
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
     m_status_generator(input_reader.get_output_directory() + input_reader.get_short_input_filename() ),
     m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_reader),
@@ -73,7 +74,6 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
       
     if(m_calculate_final_space_error)
     {
-      std::cout << "trying to calculate L2 error\n";
       m_final_space_error_calculator = std::make_shared<Final_Space_Error_Calculator>(angular_quadrature,
         fem_quadrature, cell_data,  input_reader, time_data,  output_directory);
     }
@@ -95,7 +95,6 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   double dt = 0.;
   double time_stage = 0.;
   
-  int max_thermal_iter = 1000;
   int times_damped = 0;
   int inners = 0;
   int t_step = 0;
@@ -129,7 +128,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
         throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
       
-      for(int therm_iter = 0; therm_iter < max_thermal_iter; therm_iter++)
+      for(int therm_iter = 0; therm_iter < m_max_thermal_iter; therm_iter++)
       {
         
         /// converge the thermal linearization

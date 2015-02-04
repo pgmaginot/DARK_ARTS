@@ -106,19 +106,20 @@ public:
   void get_mms_angle_coeff(std::vector<double>& angle_coeff) const { angle_coeff = m_mms_angle_coeff; return;}
   
   /// Solver tolerances 
-  WG_SOLVE_TYPE get_within_group_solve_type(void) const;
-  double get_within_group_solve_tolerance(void) const;
-  double get_between_group_solve_tolerance(void) const;
-  int get_max_number_sweeps(void) const;
-  int get_max_ard_iterations(void) const;
-  ARD_SOLVE_TYPE get_ard_solve_type(void) const;
-  double get_thermal_tolerance(void) const;
+  WG_SOLVE_TYPE get_within_group_solve_type(void) const {return m_wg_solve_type;}
+  double get_within_group_solve_tolerance(void) const {return m_wg_tolerance;}
+  double get_between_group_solve_tolerance(void) const {return m_bg_tolerance;}
+  int get_max_number_sweeps(void) const {return m_max_num_sweeps;}
+  int get_max_ard_iterations(void) const {return m_max_ard_iterations;}
+  int get_max_thermal_iteration(void) const {return m_max_thermals ;}
+  ARD_SOLVE_TYPE get_ard_solve_type(void) const {return m_ard_solve_type;}
+  double get_thermal_tolerance(void) const {return m_thermal_tolerance;}
   
   /// IC_BC block
   /**
     Currently assuming one initial condition type for the whole problem.  Could change to region specific
   */
-  TEMPERATURE_IC_TYPE get_temperature_ic_type(void) const;
+  TEMPERATURE_IC_TYPE get_temperature_ic_type(void) const {return m_temperature_ic_type;}
   double get_region_temperature(const int reg_num) const;
   double get_region_radiation_temperature(const int reg_num) const;
   RADIATION_IC_TYPE get_radiation_ic_type(void) const;
@@ -268,6 +269,7 @@ protected:
   ARD_SOLVE_TYPE m_ard_solve_type = INVALID_ARD_SOLVE_TYPE;
   int m_max_ard_iterations = -1;
   double m_thermal_tolerance = 1.;
+  int m_max_thermals = 0;
   
   /// thermal iteration parameters
   int m_iters_before_damp =-1;

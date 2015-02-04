@@ -53,15 +53,15 @@ public:
 
   MATRIX_INTEGRATION get_integration_type(void) const;
   
-  void get_integration_weights(std::vector<double>& integration_weights) const;
+  void get_integration_weights(std::vector<double>& integration_weights) const {integration_weights = m_integration_weights; return;}
   
   void get_dfem_at_source_points(std::vector<double>& dfem_at_source_quad) const;
 
-  void get_source_weights(std::vector<double>& source_weights) const;
+  void get_source_weights(std::vector<double>& source_weights) const {source_weights = m_source_weights;  return;}
   
-  void get_source_points(std::vector<double>& source_pts) const;
+  void get_source_points(std::vector<double>& source_pts) const { source_pts = m_source_points; return;}
   
-  int get_number_of_source_points(void) const;
+  int get_number_of_source_points(void) const{ return m_n_source_points;}
   
   void get_dfem_interpolation_point(std::vector<double>& dfem_pts) const { dfem_pts = m_dfem_interpolation_points; return;}  
   

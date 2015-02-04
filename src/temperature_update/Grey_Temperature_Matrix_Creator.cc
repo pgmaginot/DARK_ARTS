@@ -33,7 +33,12 @@ void Grey_Temperature_Matrix_Creator::calculate_update_quantities(const int cell
   m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,0);  
   m_mtrx_builder->construct_r_cv(m_r_cv);    
   m_mtrx_builder->construct_temperature_source_moments(m_driving_source_vec,m_time);
-            
+    
+  // std::cout << "time: " << m_time << std::endl;
+  // std::cout << "s_t\n" << m_driving_source_vec << std::endl;
+  // std::cout << "r_cv\n" << m_r_cv << std::endl;
+  // std::cout << "r_sig_a\n" << m_r_sig_a << std::endl;
+  // std::cout << "d_matrix\n" << m_d_matrix << std::endl;
     
   scratch1 = Eigen::VectorXd::Zero(m_np);
   scratch2 = Eigen::VectorXd::Zero(m_np);  
@@ -73,7 +78,7 @@ void Grey_Temperature_Matrix_Creator::calculate_update_quantities(const int cell
   return;
 }
 
-void Grey_Temperature_Matrix_Creator::calculate_k_t(const int cell, const Eigen::VectorXd t_star, Eigen::VectorXd k_t)
+void Grey_Temperature_Matrix_Creator::calculate_k_t(const int cell, const Eigen::VectorXd& t_star, Eigen::VectorXd& k_t)
 {
   k_t = Eigen::VectorXd::Zero(m_np);
   m_phi.get_cell_angle_integrated_intensity(cell,0,0,m_phi_vec);
@@ -87,10 +92,21 @@ void Grey_Temperature_Matrix_Creator::calculate_k_t(const int cell, const Eigen:
   m_mtrx_builder->construct_r_cv(m_r_cv);    
   m_mtrx_builder->construct_temperature_source_moments(m_driving_source_vec,m_time);
   
+  // std::cout << "Calculating k_t\n" ;
+  // std::cout << "time: " << m_time << std::endl;
+  // std::cout << "s_t\n" << m_driving_source_vec << std::endl;
+  // std::cout << "r_cv\n" << m_r_cv << std::endl;
+  // std::cout << "r_sig_a\n" << m_r_sig_a << std::endl;
+  
+  
+  
   scratch1 = Eigen::VectorXd::Zero(m_np);
   scratch1 = m_r_sig_a*(m_phi_vec - m_sn_w*m_planck_vec) + m_driving_source_vec;
+  // std::cout << "Terms before hitting with r_cv _inv:\n" << scratch1 << std::endl;
   
   k_t = m_r_cv.fullPivLu().solve( scratch1 );
+  // std::cout << "Inner k_t: \n" << k_t << std::endl;
+  // std::cout << "Leaving kt calculation\n";
   
   return;
 }

@@ -43,6 +43,7 @@ private:
   const int m_iteration_increase_factor;
   const int m_checkpoint_frequency;
   const int m_max_damps;
+  const int m_max_thermal_iter;
   
   const Cell_Data& cell_data;
   const Input_Reader& input_reader;

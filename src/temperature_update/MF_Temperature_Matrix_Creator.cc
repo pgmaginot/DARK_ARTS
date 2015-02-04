@@ -93,7 +93,7 @@ void MF_Temperature_Matrix_Creator::calculate_update_quantities(const int cell, 
   return;
 }
 
-void MF_Temperature_Matrix_Creator::calculate_k_t(const int cell, const Eigen::VectorXd t_star, Eigen::VectorXd k_t)
+void MF_Temperature_Matrix_Creator::calculate_k_t(const int cell, const Eigen::VectorXd& t_star, Eigen::VectorXd& k_t)
 {
   /**
     \f[

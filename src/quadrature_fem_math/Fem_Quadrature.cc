@@ -7,10 +7,10 @@
 
 Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_New& quad_fun)
 :
-m_n_interpolation_points{ input_reader.get_dfem_degree() + 1},
-m_int_method{ input_reader.get_integration_method() },
-m_n_source_points{ 2*m_n_interpolation_points + 1 },
-m_xs_extra_points{ 10}
+m_n_interpolation_points( input_reader.get_dfem_degree() + 1),
+m_int_method( input_reader.get_integration_method() ),
+m_n_source_points( 2*m_n_interpolation_points + 1 ),
+m_xs_extra_points( 10)
 {
   try{
     /// Get the DFEM interpolation points    
@@ -226,34 +226,12 @@ void Fem_Quadrature::get_dfem_derivatives_at_integration_points(std::vector<doub
   return;
 }
 
-void Fem_Quadrature::get_integration_weights(std::vector<double>& weights) const
-{
-  weights = m_integration_weights;
-  return;
-}
-
-int Fem_Quadrature::get_number_of_source_points(void) const
-{
-  return m_n_source_points;
-}
-
 void Fem_Quadrature::get_dfem_at_source_points(std::vector<double>& dfem_at_source_quad) const
 {
   dfem_at_source_quad = m_dfem_at_source_moments;
   return;
 }
 
-void Fem_Quadrature::get_source_points(std::vector<double>& source_pts) const
-{
-  source_pts = m_source_points;
-  return;
-}
-
-void Fem_Quadrature::get_source_weights(std::vector<double>& source_weights) const
-{
-  source_weights = m_source_weights;
-  return;
-}
 
 void Fem_Quadrature::evaluate_lagrange_func(const std::vector<double>& interp_points, 
   const std::vector<double>& eval_points, std::vector<double>& func_evals)
