@@ -19,6 +19,18 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   {
     m_number_stages = 1;
   }
+  else if( m_time_solver == ALEXANDER_2_2)
+  {
+    m_number_stages = 2;
+  }
+  else if( m_time_solver == ALEXANDER_2_2_PLUS)
+  {
+    m_number_stages = 2;
+  }
+  else if( m_time_solver == ALEXANDER_3_3)
+  {
+    m_number_stages = 3;
+  }
   
   m_a.resize(m_number_stages*(m_number_stages +1)/2 , 0. );
   m_b.resize(m_number_stages,0.);
@@ -56,6 +68,50 @@ void Time_Data::fill_sdirk_vectors(void)
     m_b[0] = 1.;
     m_c[0] = 1.;
   }
+  if( m_time_solver == ALEXANDER_2_2)
+  {
+    double alpha = 1. - (sqrt(2.)/2.);
+    
+    m_a[0] = alpha;
+    m_a[1] = 1.- alpha;   m_a[2] = alpha;
+    
+    m_b[0] = 1. - alpha;
+    m_b[1] = alpha;
+    
+    m_c[0] = alpha;
+    m_c[1] = 1.;
+  }
+  if( m_time_solver == ALEXANDER_2_2_PLUS)
+  {
+  
+    double alpha = 1. + (sqrt(2.)/2.);
+    
+    m_a[0] = alpha;
+    m_a[1] = 1.- alpha;   m_a[2] = alpha;
+    
+    m_b[0] = 1. - alpha;
+    m_b[1] = alpha;
+    
+    m_c[0] = alpha;
+    m_c[1] = 1.;
+  }
+  if( m_time_solver == ALEXANDER_3_3)
+  {
+    /// taken form SIAM J Num. Anal. V 14, n. 6 (1977)
+    const double alpha = 0.4358665215084590;
+    const double tau2 = (1.+alpha)/2.;
+    const double b1 = -1.*(6.*alpha*alpha - 16.*alpha + 1.)/4.;
+    const double b2 = (6.*alpha*alpha - 20.*alpha + 5.)/4.;
+    m_a[0] = alpha;
+    m_a[1] = tau2 - alpha;  m_a[2] = alpha;
+    m_a[3] = b1;            m_a[4] = b2;  m_a[5] = alpha;
+    
+    m_b[0] = b1;            m_b[1] = b2;  m_b[2] = alpha;
+    
+    m_c[0] = alpha;
+    m_c[1] = tau2;
+    m_c[2] = 1.;
+  }
   
   return;
 }
@@ -75,11 +131,9 @@ double Time_Data::get_a(const int stage, const int index) const
   }
   else
   {
-    a =  m_a[stage*(stage+1)/2 + index];
+    int offset = stage*(stage+1)/2;    
+    a =  m_a[offset + index];
   }
-  
-  if( a < 1.0E-6 )
-    throw Dark_Arts_Exception(TIME_MARCHER, "Returning SDIRK a <= 0" );
     
   return a;
 }

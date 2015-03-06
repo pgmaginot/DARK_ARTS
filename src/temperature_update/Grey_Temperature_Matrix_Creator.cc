@@ -16,6 +16,7 @@ void Grey_Temperature_Matrix_Creator::calculate_update_quantities(const int cell
   const K_Temperature& k_t,
   Eigen::MatrixXd& coefficient , Eigen::VectorXd& rhs)
 {  
+  
   rhs = Eigen::VectorXd::Zero(m_np);
   coefficient = Eigen::MatrixXd::Zero(m_np,m_np);
   

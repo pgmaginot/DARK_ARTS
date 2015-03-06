@@ -20,7 +20,7 @@ Cell_Data::Cell_Data(Input_Reader&  input_reader)
   m_x_l.resize(m_total_cells,0.);
   m_dx.resize(m_total_cells,0.);
   m_material_num.resize(m_total_cells,0);
-  
+    
   try{
     if(input_reader.is_mesh_refinement() )
     {
@@ -93,7 +93,7 @@ void Cell_Data::read_mesh_and_refine(const Input_Reader& input_reader)
     
   const int incr_factor = input_reader.get_refinement_factor();
   const int n_original_cells = m_total_cells/incr_factor;
-  
+    
   TiXmlElement* cell_element = root->FirstChildElement("Cell");
   int new_cell_cnt = 0;
   for(int c=0 ; c<n_original_cells ; c++)
@@ -106,9 +106,9 @@ void Cell_Data::read_mesh_and_refine(const Input_Reader& input_reader)
     TiXmlElement* dx_old_element = cell_element->FirstChildElement("Cell_width");
     TiXmlElement* x_left_old_element = cell_element->FirstChildElement("X_left");
       
-    double dx_old = std::stod(dx_old_element->GetText() );
+    double dx_old = atof(dx_old_element->GetText() );
     int material_old = atoi(material_element->GetText() );
-    int x_left_old = std::stod(x_left_old_element->GetText() );
+    double x_left_old = atof(x_left_old_element->GetText() );
     
     if(dx_old < 0.)
     {
@@ -117,9 +117,10 @@ void Cell_Data::read_mesh_and_refine(const Input_Reader& input_reader)
       throw Dark_Arts_Exception(INPUT, err.str() );
     }
     double dx_new = dx_old/(double (incr_factor));
-    for(int n = 0 ; n < incr_factor ; n++)
+    const double dbl_incr_factor = double(incr_factor);
+    for(double n = 0. ; n < dbl_incr_factor ; n+=1. )
     {
-      m_x_l[new_cell_cnt] = x_left_old + dx_new*double(n);
+      m_x_l[new_cell_cnt] = x_left_old + dx_new*n;
       m_dx[new_cell_cnt] = dx_new;
       m_material_num[new_cell_cnt] = material_old;
       

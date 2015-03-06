@@ -54,6 +54,7 @@ protected:
   std::ofstream m_output_file_temp_l2;
   std::ofstream m_output_file_temp_A;
 
+  std::string m_time_str;
 };
 
 

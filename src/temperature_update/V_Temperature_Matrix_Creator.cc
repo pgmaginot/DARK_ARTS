@@ -47,7 +47,7 @@ void V_Temperature_Matrix_Creator::set_time_data(const std::vector<double>& rk_a
   m_time = time_stage;
   m_stage = stage_num;
   
-  for(int i = 0 ; i <= stage_num ; i++)
+  for(int i = 0 ; i <= m_stage ; i++)
     m_rk_a[i] = rk_a[i];
     
   m_time_data_set=true;

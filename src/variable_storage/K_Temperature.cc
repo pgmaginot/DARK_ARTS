@@ -98,7 +98,8 @@ void K_Temperature::advance_temperature(Temperature_Data& t_old, const double dt
     {         
       m_vec_retrieve = Eigen::VectorXd::Zero(m_el_per_cell);
       get_kt(cell,stage,m_vec_retrieve);
-      m_vec_sum += time_data.get_b(stage)*dt*m_vec_retrieve;
+      // std::cout << "K_T of cell " << cell << " stage: " << stage << std::endl << m_vec_retrieve << std::endl;
+      m_vec_sum += dt*time_data.get_b(stage)*m_vec_retrieve;
     }
     t_old.get_cell_temperature(cell,m_vec_retrieve);
     m_vec_sum += m_vec_retrieve;

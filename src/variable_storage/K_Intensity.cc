@@ -183,9 +183,9 @@ void K_Intensity::advance_intensity(Intensity_Data& i_old, const double dt, cons
           {
             m_vec_retrieve = Eigen::VectorXd::Zero(m_el_per_cell);
             get_ki(c,g,dir,s,m_vec_retrieve);
-            m_vec_sum += time_data.get_b(s)*m_vec_retrieve;
+            // std::cout << "K_I of cell " << c << " group: " << g << " dir: " << dir << " stage: " << s << std::endl << m_vec_retrieve << std::endl;
+            m_vec_sum += dt*time_data.get_b(s)*m_vec_retrieve;
           }
-          m_vec_sum *= dt;
           i_old.get_cell_intensity(c,g,dir,m_vec_retrieve);
           m_vec_sum += m_vec_retrieve;
           i_old.set_cell_intensity(c,g,dir,m_vec_sum);

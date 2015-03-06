@@ -1366,15 +1366,35 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   transform(starter_str.begin() , starter_str.end() , starter_str.begin() , toupper);
 
   if(stepper_str == "IMPLICIT_EULER")
+  {
     m_time_step_scheme = IMPLICIT_EULER;
+  }
+  else if(stepper_str == "ALEXANDER_2_2")
+  {
+    m_time_step_scheme = ALEXANDER_2_2;
+  }  
+  else if(stepper_str == "ALEXANDER_2_2_PLUS")
+  {
+    m_time_step_scheme = ALEXANDER_2_2_PLUS;
+  }  
+  else if(stepper_str == "ALEXANDER_3_3")
+  {
+    m_time_step_scheme = ALEXANDER_3_3;
+  }
   
   if(starter_str == "EXPONENTIAL")
+  {
     m_time_starting_method = EXPONENTIAL;
+  }
   else if(starter_str == "VECTOR")
+  {
     m_time_starting_method = VECTOR;
+  }
   else if(starter_str == "RAMP")
+  {
     m_time_starting_method = RAMP;
-    
+  }
+  
   if(m_time_step_scheme == INVALID_TIME_SOLVER)
     throw Dark_Arts_Exception( INPUT , "In TIME block:  Invalid time stepping scheme" );
   

@@ -142,7 +142,7 @@ void Sweep_Matrix_Creator_Grey::update_direction_dependencies(const int dir)
   
   m_i_old_ref.get_cell_intensity(m_cell_num, m_group_num, dir, m_temp_vec);
   
-  m_s_i += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
+  m_s_i += (1./(m_c*m_dt*m_rk_a[m_stage]))*m_dx_div_2_mass*m_temp_vec;
   
   m_temp_vec = Eigen::VectorXd::Zero(m_np);
   for(int s=0 ; s< m_stage ; s++)
@@ -151,7 +151,7 @@ void Sweep_Matrix_Creator_Grey::update_direction_dependencies(const int dir)
     m_temp_vec += m_rk_a[s]*m_k_vec;
   }
   
-  m_s_i += 1./(m_c*m_rk_a[m_stage])*m_dx_div_2_mass*m_temp_vec;
+  m_s_i += (1./(m_c*m_rk_a[m_stage]))*m_dx_div_2_mass*m_temp_vec;
   
   m_mtrx_builder->construct_radiation_source_moments(m_driving_source,m_time,dir,m_group_num);
   

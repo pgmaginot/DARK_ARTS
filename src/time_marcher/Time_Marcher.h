@@ -35,9 +35,10 @@ private:
   K_Temperature m_k_t;
   Temperature_Data m_t_star;
   Intensity_Moment_Data m_ard_phi;
+
   
   /// damping variable, and temperature update err object used to track thermal iteration progress
-  double m_damping;
+  double m_damping;  
   int m_iters_before_damping;
   const double m_damping_decrease_factor;
   const int m_iteration_increase_factor;
@@ -45,9 +46,7 @@ private:
   const int m_max_damps;
   const int m_max_thermal_iter;
   
-  const Cell_Data& cell_data;
-  const Input_Reader& input_reader;
-  const Angular_Quadrature& angular_quadrature;
+  
   
   Err_Temperature m_err_temperature;
   Status_Generator m_status_generator;

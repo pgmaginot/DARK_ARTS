@@ -13,9 +13,6 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_t_star( cell_data.get_total_number_of_cells(), fem_quadrature),
     m_ard_phi( cell_data, angular_quadrature, fem_quadrature, i_old ),
     m_damping(1.),
-    cell_data(cell_data),
-    input_reader(input_reader),
-    angular_quadrature(angular_quadrature),
     m_iters_before_damping(input_reader.get_iters_before_damping() ),
     m_damping_decrease_factor(input_reader.get_damping_factor() ),
     m_iteration_increase_factor(input_reader.get_iter_increase_factor() ),
@@ -34,7 +31,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_ard_phi.get_phi_norm(phi_ref_norm);
     if( angular_quadrature.get_number_of_groups() > 1)
     {
-      m_intensity_update = std::shared_ptr<V_Intensity_Update> (new Intensity_Update_MF(
+      m_intensity_update = std::make_shared<Intensity_Update_MF>(
         input_reader, 
         fem_quadrature, 
         cell_data, 
@@ -46,7 +43,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_k_t, 
         m_k_i, 
         m_t_star, 
-        phi_ref_norm ) );
+        phi_ref_norm ) ;
     }
     else{
       m_intensity_update = std::make_shared<Intensity_Update_Grey>(
@@ -101,7 +98,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);  
   
-  for(t_step = 0; t_step < max_step; t_step++)
+  for( ; t_step < max_step; t_step++)
   {
     if( (t_step % 20) == 0)
       m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );  
@@ -117,6 +114,9 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       times_damped = 0;
       
       time_stage = time + dt*time_data.get_c(stage);
+      
+      
+      // std::cout << "Time: " << time << " dt_full: " << dt << " stage: " << stage << " Time stage: " << time_stage << std::endl;
             
       for(int i = 0; i<= stage; i++)
         rk_a_of_stage_i[i] = time_data.get_a(stage,i);
@@ -125,8 +125,8 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
       m_temperature_update.set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
               
-      if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
-        throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
+      // if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
+        // throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
       
       for(int therm_iter = 0; therm_iter < m_max_thermal_iter; therm_iter++)
       {
@@ -197,7 +197,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     /// these are the only functions that change I_old and T_old
     m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
-    // t_old = m_t_star;
+
     if( (t_step % m_checkpoint_frequency) == 0)
     {
       m_output_generator.write_xml(false,t_step,i_old);
@@ -214,8 +214,12 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   /// we were fancy with space_time error and output the error during the destructor call
   if(m_calculate_final_space_error)
   {
-    std::cout << "recording final L2 errors\n";
-    m_final_space_error_calculator->record_error(time_data.get_t_end(),t_step,t_old, m_ard_phi);
+    /// need to calculate m_ard_phi from i_old, since m_ard_phi is at the last time stage value
+    m_ard_phi.update_phi_and_norms(i_old);
+    
+    /// t_step is off by 1
+    t_step++;
+    m_final_space_error_calculator->record_error(time,t_step,t_old, m_ard_phi);
   }
   /// dump final solutions, always!
   m_output_generator.write_xml(true,0,i_old);

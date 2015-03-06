@@ -52,6 +52,7 @@ public:
   
   void mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double> dfem_interp_points, const Input_Reader& input_reader, const Angular_Quadrature& angular_quadrature);
 
+  void update_phi_and_norms(const Intensity_Data& i_old);
 private:  
   /// total number of cells in the problem
   const int m_cells;
@@ -73,7 +74,15 @@ private:
   
   const double m_small_ratio;
   
-  std::vector<double> m_phi;
+  const double m_sum_dfem_wts;
+  const int m_n_dir;
+  
+  std::vector<double> m_sn_wts;
+  std::vector<double> m_leg_moment_coeff_build;  
+  std::vector<double> m_dfem_wts;  
+  
+  /// actual container of angle integrated intensity moments
+  std::vector<double> m_phi;    
   
   double get_angle_integrated_intensity(const int el, const int cell,
     const int group, const int l_mom) const;
@@ -84,9 +93,7 @@ private:
     
   bool angle_integrated_bounds_check(const int loc) const;
   
-  void calculate_reference_phi_norms(const Intensity_Data& i_old, 
-    const Angular_Quadrature& ang_quad, 
-    const Fem_Quadrature& fem_quad);
+
 };
 
 #endif

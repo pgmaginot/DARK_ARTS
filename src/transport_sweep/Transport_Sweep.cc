@@ -33,34 +33,33 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
 {
   if(m_n_groups > 1)
   {
-    m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> 
-    (new Sweep_Matrix_Creator_MF(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() , m_n_l_mom, m_n_groups,
-      t_old, i_old, kt, ki,t_star) );
+    m_sweep_matrix_creator = std::make_shared<Sweep_Matrix_Creator_MF>(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() , m_n_l_mom, m_n_groups,
+      t_old, i_old, kt, ki,t_star) ;
   }
   else
   {
-    m_sweep_matrix_creator = std::shared_ptr<V_Sweep_Matrix_Creator> (new Sweep_Matrix_Creator_Grey(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() ,
-      m_n_l_mom, t_old, i_old, kt, ki,t_star) );
+    m_sweep_matrix_creator = std::make_shared<Sweep_Matrix_Creator_Grey>(fem_quadrature, materials, n_stages, angular_quadrature.get_sum_w() ,
+      m_n_l_mom, t_old, i_old, kt, ki,t_star) ;
   }
   /// has a ptr to the object that actually owns s_i
-  m_fixed_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_Linearization(fem_quadrature,m_sweep_matrix_creator) );
-  m_no_source = std::shared_ptr<V_Sweep_Fixed_Source> (new Sweep_Fixed_Source_None(fem_quadrature) );
+  m_fixed_source = std::make_shared<Sweep_Fixed_Source_Linearization>(fem_quadrature,m_sweep_matrix_creator) ;
+  m_no_source = std::make_shared<Sweep_Fixed_Source_None>(fem_quadrature) ;
   
   /// this guy needs a reference to k_i
-  m_k_i_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_K_I(fem_quadrature,m_sweep_matrix_creator,angular_quadrature,ki, materials.get_c() ) );
-  m_angle_integrated_saver = std::shared_ptr<V_Solution_Saver> (new Solution_Saver_Flux_Moments(fem_quadrature,angular_quadrature) );
+  m_k_i_saver = std::make_shared<Solution_Saver_K_I>(fem_quadrature,m_sweep_matrix_creator,angular_quadrature,ki, materials.get_c() ) ;
+  m_angle_integrated_saver = std::make_shared<Solution_Saver_Flux_Moments>(fem_quadrature,angular_quadrature) ;
   
   /// initialize boundary condition objects
   switch( input_reader.get_radiation_bc_type_left() )
   {
     case VACUUM_BC:
     {
-      m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Vacuum() );
+      m_sweep_bc_left = std::make_shared<Transport_BC_Vacuum>() ;
       break;
     }
     case REFLECTIVE_BC:
     {
-      m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Reflective() );
+      m_sweep_bc_left = std::make_shared<Transport_BC_Reflective>() ;
       break;
     }
     case INCIDENT_BC:
@@ -69,31 +68,31 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
       {
         if(m_n_groups > 1)
         {
-          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Current(
+          m_sweep_bc_left = std::make_shared<Transport_BC_MF_Current>(
               angular_quadrature,
               input_reader.get_left_bc_angle_dependence() ,
               input_reader.get_left_bc_start_time() , 
               input_reader.get_left_bc_end_time() ,
               input_reader.get_left_bc_constant() ,
               input_reader.get_left_bc_energy_dependence()
-                ) );
+                ) ;
         }
         else
         {
-          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Current(
+          m_sweep_bc_left = std::make_shared<Transport_BC_Grey_Current>(
               angular_quadrature,
               input_reader.get_left_bc_angle_dependence() ,
               input_reader.get_left_bc_start_time() , 
               input_reader.get_left_bc_end_time() ,
               input_reader.get_left_bc_constant() 
-                ) );
+                ) ;
         }
       }
       else if(input_reader.get_left_bc_value_type() == INCIDENT_TEMPERATURE)
       {
         if(m_n_groups>1)
         {      
-          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Planckian(
+          m_sweep_bc_left = std::make_shared<Transport_BC_MF_Planckian>(
             materials,
             angular_quadrature,
             input_reader.get_left_bc_angle_dependence() ,
@@ -101,18 +100,18 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
             input_reader.get_left_bc_end_time() ,
             input_reader.get_left_bc_constant() ,
             input_reader.get_left_bc_energy_dependence()
-              ) );
+              ) ;
         }
         else
         {
-          m_sweep_bc_left = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Planckian(
+          m_sweep_bc_left = std::make_shared<Transport_BC_Grey_Planckian>(
             materials,
             angular_quadrature,
             input_reader.get_left_bc_angle_dependence() ,
             input_reader.get_left_bc_start_time() , 
             input_reader.get_left_bc_end_time()  ,
             input_reader.get_left_bc_constant()         
-              ) );
+              ) ;
         }
       }
       else
@@ -122,7 +121,7 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
     }
     case MMS_BC:
     {
-      m_sweep_bc_left = std::shared_ptr<V_Transport_BC> (new Transport_BC_MMS( angular_quadrature, input_reader , cell_data.get_cell_left_edge(0) ) );
+      m_sweep_bc_left = std::make_shared<Transport_BC_MMS>( angular_quadrature, input_reader , cell_data.get_cell_left_edge(0) ) ;
       break;
     }
     case INVALID_RADIATION_BC_TYPE:
@@ -136,7 +135,7 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
   {
     case VACUUM_BC:
     {
-      m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Vacuum() );
+      m_sweep_bc_right = std::make_shared<Transport_BC_Vacuum>() ;
       break;
     }
     case REFLECTIVE_BC:
@@ -150,31 +149,31 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
       {
         if(m_n_groups > 1)
         {
-          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> ( new Transport_BC_MF_Current(
+          m_sweep_bc_right = std::make_shared<Transport_BC_MF_Current>(
               angular_quadrature,
               input_reader.get_right_bc_angle_dependence() ,
               input_reader.get_right_bc_start_time() , 
               input_reader.get_right_bc_end_time() ,
               input_reader.get_right_bc_constant() ,
               input_reader.get_right_bc_energy_dependence()
-                ) );
+                );
         }
         else
         {
-          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> ( new Transport_BC_Grey_Current(
+          m_sweep_bc_right = std::make_shared<Transport_BC_Grey_Current>(
               angular_quadrature,
               input_reader.get_right_bc_angle_dependence() ,
               input_reader.get_right_bc_start_time() , 
               input_reader.get_right_bc_end_time() ,
               input_reader.get_right_bc_constant() 
-                ) );
+                ) ;
         }
       }
       else if(input_reader.get_right_bc_value_type() == INCIDENT_TEMPERATURE)
       {
         if(m_n_groups>1)
         {      
-          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_MF_Planckian(
+          m_sweep_bc_right = std::make_shared<Transport_BC_MF_Planckian>(
             materials,
             angular_quadrature,
             input_reader.get_right_bc_angle_dependence() ,
@@ -182,17 +181,17 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
             input_reader.get_right_bc_end_time(),
             input_reader.get_right_bc_constant() ,
             input_reader.get_right_bc_energy_dependence()
-              ) );
+              ) ;
         }
         else
         {
-          m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_Grey_Planckian(
+          m_sweep_bc_right = std::make_shared<Transport_BC_Grey_Planckian>(
             materials,
             angular_quadrature,
             input_reader.get_right_bc_angle_dependence() ,
             input_reader.get_right_bc_start_time() , 
             input_reader.get_right_bc_end_time()  ,      
-            input_reader.get_right_bc_constant()  ) );
+            input_reader.get_right_bc_constant()  ) ;
         }
       }
       else
@@ -203,8 +202,8 @@ Transport_Sweep::Transport_Sweep(const Fem_Quadrature& fem_quadrature,
     }
     case MMS_BC:
     {
-      m_sweep_bc_right = std::shared_ptr<V_Transport_BC> (new Transport_BC_MMS( angular_quadrature, input_reader , 
-        cell_data.get_cell_left_edge(m_n_cells-1) + cell_data.get_cell_width(m_n_cells-1) ) );
+      m_sweep_bc_right = std::make_shared<Transport_BC_MMS>( angular_quadrature, input_reader , 
+        cell_data.get_cell_left_edge(m_n_cells-1) + cell_data.get_cell_width(m_n_cells-1) ) ;
       break;
     }
     case INVALID_RADIATION_BC_TYPE:
@@ -431,5 +430,6 @@ void Transport_Sweep::set_time_data( const double dt, const double time_stage, c
   m_time = time_stage;
   m_sweep_matrix_creator->set_time_data(dt,time_stage,rk_a_of_stage_i,stage);
   m_sweep_saver->set_stage(stage);
+  
   return;
 }

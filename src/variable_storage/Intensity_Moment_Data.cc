@@ -17,8 +17,24 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const A
   m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell},
   m_norm_for_err(reference_phi_norm),
   m_small_ratio{1.0E-6},
+  m_sum_dfem_wts(fem_quad.get_sum_of_dfem_interpolation_weights()),
+  m_n_dir(ang_quad.get_number_of_dir() ),
   m_phi(m_phi_length,0.)
-  {    }
+  {  
+    fem_quad.get_dfem_interpolation_point_weights(m_dfem_wts);
+    m_sn_wts.resize(m_n_dir,0.);
+    m_leg_moment_coeff_build.resize(m_n_dir*m_leg,0.);
+    int cnt = 0;
+    for(int dir = 0; dir < m_n_dir ; dir++)
+    {
+      m_sn_wts[dir] = ang_quad.get_w(dir);
+      for(int l = 0; l< m_leg; l++)
+      {
+        m_leg_moment_coeff_build[cnt] = ang_quad.get_leg_moment_coeff_build(dir,l);
+        cnt++;
+      }
+    }    
+  }
     
 /// Initializer used for ard_phi within Time_Marcher.  Initialize from I_old.
 Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const Angular_Quadrature& ang_quad,
@@ -33,10 +49,26 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const A
   m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell},
   m_norm_for_err(m_groups,0.),
   m_small_ratio{1.0E-6},
+  m_sum_dfem_wts(fem_quad.get_sum_of_dfem_interpolation_weights()),
+  m_n_dir(ang_quad.get_number_of_dir() ),
   m_phi(m_phi_length,0.)
   { 
+    fem_quad.get_dfem_interpolation_point_weights(m_dfem_wts);
+    m_sn_wts.resize(m_n_dir,0.);
+    m_leg_moment_coeff_build.resize(m_n_dir*m_leg,0.);
+    int cnt = 0;
+    for(int dir = 0; dir < m_n_dir ; dir++)
+    {
+      m_sn_wts[dir] = ang_quad.get_w(dir);
+      for(int l = 0; l< m_leg; l++)
+      {
+        m_leg_moment_coeff_build[cnt] = ang_quad.get_leg_moment_coeff_build(dir,l);
+        cnt++;
+      }
+    }    
+    
     /// initialize phi to whatever i_old would dictate, then calculate norm (on the fly)
-    calculate_reference_phi_norms(i_old, ang_quad, fem_quad);
+    update_phi_and_norms(i_old);
   }
   
 Intensity_Moment_Data::Intensity_Moment_Data(const Intensity_Moment_Data& intensity_moment)
@@ -50,6 +82,11 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Intensity_Moment_Data& intens
   m_phi_length{intensity_moment.m_phi_length},
   m_norm_for_err(intensity_moment.m_norm_for_err),
   m_small_ratio{intensity_moment.m_small_ratio},  
+  m_sum_dfem_wts(intensity_moment.m_sum_dfem_wts),
+  m_n_dir(intensity_moment.m_n_dir),
+  m_sn_wts(intensity_moment.m_sn_wts),
+  m_leg_moment_coeff_build(intensity_moment.m_leg_moment_coeff_build),  
+  m_dfem_wts(intensity_moment.m_dfem_wts),
   m_phi(intensity_moment.m_phi)
 {    
 }
@@ -76,7 +113,7 @@ Intensity_Moment_Data& Intensity_Moment_Data::operator= (const Intensity_Moment_
   if( (m_phi_length != intensity_moment.m_phi_length) ||
       (m_groups != intensity_moment.m_groups) ||
       (m_cells != intensity_moment.m_cells) ||
-      (m_leg != intensity_moment.m_leg) 
+      (m_leg != intensity_moment.m_leg)       
     )
     throw Dark_Arts_Exception( VARIABLE_STORAGE , "Trying to assign different sized Intensity_Moment_Data object");
   
@@ -85,16 +122,6 @@ Intensity_Moment_Data& Intensity_Moment_Data::operator= (const Intensity_Moment_
     
   return *this;
 }
-
-double Intensity_Moment_Data::get_angle_integrated_intensity(const int el, const int cell,
-  const int group, const int l_mom) const
-{
-  int val_loc = angle_integrated_data_locator(el,cell,group,l_mom); 
-
-  return m_phi[val_loc];
-}
-
-
   
 void Intensity_Moment_Data::get_cell_angle_integrated_intensity(const int cell,
   const int group, const int l_mom, Eigen::VectorXd& loc_phi_vec) const
@@ -277,13 +304,8 @@ void Intensity_Moment_Data::get_phi_norm(std::vector<double>& norm_vec) const
   return;
 }
 
-void Intensity_Moment_Data::calculate_reference_phi_norms(const Intensity_Data& i_old, 
-  const Angular_Quadrature& ang_quad, 
-  const Fem_Quadrature& fem_quad)
-{
-  std::vector<double> w_dfem_points;
-  fem_quad.get_dfem_interpolation_point_weights(w_dfem_points);
-  
+void Intensity_Moment_Data::update_phi_and_norms(const Intensity_Data& i_old)
+{  
   Eigen::VectorXd i_local(m_el_per_cell);  
   Eigen::VectorXd phi_contrib_local(m_el_per_cell);  
   
@@ -291,25 +313,25 @@ void Intensity_Moment_Data::calculate_reference_phi_norms(const Intensity_Data& 
   {
     for(int grp = 0; grp < m_groups ; grp++)
     {
-      for(int dir = 0; dir < ang_quad.get_number_of_dir() ; dir++)
+      for(int dir = 0; dir < m_n_dir ; dir++)
       {
         i_old.get_cell_intensity(cell,grp,dir,i_local);  
         /// calculate numerical average of scalar flux in this cell, and keep a running tally
         for(int el = 0; el < m_el_per_cell ; el++)
         {
-          m_norm_for_err[grp] += w_dfem_points[el]*ang_quad.get_w(dir)*i_local(el);
+          m_norm_for_err[grp] += m_dfem_wts[el]*m_sn_wts[dir]*i_local(el);
         }
         /// now save flux moments of solution
         for(int l = 0; l< m_leg; l++)
         {
-          phi_contrib_local = ang_quad.get_w(dir)*ang_quad.get_leg_moment_coeff_build(dir,l)* i_local;
+          phi_contrib_local = m_sn_wts[dir]*m_leg_moment_coeff_build[m_leg*dir + l]* i_local;
           add_contribution(cell,grp,l,phi_contrib_local );
         }        
       }
     }
   }
   
-  const double div = m_small_ratio/( fem_quad.get_sum_of_dfem_interpolation_weights() * double(m_cells) );
+  const double div = m_small_ratio/( m_sum_dfem_wts * double(m_cells) );
   /// numerical average of phi across all cells
   for(int g=0; g<m_groups; g++)
     m_norm_for_err[g] = fabs(m_norm_for_err[g])*div;

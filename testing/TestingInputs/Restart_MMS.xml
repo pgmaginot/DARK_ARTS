@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone=no>
 <!-- A comment -->
 <RESTART_FILE>
-  <Data_dump_path> /home/pmaginot/Research/dark_arts_local/build/testing/variable_storage/ </Data_dump_path>
+  <Data_dump_path> /home/pmaginot/Research/dark_arts_local/output_files/ </Data_dump_path>
   <Restart_type> RESTART 
     <Initial_inputfile> /home/pmaginot/Research/dark_arts_local/testing/TestingInputs/LinearSpaceConstantTime.xml </Initial_inputfile>
     <Last_complete_time_step_number> 1 </Last_complete_time_step_number>
