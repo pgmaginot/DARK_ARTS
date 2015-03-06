@@ -1814,6 +1814,28 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       if(m_max_ard_iterations < 1)
         throw Dark_Arts_Exception(INPUT, "In SOLVER element:Require at least 1 iteration for FP ARD solver schemes");
     }
+    
+    if( (m_ard_solve_type == FP_LMFGA) || (m_ard_solve_type == KRYLOV_LMFGA) )
+    {
+      /// need to see if we want to collapse groups or not
+      TiXmlElement* lmfga_type_elem = mf_ard_solve_elem->FirstChildElement("LMFGA_structure");
+      if(!lmfga_type_elem)
+        throw Dark_Arts_Exception(INPUT, "LMFGA_structure element missing from MF_solver_type element");
+        
+      std::string lmfga_structure_str = lmfga_type_elem->GetText();
+      transform(lmfga_structure_str.begin() , lmfga_structure_str.end() , lmfga_structure_str.begin() , toupper);
+      if(lmfga_structure_str == "NO_COLLAPSE")
+      {
+        m_lmfga_structure = NO_COLLAPSE;
+      }
+      else if(lmfga_structure_str == "GROUP_COLLAPSE")
+      {
+        m_lmfga_structure = GROUP_COLLAPSE;
+      }
+      if(m_lmfga_structure == INVALID_LMFGA_STRUCTURE)
+        throw Dark_Arts_Exception(INPUT, "Invalid LMFGA_strurture element value");
+        
+    }
   }
   
   /// get thermal convergence tolerance

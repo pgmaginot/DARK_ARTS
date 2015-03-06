@@ -20,6 +20,11 @@ V_Intensity_Update::V_Intensity_Update(const Input_Reader& input_reader,
     m_within_group_radiation_solver = std::make_shared<WGRS_FP_Sweeps>(input_reader, fem_quadrature, 
       cell_data, materials, angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star, phi_ref_norm);
    }
+   else if(solver_type == FP_DSA )
+   {
+    m_within_group_radiation_solver = std::make_shared<WGRS_FP_DSA>(input_reader, fem_quadrature, 
+      cell_data, materials, angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star, phi_ref_norm);
+   }
    else
    {
     throw Dark_Arts_Exception( SUPPORT_OBJECT ,"Desired within group radiation solver not coded");

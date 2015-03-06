@@ -2,6 +2,7 @@
 #define V_Intensity_Update_h
 
 #include "WGRS_FP_Sweeps.h"
+#include "WGRS_FP_DSA.h"
 
 /** @file   V_Intensity_Update.h
   *   @author pmaginot

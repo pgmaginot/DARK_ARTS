@@ -107,6 +107,7 @@ public:
   
   /// Solver tolerances 
   WG_SOLVE_TYPE get_within_group_solve_type(void) const {return m_wg_solve_type;}
+  LMFGA_STRUCTURE get_lmfga_structure(void) const {return m_lmfga_structure;}
   double get_within_group_solve_tolerance(void) const {return m_wg_tolerance;}
   double get_between_group_solve_tolerance(void) const {return m_bg_tolerance;}
   int get_max_number_sweeps(void) const {return m_max_num_sweeps;}
@@ -259,6 +260,7 @@ protected:
   /// radiation solver type data
   /// within group solve type
   WG_SOLVE_TYPE m_wg_solve_type = INVALID_WG_SOLVE_TYPE;
+  LMFGA_STRUCTURE m_lmfga_structure = INVALID_LMFGA_STRUCTURE;
   /// within group scattering tolerance
   double m_wg_tolerance = 3.;
   /// between group scattering/absorption/re-emission tolerance

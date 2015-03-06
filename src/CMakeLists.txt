@@ -149,6 +149,12 @@ PropagateSG(transport_sweep)
 add_subdirectory(temperature_update)
 PropagateSG(temperature_update)
 
+#----------------------------------------
+# Location of MIP DSA operator and supporting functions
+#----------------------------------------
+
+add_subdirectory(mip)
+PropagateSG(mip)
 
 #----------------------------------------
 # Propagate variables to parents scope
