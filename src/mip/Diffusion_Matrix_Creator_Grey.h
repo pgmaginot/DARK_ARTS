@@ -31,7 +31,7 @@ public:
   void evaluate_all_pseudo_d_coefficients(void) override;
   
 protected:
-
+  
 };
 
 #endif

@@ -1827,13 +1827,32 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       if(lmfga_structure_str == "NO_COLLAPSE")
       {
         m_lmfga_structure = NO_COLLAPSE;
+        
+        TiXmlElement* lmfga_order_elem = lmfga_type_elem->FirstChildElement("LMFGA_ordering");
+        if(!lmfga_order_elem)
+          throw Dark_Arts_Exception(INPUT, "LMFGA No_collapse requires LMFGA_ordering element in LMFGA_structure element");
+          
+        std::string lmfga_ordering_str = lmfga_order_elem->GetText();
+        transform(lmfga_ordering_str.begin() , lmfga_ordering_str.end() , lmfga_ordering_str.begin() , toupper);
+        
+        if( lmfga_ordering_str == "GROUP_OUTER")
+        {
+          m_lmfga_ordering = GROUP_OUTER;
+        }
+        else if(lmfga_ordering_str == "CELL_OUTER")
+        {
+          m_lmfga_ordering = CELL_OUTER;
+        }
+        if(m_lmfga_ordering ==INVALID_LMFGA_ORDERING)
+          throw Dark_Arts_Exception(INPUT, "Invalid LMFGA no collapse ordering");
       }
       else if(lmfga_structure_str == "GROUP_COLLAPSE")
       {
         m_lmfga_structure = GROUP_COLLAPSE;
       }
+      
       if(m_lmfga_structure == INVALID_LMFGA_STRUCTURE)
-        throw Dark_Arts_Exception(INPUT, "Invalid LMFGA_strurture element value");
+        throw Dark_Arts_Exception(INPUT, "Invalid LMFGA_structure element value");
         
     }
   }

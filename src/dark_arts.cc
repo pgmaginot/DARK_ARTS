@@ -28,8 +28,8 @@ int main(int argc, char** argv)
     PetscInitialize(&argc,&argv,(char*)0,help);
     ierr = MPI_Comm_size(PETSC_COMM_WORLD,&size);
     CHKERRQ(ierr);
-    // if (size != 1) 
-      // SETERRQ(PETSC_COMM_WORLD,1,"DARK_ARTS is written to be serial only!");
+    if (size != 1) 
+      SETERRQ(PETSC_COMM_WORLD,1,"DARK_ARTS is written to be serial only!");
       
     std::cout << "argc = " << argc << '\n'; 
     for(int i = 0; i < argc; i++) 
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
       
     /// Initalize cell data (dx, xL, xR, x_ip, material_number)
     Cell_Data cell_data( input_reader );  
-    std::cout << "Cell_Data object created" << std::endl;
+    std::cout << "Cell_Data object created" << std::endl;   
       
     /// Initialize angular quadrature data.  Will include number of: directions, groups, and legendre moments.
     /// will also include evaluations of Legendre polynomials
