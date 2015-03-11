@@ -24,7 +24,7 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials& materials,
-  const Temperature_Data& t_star);
+    const Angular_Quadrature& angular_quadrature , const Temperature_Data& t_star);
     
   virtual ~V_Diffusion_Matrix_Creator(){}
    
@@ -32,10 +32,10 @@ public:
     Grey needs to update M, r_cv only
   */
   virtual void set_time_data( const double dt, const double time_stage, const double sdirk_a_of_stage ) = 0;
-    
-  virtual void calculate_pseudo_r_sig_a(void) = 0;
   
-  virtual void calculate_pseudo_r_sig_s(void) = 0;
+  void set_cell_group_information( const int cell, const int group);
+    
+  virtual void calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::MatrixXd& r_sig_a, Eigen::MatrixXd& r_sig_s) = 0;
   
   virtual void evaluate_all_pseudo_d_coefficients(void) = 0;
   
@@ -60,6 +60,14 @@ protected:
   std::vector<double> m_d_at_integration_pts;
   
   const Temperature_Data& m_t_eval;
+  Materials& m_materials;
+  const Angular_Quadrature& m_angular_quadrature;
+  
+  Eigen::VectorXd m_t_eval_vec;
+  double m_dx;
+  int m_cell_num;
+  int m_group_num;
+  
       
   /// builder/lumper of reaction matrices
   std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;

@@ -62,6 +62,16 @@ void V_Matrix_Construction::construct_r_sigma_s(std::vector<Eigen::MatrixXd>& r_
   return;
 }
 
+void V_Matrix_Construction::construct_r_sigma_s(Eigen::MatrixXd& r_sig_s, const int grp, const int l_mom)
+{
+  r_sig_s = Eigen::MatrixXd::Zero(m_n_basis_pts,m_n_basis_pts);
+  m_materials.get_sigma_s(grp, l_mom, m_xs_evals);
+  construct_reaction_matrix(r_sig_s,m_xs_evals);
+  
+  r_sig_s *= m_materials.get_cell_width()/2.;
+  
+  return;
+}
 
 void V_Matrix_Construction::construct_pos_gradient_matrix(Eigen::MatrixXd& l_pos)
 {

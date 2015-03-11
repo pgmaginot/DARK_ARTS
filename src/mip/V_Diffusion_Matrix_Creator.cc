@@ -10,7 +10,7 @@
 #include "V_Diffusion_Matrix_Creator.h"
 
 V_Diffusion_Matrix_Creator::V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials& materials,
-  const Temperature_Data& t_star)
+  const Angular_Quadrature& angular_quadrature,  const Temperature_Data& t_star)
 :
   m_np(fem_quadrature.get_number_of_interpolation_points()), 
   
@@ -27,7 +27,13 @@ V_Diffusion_Matrix_Creator::V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem
   
   m_d_at_integration_pts(m_n_integration_pts,0.),
   
-  m_t_eval(t_star)
+  m_t_eval(t_star),
+  m_materials(materials),
+  m_angular_quadrature(angular_quadrature),
+  m_t_eval_vec(Eigen::VectorXd::Zero(m_np)),
+  m_dx(-1.),
+  m_cell_num(-1)  ,
+  m_group_num(-1)
 {    
   MATRIX_INTEGRATION matrix_type = fem_quadrature.get_integration_type() ;
   /// initialize matrix constructor
@@ -46,4 +52,17 @@ V_Diffusion_Matrix_Creator::V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem
 
 }
 
-
+void V_Diffusion_Matrix_Creator::set_cell_group_information( const int cell, const int group)
+{
+  m_cell_num = cell;
+  m_group_num = group;
+  
+  /// get \f$ \vec{T} \f$ for material evaluation
+  m_t_eval.get_cell_temperature(m_cell_num,m_t_eval_vec) ;
+  
+  m_materials.calculate_local_temp_and_position(cell,m_t_eval_vec);
+    
+  /// set cell width
+  m_dx = m_materials.get_cell_width();
+  return;
+}

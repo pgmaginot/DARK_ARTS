@@ -40,7 +40,7 @@ public:
   void construct_r_sigma_a(Eigen::MatrixXd& r_sig_a, const int grp);
   
   void construct_r_sigma_s( std::vector<Eigen::MatrixXd>& r_sig_s, const int grp, const int l_mom);
-  
+  void construct_r_sigma_s( Eigen::MatrixXd& r_sig_s, const int grp, const int l_mom);
   /// Construct driving source moments
   
   void construct_temperature_source_moments(Eigen::VectorXd& s_t, const double time);
