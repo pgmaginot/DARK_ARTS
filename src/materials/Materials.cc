@@ -24,7 +24,10 @@ Materials::Materials( const Input_Reader& input_reader,
   m_n_el_cell( fem_quadrature.get_number_of_interpolation_points() ),
   m_dx(-1.),
   m_cell_data( cell_data),
-  m_n_source_pts( fem_quadrature.get_number_of_source_points() )
+  m_n_source_pts( fem_quadrature.get_number_of_source_points() ),
+  m_left_edge_set(false),
+  m_right_edge_set(false),
+  m_current_material(-1)
 { 
   try{
     /// resize material property objects
@@ -93,6 +96,39 @@ Materials::Materials( const Input_Reader& input_reader,
   }
 }
 
+void Materials::calculate_left_edge_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)
+{
+  m_current_material = m_cell_data.get_cell_material_number(cell_num);
+  
+  /// calculate the local position at the xs evalaution points
+  m_x_left = m_cell_data.get_cell_left_edge(cell_num);;
+      
+  m_t_left_bound = 0.; 
+  
+  for(int dfem_t = 0; dfem_t < m_n_el_cell ; dfem_t++)
+    m_t_left_bound += temperature(dfem_t)*m_dfem_at_left_edge[dfem_t];
+   
+  m_left_edge_set = true;
+  
+  return;
+}
+
+void Materials::calculate_right_edge_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)
+{
+  m_current_material = m_cell_data.get_cell_material_number(cell_num);
+  
+  /// calculate the local position at the xs evalaution points
+  m_x_right = m_cell_data.get_cell_left_edge(cell_num) + m_cell_data.get_cell_width(cell_num);
+
+  m_t_right_bound = 0.;  
+  for(int dfem_t = 0; dfem_t < m_n_el_cell ; dfem_t++)
+    m_t_right_bound += temperature(dfem_t)*m_dfem_at_right_edge[dfem_t];
+    
+  m_right_edge_set = true;
+   
+  return;
+}
+
 void Materials::calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature)
 {
   /// determine what material we are in
@@ -109,11 +145,7 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
   /// for evaluating driving source moments
   for(int i=0; i< m_n_source_pts; i++)
     m_position_at_source_quad[i] = xL + m_dx/2.*(1. + m_source_quad[i]);
-     
-  /// for edge values (possibly needed by MIP DSA acceleration)
-  m_x_left = xL;
-  m_x_right = xL + m_dx;
-  
+   
   /// calculate the local temperature at the xs evaluation points
   /// basis function evaluation is laid out in a vector: B_{1,1} ... B_{1,N_eval} B_{2,1} ...
   for(int i=0; i < m_n_xs_quad; i++)
@@ -122,18 +154,13 @@ void Materials::calculate_local_temp_and_position(const int cell_num, const Eige
   for(int i=0; i < m_n_source_pts; i++)
     m_temperature_at_source_quad[i] = 0.;
     
-  m_t_left_bound = 0.; 
-  m_t_right_bound = 0.;
-  
   int p=0;
   int src_p = 0;
   for(int dfem_t = 0; dfem_t < m_n_el_cell ; dfem_t++)
   {
     /// temperature is an Eigen::VectorXd
     double t_el = temperature(dfem_t);
-    m_t_left_bound += t_el*m_dfem_at_left_edge[dfem_t];
-    m_t_right_bound += t_el*m_dfem_at_right_edge[dfem_t];
-    for(int i=0; i< m_n_xs_quad; i++)
+     for(int i=0; i< m_n_xs_quad; i++)
     {
       m_t_at_xs_eval_points[i] += t_el*m_dfem_at_xs[p];
       p++;
@@ -160,20 +187,61 @@ void Materials::get_sigma_a(const int grp, std::vector<double>& sig_a)
   return;
 }
 
-void Materials::get_sigma_a_boundary(const int grp, std::vector<double>& sig_a)
-{
-    /// calculate edge values
-  sig_a[0] = m_abs_opacities[m_current_material]->get_absorption_opacity(grp, m_t_left_bound, m_x_left);
-  
-  sig_a[1]=  m_abs_opacities[m_current_material]->get_absorption_opacity(grp, m_t_right_bound, m_x_right);
+void Materials::clear_left_edge_set(void){ m_left_edge_set = false; return; }
 
-  return;
+void Materials::clear_right_edge_set(void){ m_right_edge_set = false; return; }
+  
+double Materials::get_left_sigma_a(const int grp)
+{
+  if(!m_left_edge_set)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, "Attempting to evaluate sigma_a on left edge without left edge position and temperature being set");
+    
+  return m_abs_opacities[m_current_material]->get_absorption_opacity(grp, m_t_left_bound, m_x_left);
+}
+
+double Materials::get_right_sigma_a(const int grp)
+{
+  if(!m_right_edge_set)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, "Attempting to evaluate sigma_a on right edge without right edge position and temperature being set");
+    
+  return m_abs_opacities[m_current_material]->get_absorption_opacity(grp, m_t_right_bound, m_x_right);
+}
+
+double Materials::get_left_sigma_s(const int grp,const int l_mom)
+{
+  if(!m_left_edge_set)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, "Attempting to evaluate sigma_s on left edge without left edge position and temperature being set");
+    
+  return m_scat_opacities[m_current_material]->get_scattering_opacity( l_mom, grp, m_t_left_bound, m_x_left);
+}
+
+double Materials::get_right_sigma_s(const int grp, const int l_mom)
+{
+  if(!m_right_edge_set)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, "Attempting to evaluate sigma_s on right edge without right edge position and temperature being set");
+    
+  return m_scat_opacities[m_current_material]->get_scattering_opacity( l_mom, grp, m_t_right_bound, m_x_right);
+}
+
+double Materials::get_left_cv(void)
+{
+  if(!m_left_edge_set)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, "Attempting to evaluate CV on left edge without left edge position and temperature being set");
+    
+  return m_cv_obj[m_current_material]->get_cv(m_x_left, m_t_left_bound);
+}
+
+double Materials::get_right_cv(void)
+{
+  if(!m_right_edge_set)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, "Attempting to evaluate CV on right edge without right edge position and temperature being set");
+    
+  return m_cv_obj[m_current_material]->get_cv(m_x_right, m_t_right_bound);
 }
 
   /// calculate \f$ \sigma_s \f$ for all DFEM integration points, groups, and scattering moments for cell cell_num
 void Materials::get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s)
-{
-  
+{  
   for(int i=0; i < m_n_xs_quad; i++)
   {  
     m_mat_property_evals[i] = m_scat_opacities[m_current_material]->get_scattering_opacity(
@@ -181,16 +249,6 @@ void Materials::get_sigma_s(const int grp, const int l_mom, std::vector<double>&
   }
       
   m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, sig_s);
-
-  return;
-}
-
-void Materials::get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s)
-{
-  /// calculate edge values
-  sig_s[0] = m_scat_opacities[m_current_material]-> get_scattering_opacity( l_mom, grp, m_t_left_bound, m_x_left);
-          
-  sig_s[1] = m_scat_opacities[m_current_material]->get_scattering_opacity( l_mom, grp, m_t_right_bound, m_x_right);
 
   return;
 }
@@ -205,15 +263,6 @@ void Materials::get_cv(std::vector<double>& cv)
   /// no special mapping necessary, just calculate material cv (at dfem integration points) directly (no group or legendre moment dependence)
   m_xs_treatment->calculate_xs_at_integration_points(m_mat_property_evals, cv);
 
-  return;
-}
-
-void Materials::get_cv_boundary(std::vector<double>& cv)
-{
-  /// calculate edge values
-  cv[0] = m_cv_obj[m_current_material]->get_cv(m_x_left, m_t_left_bound);
-  cv[1] = m_cv_obj[m_current_material]->get_cv(m_x_right, m_t_right_bound);
-  
   return;
 }
 

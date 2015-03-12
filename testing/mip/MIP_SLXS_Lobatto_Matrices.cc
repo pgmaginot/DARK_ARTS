@@ -136,11 +136,46 @@ int main(int argc, char** argv)
   r_pseudo_a_1 = r_sig_tau_1 - r_pseudo_s_1 ;
   r_pseudo_a_2 = r_sig_tau_2 - r_pseudo_s_2 ;
   
+  
+  Eigen::MatrixXd unitless_s_matrix = Eigen::MatrixXd::Zero(n_dfem_p,n_dfem_p);
+  Eigen::MatrixXd calculated_s_matrix_1 = unitless_s_matrix;
+  Eigen::MatrixXd calculated_s_matrix_2 = unitless_s_matrix;
+  Eigen::MatrixXd s_matrix_1 = unitless_s_matrix;
+  Eigen::MatrixXd s_matrix_2 = unitless_s_matrix;
+  unitless_s_matrix(0,0) = 0.5;
+  unitless_s_matrix(1,1) = 0.5;
+  unitless_s_matrix(0,1) = -0.5;
+  unitless_s_matrix(1,0) = -0.5;
+  
+  const double diff_co_1 = 1./(3.*(sig_a_1 + sig_s_1 + 1./(c*dt*rk_a)));
+  const double diff_co_2 = 1./(3.*(sig_a_2 + sig_s_2 + 1./(c*dt*rk_a)));
+  
+  std::cout << "D_1 = " << diff_co_1 << std::endl;
+  std::cout << "D_2 = " << diff_co_2 << std::endl;
+  
+  /**
+    \f{eqnarray}{
+      \frac{\partial b_0}{\partial s} &=& -\frac{1}{2} \\
+      \frac{\partial b_1}{\partial s} &=& \frac{1}{2} \\
+      \int_{x_{i-1/2}}^{x_{i+1/2}}{ \frac{\partial b_0}{\partial x} \frac{\partial b_0}{\partial x} ~dx} &=& 
+        \frac{2}{\Delta x} \frac{2}{\Delta x} \frac{\Delta x}{2} 
+        \int_{-1}^1{ \frac{\partial b_0}{\partial s} \frac{\partial b_0}{\partial s}~ds} \\
+        &=& \frac{4}{\Delta x}
+    \f}  
+  */
+  
+  s_matrix_1 = 2./dx_1*diff_co_1*unitless_s_matrix;
+  s_matrix_2 = 2./dx_2*diff_co_2*unitless_s_matrix;
+  
+  
   try{
+    /// test matrix integrations
     std::shared_ptr<V_Diffusion_Matrix_Creator> matrix_creator;
-    matrix_creator = std::make_shared<Diffusion_Matrix_Creator_Grey>(fem_quadrature,materials,angular_quadrature,t_old);
+    matrix_creator = std::make_shared<Diffusion_Matrix_Creator_Grey>(fem_quadrature,materials,angular_quadrature,t_old, cell_data.get_total_number_of_cells() );
     
     const double t_stage = time_data.get_t_start();
+    
+    double d_cm1_r , d_c_l, d_c_r , d_cp1_l;
     
     Eigen::MatrixXd calc_r_sig_a_1 = Eigen::MatrixXd::Zero(n_dfem_p,n_dfem_p);
     Eigen::MatrixXd calc_r_sig_a_2 = calc_r_sig_a_1;
@@ -150,13 +185,21 @@ int main(int argc, char** argv)
     matrix_creator->set_time_data(dt,t_stage,rk_a);
     matrix_creator->set_cell_group_information(1,0);
     matrix_creator->calculate_pseudo_r_sig_a_and_r_sig_s(calc_r_sig_a_1,calc_r_sig_s_1);
+    matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_1);
     
     matrix_creator->set_cell_group_information(4,0);
     matrix_creator->calculate_pseudo_r_sig_a_and_r_sig_s(calc_r_sig_a_2,calc_r_sig_s_2);
+    matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     
     std::cout << "Region 0\n"; 
     std::cout << "Calculated Pseudo r_sig_a: \n" << calc_r_sig_a_1 << "\n Expected: \n" << r_pseudo_a_1 << std::endl;
     std::cout << "Calculated Pseudo r_sig_s: \n" << calc_r_sig_s_1 << "\n Expected: \n" << r_pseudo_s_1 << std::endl;
+    std::cout << "Calculated S_matrix: \n" << calculated_s_matrix_1 << "\n Expected: \n" << s_matrix_1 << std::endl;
+    
+    std::cout << "\nRegion 1\n"; 
+    std::cout << "Calculated Pseudo r_sig_a: \n" << calc_r_sig_a_2 << "\n Expected: \n" << r_pseudo_a_2 << std::endl;
+    std::cout << "Calculated Pseudo r_sig_s: \n" << calc_r_sig_s_2 << "\n Expected: \n" << r_pseudo_s_2 << std::endl;
+    std::cout << "Calculated S_matrix: \n" << calculated_s_matrix_2 << "\n Expected: \n" << s_matrix_2 << std::endl;
     
     for(int i=0; i < n_dfem_p ; i++)
     {
@@ -173,8 +216,100 @@ int main(int argc, char** argv)
           
         if( fabs(calc_r_sig_s_2(i,j) - r_pseudo_s_2(i,j) ) > tol)
           throw Dark_Arts_Exception(MIP, "Not calculating region 1 grey pseudo r_sig_s correctly");
+          
+        if( fabs(calculated_s_matrix_1(i,j) - s_matrix_1(i,j) ) > tol)
+          throw Dark_Arts_Exception(MIP, "Not calculating region 1 grey pseudo S matrix correctly");
+          
+        if( fabs(calculated_s_matrix_2(i,j) - s_matrix_2(i,j) ) > tol)
+          throw Dark_Arts_Exception(MIP, "Not calculating region 2 grey pseudo S matrix correctly");
       }
     }
+    
+    /// test edge diffusion coefficent evaluations
+    /// first test, interior of region 0 
+    
+    matrix_creator->set_cell_group_information(1,0);
+    matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
+    
+    std::cout << "Interior of region 0 D coeff\n";
+    std::cout << "Expected d_cm1_r: " << diff_co_1 << " Calculated: " << d_cm1_r << std::endl;
+    std::cout << "Expected d_c_l: " << diff_co_1 << " Calculated: " << d_c_l << std::endl;
+    std::cout << "Expected d_c_r: " << diff_co_1 << " Calculated: " << d_c_r << std::endl;
+    std::cout << "Expected d_cp1_l: " << diff_co_1 << " Calculated: " << d_cp1_l << std::endl;    
+    if( fabs(d_cm1_r - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c minus 1 right edge D");
+      
+    if( fabs(d_c_l - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c left edge D");
+      
+    if( fabs(d_c_r - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c right edge D");
+      
+    if( fabs(d_cp1_l - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c plus 1 left edge D");
+    
+    
+    /// interior of region 1
+    matrix_creator->set_cell_group_information(4,0);
+    matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
+    std::cout << "Interior of region 1 D coeff\n";
+    std::cout << "Expected d_cm1_r: " << diff_co_2 << " Calculated: " << d_cm1_r << std::endl;
+    std::cout << "Expected d_c_l: " << diff_co_2 << " Calculated: " << d_c_l << std::endl;
+    std::cout << "Expected d_c_r: " << diff_co_2 << " Calculated: " << d_c_r << std::endl;
+    std::cout << "Expected d_cp1_l: " << diff_co_2 << " Calculated: " << d_cp1_l << std::endl;    
+    if( fabs(d_cm1_r - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c minus 1 right edge D");
+      
+    if( fabs(d_c_l - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c left edge D");
+      
+    if( fabs(d_c_r - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c right edge D");
+      
+    if( fabs(d_cp1_l - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c plus 1 left edge D");
+      
+    
+    /// rightmost cell of region 0
+    matrix_creator->set_cell_group_information(2,0);
+    matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
+    std::cout << "Righmost edge of region 0 D coeff\n";
+    std::cout << "Expected d_cm1_r: " << diff_co_1 << " Calculated: " << d_cm1_r << std::endl;
+    std::cout << "Expected d_c_l: " << diff_co_1 << " Calculated: " << d_c_l << std::endl;
+    std::cout << "Expected d_c_r: " << diff_co_1 << " Calculated: " << d_c_r << std::endl;
+    std::cout << "Expected d_cp1_l: " << diff_co_2 << " Calculated: " << d_cp1_l << std::endl;    
+    if( fabs(d_cm1_r - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c minus 1 right edge D");
+      
+    if( fabs(d_c_l - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c left edge D");
+      
+    if( fabs(d_c_r - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c right edge D");
+      
+    if( fabs(d_cp1_l - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c plus 1 left edge D");
+      
+    /// leftmost cell of region 1
+    matrix_creator->set_cell_group_information(3,0);
+    matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
+    std::cout << "Leftmost cell of region 1 D coeff\n";
+    std::cout << "Expected d_cm1_r: " << diff_co_1 << " Calculated: " << d_cm1_r << std::endl;
+    std::cout << "Expected d_c_l: " << diff_co_2 << " Calculated: " << d_c_l << std::endl;
+    std::cout << "Expected d_c_r: " << diff_co_2 << " Calculated: " << d_c_r << std::endl;
+    std::cout << "Expected d_cp1_l: " << diff_co_2 << " Calculated: " << d_cp1_l << std::endl;    
+    if( fabs(d_cm1_r - diff_co_1) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c minus 1 right edge D");
+      
+    if( fabs(d_c_l - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c left edge D");
+      
+    if( fabs(d_c_r - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c right edge D");
+      
+    if( fabs(d_cp1_l - diff_co_2) > tol )
+      throw Dark_Arts_Exception(MIP, "Wrong cell c plus 1 left edge D");
+      
   }
   catch(const Dark_Arts_Exception& da)
   {

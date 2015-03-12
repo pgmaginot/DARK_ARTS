@@ -31,7 +31,7 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     if(n_groups ==1)
     {
       m_diffusion_matrix_creator = std::make_shared<Diffusion_Matrix_Creator_Grey>
-        (fem_quadrature,materials,angular_quadrature,t_eval);
+        (fem_quadrature,materials,angular_quadrature,t_eval,m_n_cell);
         
       m_diffusion_ordering = std::make_shared<Grey_Diffusion_Ordering>(cell_data,angular_quadrature);
     }

@@ -62,6 +62,8 @@ int main(int argc, char** argv)
   /// calculate local temperature and position in Materials object
   try{
     materials.calculate_local_temp_and_position(cell_num , t_vec);
+    materials.calculate_left_edge_temp_and_position(cell_num, t_vec);
+    materials.calculate_right_edge_temp_and_position(cell_num, t_vec);
   }
   catch(const Dark_Arts_Exception& da)
   {
@@ -84,35 +86,38 @@ int main(int argc, char** argv)
   
   /// test edge values
   std::vector<double> calculated_cv_edge(2,0.);
-  materials.get_cv_boundary(calculated_cv_edge);
+  std::vector<double> calculated_sig_a_edge(2,0.);
+  std::vector<double> calculated_sig_s_edge(2,0.);
+  
   try{
+    calculated_cv_edge[0] = materials.get_left_cv();
+    calculated_sig_a_edge[0] = materials.get_left_sigma_a(0);
+    calculated_sig_s_edge[0] = materials.get_left_sigma_s(0,0);
+    materials.clear_left_edge_set();
+    
+    calculated_cv_edge[1] = materials.get_right_cv();
+    calculated_sig_a_edge[1] = materials.get_right_sigma_a(0);
+    calculated_sig_s_edge[1] = materials.get_right_sigma_s(0,0);
+    materials.clear_right_edge_set();
+  
+  
     for(int i=0 ; i < 2 ; i++)
     {
       std::cout << "Calculated cv: " << calculated_cv_edge[i] << " Expected Cv: " << cv << std::endl;
       if( fabs( (calculated_cv_edge[i] - cv )/cv) > tol )
         throw Dark_Arts_Exception( SUPPORT_OBJECT, "Incorrect calculation of cv at edges" );
     }
-  }
-  catch(const Dark_Arts_Exception& da)
-  {
-    val = -1;
-    da.testing_message();
-  }
+    
+    std::vector<double> expected_sig_s_edge(2,0.);
+    std::vector<double> expected_sig_a_edge(2,0.);
+
+    
+    expected_sig_s_edge[0] = sig_s_coeff[0] + x_left*sig_s_coeff[1];
+    expected_sig_s_edge[1] = sig_s_coeff[0] + x_right*sig_s_coeff[1];
+    
+    expected_sig_a_edge[0] = sig_a/(t_left*t_left);
+    expected_sig_a_edge[1] = sig_a/(t_right*t_right);
   
-  std::vector<double> expected_sig_s_edge(2,0.);
-  std::vector<double> expected_sig_a_edge(2,0.);
-  std::vector<double> calculated_sig_a_edge(2,0.);
-  std::vector<double> calculated_sig_s_edge(2,0.);
-  
-  expected_sig_s_edge[0] = sig_s_coeff[0] + x_left*sig_s_coeff[1];
-  expected_sig_s_edge[1] = sig_s_coeff[0] + x_right*sig_s_coeff[1];
-  
-  expected_sig_a_edge[0] = sig_a/(t_left*t_left);
-  expected_sig_a_edge[1] = sig_a/(t_right*t_right);
-  materials.get_sigma_a_boundary(0, calculated_sig_a_edge);
-  materials.get_sigma_s_boundary(0, 0, calculated_sig_s_edge);
-  
-  try{
     for(int i=0; i<2 ; i++)
       if(fabs((expected_sig_s_edge[i] - calculated_sig_s_edge[i])/expected_sig_s_edge[i] ) > tol )
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "Difference in calculated edge sigma_s");

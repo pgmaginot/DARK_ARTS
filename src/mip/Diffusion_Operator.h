@@ -21,6 +21,12 @@
 #include "MG_LMFGA_No_Collapse_Cell_Outer_Diffusion_Ordering.h"
 #include "MG_LMFGA_No_Collapse_Group_Outer_Diffusion_Ordering.h"
 
+#include "Local_MIP_Assembler.h"
+
+#include "MIP_Left_Boundary_Reflective.h"
+#include "MIP_Left_Boundary_Incident_Flux.h"
+#include "MIP_Right_Boundary_Incident_Flux.h"
+
 #include <petscksp.h>
 
 /** @file   Diffusion_Operator.h
@@ -54,12 +60,15 @@ protected:
   double m_sdirk_a_stage;
   int m_dt;
   double m_time_stage;
-  
+    
   std::shared_ptr<V_Diffusion_Matrix_Creator> m_diffusion_matrix_creator;  
   
   std::shared_ptr<V_Diffusion_Ordering> m_diffusion_ordering;
   
-  // std::shared_ptr<V_Intensity_Moment_Petsc_Mapping> m_diffusion_mapping;
+  Local_MIP_Assembler m_local_assembler;
+  
+  std::shared_ptr<V_MIP_Left_Boundary> m_left_boundary;
+  std::shared_ptr<V_MIP_Right_Boundary> m_right_boundary;
   
   /// PETSc variables 
   PetscErrorCode m_petsc_err;  

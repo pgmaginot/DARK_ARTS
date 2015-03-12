@@ -55,7 +55,9 @@ public:
   */
   
   void calculate_local_temp_and_position(const int cell_num, const Eigen::VectorXd& temperature);
-  
+  void calculate_left_edge_temp_and_position(const int cell_num ,const Eigen::VectorXd& temperature);
+  void calculate_right_edge_temp_and_position(const int cell_num ,const Eigen::VectorXd& temperature);
+
   /// calculate the appropriate data, which the Materials object has stored for the given cell
   void get_sigma_a(const int grp, std::vector<double>& sig_a);
   void get_sigma_s(const int grp, const int l_mom, std::vector<double>& sig_s);
@@ -66,9 +68,19 @@ public:
   void get_temperature_source(const double time, std::vector<double>& t_source_evals);
   void get_intensity_source(const double time, const int grp, const int dir, std::vector<double>& i_source_evals);
   
-  void get_sigma_a_boundary(const int grp, std::vector<double>& sig_a);
-  void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
-  void get_cv_boundary(std::vector<double>& cv);
+  void clear_left_edge_set(void);
+  void clear_right_edge_set(void);
+  
+  double get_left_sigma_a(const int grp);
+  double get_right_sigma_a(const int grp);
+  double get_left_sigma_s(const int grp,const int l_mom);
+  double get_right_sigma_s(const int grp, const int l_mom);
+  double get_left_cv(void);
+  double get_right_cv(void);
+  
+  // void get_sigma_a_boundary(const int grp, std::vector<double>& sig_a);
+  // void get_sigma_s_boundary(const int grp, const int l_mom, std::vector<double>& sig_s);
+  // void get_cv_boundary(std::vector<double>& cv);
    
   double get_mf_planck(const double t_eval, const int grp);
   double get_grey_planck(const double t_eval);
@@ -120,9 +132,13 @@ private:
   
   /// number of quadrature points used to evaluate driving source moments
   const int m_n_source_pts;
-    
+  
+  /// flags to indicate whetehr edges have been evaluated
+  bool m_left_edge_set;
+  bool m_right_edge_set;
+  
   /// what material the current cell is in
-  int m_current_material=-1;
+  int m_current_material;
   
   /// translator from material evaluations at xs quadrature points to xs at DFEM integration points
   std::shared_ptr<V_XS_Treatment> m_xs_treatment;

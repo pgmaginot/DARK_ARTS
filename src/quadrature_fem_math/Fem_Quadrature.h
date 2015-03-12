@@ -44,6 +44,12 @@ public:
   /// accept/return vectors of dfem basis functions at the left and right edges
   void get_dfem_at_edges(std::vector<double>& dfem_at_left_edge,std::vector<double>& dfem_at_right_edge) const;
   
+  /// initialize dfem basis functions at the left and right edges
+  Eigen::RowVectorXd get_dfem_at_left_edge(void) const;
+  Eigen::RowVectorXd get_dfem_at_right_edge(void) const;
+  Eigen::RowVectorXd get_dfem_deriv_at_left_edge(void) const;
+  Eigen::RowVectorXd get_dfem_deriv_at_right_edge(void) const;
+  
   /// accept/return a vector of the interpolatory cross section polynomials evaluated at the dfem integration points
   void get_xs_at_dfem_integration_points(std::vector<double>& xs_at_dfem_integration_pts) const;
   

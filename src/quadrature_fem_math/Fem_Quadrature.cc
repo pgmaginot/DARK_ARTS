@@ -348,3 +348,41 @@ void Fem_Quadrature::evaluate_variable_at_quadrature_pts(const Eigen::VectorXd& 
   
   return;
 }
+
+Eigen::RowVectorXd Fem_Quadrature::get_dfem_at_left_edge(void) const
+{
+  Eigen::RowVectorXd left_edge = Eigen::RowVectorXd::Zero(m_n_interpolation_points);
+  for(int i=0; i < m_n_interpolation_points ; i++)
+    left_edge(i) = m_dfem_at_left_edge[i];
+    
+
+  
+  return left_edge;
+}
+
+Eigen::RowVectorXd Fem_Quadrature::get_dfem_at_right_edge(void) const
+{
+  Eigen::RowVectorXd right_edge = Eigen::RowVectorXd::Zero(m_n_interpolation_points);
+  for(int i=0; i < m_n_interpolation_points ; i++)
+    right_edge(i) = m_dfem_at_right_edge[i];
+  
+  return right_edge;
+}
+
+Eigen::RowVectorXd Fem_Quadrature::get_dfem_deriv_at_left_edge(void) const
+{
+  Eigen::RowVectorXd left_edge = Eigen::RowVectorXd::Zero(m_n_interpolation_points);
+  for(int i=0; i < m_n_interpolation_points ; i++)
+    left_edge(i) = m_d_dfem_d_s_at_left_edge[i];
+      
+  return left_edge;
+}
+
+Eigen::RowVectorXd Fem_Quadrature::get_dfem_deriv_at_right_edge(void) const
+{
+  Eigen::RowVectorXd right_edge = Eigen::RowVectorXd::Zero(m_n_interpolation_points);
+  for(int i=0; i < m_n_interpolation_points ; i++)
+    right_edge(i) = m_d_dfem_d_s_at_right_edge[i];
+  
+  return right_edge;
+}

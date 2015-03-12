@@ -7,7 +7,7 @@
 #include "Matrix_Construction_Exact.h"
 #include "Matrix_Construction_Self_Lumping.h"
 #include "Matrix_Construction_Trad_Lumping.h"
-
+#include "Local_MIP_Assembler.h"
 #include "Cell_Data.h"
 #include "Materials.h"
 #include "Temperature_Data.h"
@@ -24,7 +24,7 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials& materials,
-    const Angular_Quadrature& angular_quadrature , const Temperature_Data& t_star);
+    const Angular_Quadrature& angular_quadrature , const Temperature_Data& t_star, const int n_cells);
     
   virtual ~V_Diffusion_Matrix_Creator(){}
    
@@ -36,9 +36,9 @@ public:
   void set_cell_group_information( const int cell, const int group);
     
   virtual void calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::MatrixXd& r_sig_a, Eigen::MatrixXd& r_sig_s) = 0;
-  
-  virtual void evaluate_all_pseudo_d_coefficients(void) = 0;
-  
+
+  void calculate_d_dependent_quantities(double& d_r_cm1, double& d_l_c , double& d_r_c , double& d_l_cp1, Eigen::MatrixXd& s_matrix);  
+   
 protected:
   /** ****************************************************************
     * Variables that are initialzed in the constructor initialization list
@@ -47,6 +47,8 @@ protected:
   const int m_np;
   
   const int m_n_integration_pts;
+  
+  const int m_n_cells;
   
   Eigen::MatrixXd m_r_sig_s;
   
@@ -57,6 +59,9 @@ protected:
   double m_d_r_c;
   double m_d_l_cp1;
   
+  std::vector<double> m_dfem_derivatives;
+  std::vector<double> m_integration_wts;
+  
   std::vector<double> m_d_at_integration_pts;
   
   const Temperature_Data& m_t_eval;
@@ -64,13 +69,20 @@ protected:
   const Angular_Quadrature& m_angular_quadrature;
   
   Eigen::VectorXd m_t_eval_vec;
-  double m_dx;
+  double m_dx_cm1, m_dx_c, m_dx_cp1;
+  double m_kappa_m12 , m_kappa_p12;
   int m_cell_num;
   int m_group_num;
   
+  Local_MIP_Assembler m_mip_assembler;
       
   /// builder/lumper of reaction matrices
   std::shared_ptr<V_Matrix_Construction> m_mtrx_builder;
+  
+  void calculate_s_matrix(Eigen::MatrixXd& s_matrix);
+  
+  virtual void evaluate_diffusion_coefficents(double& d_r_cm1, double& d_l_c , double& d_r_c , double& d_l_cp1) = 0;
+  
 };
 
 #endif

@@ -93,20 +93,30 @@ int main(int argc, char** argv)
     std::vector<double> calculated_sig_a_edge(2,0.);
     std::vector<double> calculated_sig_s_edge(2,0.);
     std::vector<double> calculated_cv_at_dfem_int_pts(n_dfem_int_pt,0.);
-    std::vector<double> calcualted_sig_a_at_dfem_int_pts(n_dfem_int_pt, 0.);
-    std::vector<double> calcualted_sig_s_at_dfem_int_pts(n_dfem_int_pt, 0.);
+    std::vector<double> calculated_sig_a_at_dfem_int_pts(n_dfem_int_pt, 0.);
+    std::vector<double> calculated_sig_s_at_dfem_int_pts(n_dfem_int_pt, 0.);
 
   // try
   // {
     for(int c = 0; c<total_cells ; c++)
     {
-      materials.calculate_local_temp_and_position(c , t_vec);
-      materials.get_cv_boundary(calculated_cv_edge);
-      materials.get_sigma_a_boundary(0, calculated_sig_a_edge);
-      materials.get_sigma_s_boundary(0, 0, calculated_sig_s_edge);
+      materials.calculate_left_edge_temp_and_position(c, t_vec);
+      materials.calculate_right_edge_temp_and_position(c, t_vec);
+      materials.calculate_local_temp_and_position(c, t_vec);
+      
+      materials.get_sigma_a(0, calculated_sig_a_at_dfem_int_pts);
+      materials.get_sigma_s(0,0, calculated_sig_s_at_dfem_int_pts);
       materials.get_cv(calculated_cv_at_dfem_int_pts);
-      materials.get_sigma_s(0,0,calcualted_sig_s_at_dfem_int_pts);  
-      materials.get_sigma_a(0,calcualted_sig_a_at_dfem_int_pts);
+      
+      calculated_cv_edge[0] = materials.get_left_cv();
+      calculated_sig_a_edge[0] = materials.get_left_sigma_a(0);
+      calculated_sig_s_edge[0] = materials.get_left_sigma_s(0,0);
+      materials.clear_left_edge_set();
+      
+      calculated_cv_edge[1] = materials.get_right_cv();
+      calculated_sig_a_edge[1] = materials.get_right_sigma_a(0);
+      calculated_sig_s_edge[1] = materials.get_right_sigma_s(0,0);
+      materials.clear_right_edge_set();
       
       int mat_num = cell_data.get_cell_material_number(c);
       
@@ -138,12 +148,12 @@ int main(int argc, char** argv)
       for(int i = 0; i < n_dfem_int_pt ; i++)
       {
         // std::cout <<"Cell_num: " << c << "sig_s expected: " << sig_s << " sig_s calculated: "  << calcualted_sig_s_at_dfem_int_pts[i] << std::endl;
-        // if( fabs( sig_s - calcualted_sig_s_at_dfem_int_pts[i] ) > tol)
-          // throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating scattering cross section in space");
+        if( fabs( sig_s - calculated_sig_s_at_dfem_int_pts[i] ) > tol)
+          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating scattering cross section in space");
         
         // std::cout <<"Cell_num: " << c << "sig_a expected: " << sig_a << " sig_a calculated: "  << calcualted_sig_a_at_dfem_int_pts[i] << std::endl;               
-        // if( fabs( sig_a - calcualted_sig_a_at_dfem_int_pts[i] ) > tol)
-          // throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating absorption cross section in space");
+        if( fabs( sig_a - calculated_sig_a_at_dfem_int_pts[i] ) > tol)
+          throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating absorption cross section in space");
           
         if( fabs( (cv - calculated_cv_at_dfem_int_pts[i] )/cv) > tol)
           throw Dark_Arts_Exception(SUPPORT_OBJECT, "Discrepancy in calculating Cv in space");          
