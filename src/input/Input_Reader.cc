@@ -1768,6 +1768,22 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element: Must allow at least one sweep per within group solve");
   }
   
+  if( (m_wg_solve_type == FP_DSA) || (m_wg_solve_type==KRYLOV_DSA) )
+  {
+    TiXmlElement* mip_options_elem = solver_type_elem->FirstChildElement( "MIP_solve_options" );
+    if(!mip_options_elem)
+      throw Dark_Arts_Exception(INPUT, "FP_DSA or KRYLOV_DSA require a MIP_solve_options block in SOLVER element");
+      
+    TiXmlElement* z_mip_elem = mip_options_elem->FirstChildElement( "Z_mip" );
+    if(!z_mip_elem)
+      throw Dark_Arts_Exception(INPUT , "Missing Z_mip element from WG MIP_solve_options_block");
+      
+    m_wg_z_mip = atof( z_mip_elem->GetText() );
+    
+    if(m_wg_z_mip < 2.)
+      throw Dark_Arts_Exception(INPUT , "Z_mip must be a double greater than 1");
+  }
+  
   /**
       Things that are only required / neeeded for multi frequency problems
   */
@@ -1880,7 +1896,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       throw Dark_Arts_Exception(INPUT, "In SOLVER element:Grey problem.  Within group tolerance must be smaller than thermal iteration tolerance");
 
   }
-  
+    
   return 0;
 }
 

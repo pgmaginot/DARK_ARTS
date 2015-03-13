@@ -15,7 +15,7 @@ public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
   Diffusion_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials& materials,
-    const Angular_Quadrature& angular_quadrature, const Temperature_Data& t_star, const int n_cells);
+    const Angular_Quadrature& angular_quadrature, const Temperature_Data& t_star, const int n_cells, const Input_Reader& input_reader);
     
   virtual ~Diffusion_Matrix_Creator_Grey(){}
    

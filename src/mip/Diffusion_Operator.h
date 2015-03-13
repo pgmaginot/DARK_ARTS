@@ -65,11 +65,7 @@ protected:
   
   std::shared_ptr<V_Diffusion_Ordering> m_diffusion_ordering;
   
-  Local_MIP_Assembler m_local_assembler;
-  
-  std::shared_ptr<V_MIP_Left_Boundary> m_left_boundary;
-  std::shared_ptr<V_MIP_Right_Boundary> m_right_boundary;
-  
+  Local_MIP_Assembler m_local_assembler;  
   /// PETSc variables 
   PetscErrorCode m_petsc_err;  
   Mat m_mip_global;

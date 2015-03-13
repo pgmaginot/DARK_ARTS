@@ -1,10 +1,14 @@
 #ifndef Local_MIP_Assembler_h
 #define Local_MIP_Assembler_h
 
+#include <memory>
 #include "Inputs_Allowed.h"
 #include "Fem_Quadrature.h"
+#include "MIP_Left_Boundary_Incident_Flux.h"
+#include "MIP_Left_Boundary_Reflective.h"
+#include "MIP_Right_Boundary_Incident_Flux.h"
 #include "Eigen/Dense"
-// #include "Diffusion_Matrix_Creator_Grey.h"
+
 /** @file   Local_MIP_Assembler.h
   *   @author pmaginot
   *   @brief Assemble the local MIP matrices edge integrals of jump, average, cell integration operators
@@ -16,24 +20,27 @@ class Local_MIP_Assembler
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  Local_MIP_Assembler(const Fem_Quadrature& fem_quadrature);
+  Local_MIP_Assembler(const Fem_Quadrature& fem_quadrature, const Input_Reader& input_reader);
     
   virtual ~Local_MIP_Assembler(){}
     
-  void calculate_left_boundary_matrices(const double kappa_cm12, const double kappa_cp12 , 
-    const double d_cm12_r, const double d_c_l , const double d_c_r , const double d_cp1_l,
+  void calculate_left_boundary_matrices(const double kappa_12, const double kappa_32 ,   
+    const double dx_c, const double dx_cp1, 
+    const double d_c_l , const double d_c_r , const double d_cp1_l,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
     Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1, Eigen::VectorXd& rhs);
     
   void calculate_interior_matrices(const double kappa_cm12, const double kappa_cp12 , 
+    const double dx_cm1, const double dx_c, const double dx_cp1, 
     const double d_cm12_r, const double d_c_l , const double d_c_r , const double d_cp1_l,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
     Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1);
     
-  void calculate_right_boundary_matrices(const double kappa_cm12, const double kappa_cp12 , 
-    const double d_cm12_r, const double d_c_l , const double d_c_r , const double d_cp1_l,
+  void calculate_right_boundary_matrices(const double kappa_nm12, const double kappa_np12 , 
+    const double dx_cm1, const double dx_c, 
+    const double d_cm1_r, const double d_c_l , const double d_c_r ,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c);
+    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c, Eigen::VectorXd& rhs);
     
 protected:
   /** ****************************************************************
@@ -60,10 +67,9 @@ protected:
   const Eigen::MatrixXd m_Rst_L;
   const Eigen::MatrixXd m_Rt_Ls;
   
-  Eigen::MatrixXd cell_cm1;
-  Eigen::MatrixXd cell_c;
-  Eigen::MatrixXd cell_cp1;
-  
+  std::shared_ptr<V_MIP_Left_Boundary> m_left_boundary;
+  std::shared_ptr<V_MIP_Right_Boundary> m_right_boundary;
+    
 };
 
 #endif

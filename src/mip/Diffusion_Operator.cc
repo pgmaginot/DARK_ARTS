@@ -24,14 +24,15 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   
   m_sdirk_a_stage(-1.),
   m_dt(-1.),  
-  m_time_stage(-1.)
+  m_time_stage(-1.),
+  m_local_assembler(fem_quadrature,input_reader)
 {    
   if(is_wg_solve)
   {
     if(n_groups ==1)
     {
       m_diffusion_matrix_creator = std::make_shared<Diffusion_Matrix_Creator_Grey>
-        (fem_quadrature,materials,angular_quadrature,t_eval,m_n_cell);
+        (fem_quadrature,materials,angular_quadrature,t_eval,m_n_cell,input_reader);
         
       m_diffusion_ordering = std::make_shared<Grey_Diffusion_Ordering>(cell_data,angular_quadrature);
     }
@@ -110,6 +111,7 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   */
   
   /// set MIP matrix structure one time for faster assembly
+  
   
 }
 

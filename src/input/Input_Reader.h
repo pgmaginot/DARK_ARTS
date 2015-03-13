@@ -116,6 +116,8 @@ public:
   int get_max_thermal_iteration(void) const {return m_max_thermals ;}
   ARD_SOLVE_TYPE get_ard_solve_type(void) const {return m_ard_solve_type;}
   double get_thermal_tolerance(void) const {return m_thermal_tolerance;}
+  double get_wg_z_mip(void) const {return m_wg_z_mip;}
+  
   
   /// IC_BC block
   /**
@@ -274,6 +276,7 @@ protected:
   int m_max_ard_iterations = -1;
   double m_thermal_tolerance = 1.;
   int m_max_thermals = 0;
+  double m_wg_z_mip = 0.;
   
   /// thermal iteration parameters
   int m_iters_before_damp =-1;

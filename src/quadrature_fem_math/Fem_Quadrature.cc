@@ -172,7 +172,8 @@ m_xs_extra_points( 10)
       m_basis_at_xs_points);
       
     /// make a dummy vector to use in filling out the edge values
-    std::vector<double> edge_vec(1,-1.);
+    std::vector<double> edge_vec(1,0.);
+    edge_vec[0] = -1.;
     evaluate_lagrange_func(m_dfem_interpolation_points, edge_vec,m_dfem_at_left_edge);  
     evaluate_lagrange_func_derivatives(m_dfem_interpolation_points, edge_vec,m_d_dfem_d_s_at_left_edge);
     
@@ -373,8 +374,11 @@ Eigen::RowVectorXd Fem_Quadrature::get_dfem_deriv_at_left_edge(void) const
 {
   Eigen::RowVectorXd left_edge = Eigen::RowVectorXd::Zero(m_n_interpolation_points);
   for(int i=0; i < m_n_interpolation_points ; i++)
+  {
     left_edge(i) = m_d_dfem_d_s_at_left_edge[i];
-      
+  }    
+  
+  
   return left_edge;
 }
 

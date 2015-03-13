@@ -171,7 +171,8 @@ int main(int argc, char** argv)
   try{
     /// test matrix integrations
     std::shared_ptr<V_Diffusion_Matrix_Creator> matrix_creator;
-    matrix_creator = std::make_shared<Diffusion_Matrix_Creator_Grey>(fem_quadrature,materials,angular_quadrature,t_old, cell_data.get_total_number_of_cells() );
+    matrix_creator = std::make_shared<Diffusion_Matrix_Creator_Grey>
+      (fem_quadrature,materials,angular_quadrature,t_old, cell_data.get_total_number_of_cells(),input_reader );
     
     const double t_stage = time_data.get_t_start();
     
@@ -183,11 +184,11 @@ int main(int argc, char** argv)
     Eigen::MatrixXd calc_r_sig_s_2 = calc_r_sig_a_1;
     
     matrix_creator->set_time_data(dt,t_stage,rk_a);
-    matrix_creator->set_cell_group_information(1,0);
+    matrix_creator->set_cell_group_information(1,0,dx_1);
     matrix_creator->calculate_pseudo_r_sig_a_and_r_sig_s(calc_r_sig_a_1,calc_r_sig_s_1);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_1);
     
-    matrix_creator->set_cell_group_information(4,0);
+    matrix_creator->set_cell_group_information(4,0,dx_2);
     matrix_creator->calculate_pseudo_r_sig_a_and_r_sig_s(calc_r_sig_a_2,calc_r_sig_s_2);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     
@@ -228,7 +229,7 @@ int main(int argc, char** argv)
     /// test edge diffusion coefficent evaluations
     /// first test, interior of region 0 
     
-    matrix_creator->set_cell_group_information(1,0);
+    matrix_creator->set_cell_group_information(1,0,dx_1);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     
     std::cout << "Interior of region 0 D coeff\n";
@@ -250,7 +251,7 @@ int main(int argc, char** argv)
     
     
     /// interior of region 1
-    matrix_creator->set_cell_group_information(4,0);
+    matrix_creator->set_cell_group_information(4,0,dx_2);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     std::cout << "Interior of region 1 D coeff\n";
     std::cout << "Expected d_cm1_r: " << diff_co_2 << " Calculated: " << d_cm1_r << std::endl;
@@ -271,7 +272,7 @@ int main(int argc, char** argv)
       
     
     /// rightmost cell of region 0
-    matrix_creator->set_cell_group_information(2,0);
+    matrix_creator->set_cell_group_information(2,0,dx_1);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     std::cout << "Righmost edge of region 0 D coeff\n";
     std::cout << "Expected d_cm1_r: " << diff_co_1 << " Calculated: " << d_cm1_r << std::endl;
@@ -291,7 +292,7 @@ int main(int argc, char** argv)
       throw Dark_Arts_Exception(MIP, "Wrong cell c plus 1 left edge D");
       
     /// leftmost cell of region 1
-    matrix_creator->set_cell_group_information(3,0);
+    matrix_creator->set_cell_group_information(3,0,dx_2);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     std::cout << "Leftmost cell of region 1 D coeff\n";
     std::cout << "Expected d_cm1_r: " << diff_co_1 << " Calculated: " << d_cm1_r << std::endl;

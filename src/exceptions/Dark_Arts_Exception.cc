@@ -34,6 +34,11 @@ Dark_Arts_Exception::Dark_Arts_Exception( EXCEPTION_TYPE ex_type , const std::st
       error_message = "TRANSPORT: ";
       break;
     }
+    case MIP:
+    {
+      error_message = "MIP: ";
+      break;
+    }
     default:
     {
       error_message = "Unknown Exception Type: " ;
@@ -76,6 +81,11 @@ Dark_Arts_Exception::Dark_Arts_Exception( EXCEPTION_TYPE ex_type , const std::st
     case TRANSPORT:
     {
       error_message = "TRANSPORT: ";
+      break;
+    }
+    case MIP:
+    {
+      error_message = "MIP: ";
       break;
     }
     default:

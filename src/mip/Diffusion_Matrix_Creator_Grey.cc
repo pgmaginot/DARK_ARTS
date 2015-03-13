@@ -10,9 +10,9 @@
 #include "Diffusion_Matrix_Creator_Grey.h"
 
 Diffusion_Matrix_Creator_Grey::Diffusion_Matrix_Creator_Grey(const Fem_Quadrature& fem_quadrature, Materials& materials,
-  const Angular_Quadrature& angular_quadrature, const Temperature_Data& t_star, const int n_cells)
+  const Angular_Quadrature& angular_quadrature, const Temperature_Data& t_star, const int n_cells, const Input_Reader& input_reader)
 :
-  V_Diffusion_Matrix_Creator(fem_quadrature,materials,angular_quadrature,t_star, n_cells),
+  V_Diffusion_Matrix_Creator(fem_quadrature,materials,angular_quadrature,t_star, n_cells,input_reader),
   m_rk_a_ii(-1.),
   m_dt(-1.),
   m_c_speed( materials.get_c() ),
@@ -41,7 +41,7 @@ void Diffusion_Matrix_Creator_Grey::set_time_data( const double dt, const double
 
 void Diffusion_Matrix_Creator_Grey::calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::MatrixXd& r_sig_a, Eigen::MatrixXd& r_sig_s)
 {
-  m_dx_mass = m_dx/2.*m_mass;
+  m_dx_mass = m_dx_c/2.*m_mass;
   
   m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
   m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,0);

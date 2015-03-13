@@ -10,7 +10,7 @@
 #include "V_Diffusion_Matrix_Creator.h"
 
 V_Diffusion_Matrix_Creator::V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials& materials,
-  const Angular_Quadrature& angular_quadrature,  const Temperature_Data& t_star, const int n_cells)
+  const Angular_Quadrature& angular_quadrature,  const Temperature_Data& t_star, const int n_cells, const Input_Reader& input_reader)
 :
   m_np(fem_quadrature.get_number_of_interpolation_points()), 
   
@@ -33,11 +33,11 @@ V_Diffusion_Matrix_Creator::V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem
   m_materials(materials),
   m_angular_quadrature(angular_quadrature),
   m_t_eval_vec(Eigen::VectorXd::Zero(m_np)),
-  m_dx(-1.),
+  m_dx_c(-1.),
   m_cell_num(-1)  ,
   m_group_num(-1),
   
-  m_mip_assembler(fem_quadrature)
+  m_mip_assembler(fem_quadrature, input_reader)
 {    
   MATRIX_INTEGRATION matrix_type = fem_quadrature.get_integration_type() ;
   /// initialize matrix constructor
@@ -58,7 +58,7 @@ V_Diffusion_Matrix_Creator::V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem
   fem_quadrature.get_integration_weights(m_integration_wts);
 }
 
-void V_Diffusion_Matrix_Creator::set_cell_group_information( const int cell, const int group)
+void V_Diffusion_Matrix_Creator::set_cell_group_information( const int cell, const int group, const double dx)
 {
   m_cell_num = cell;
   m_group_num = group;
@@ -69,7 +69,8 @@ void V_Diffusion_Matrix_Creator::set_cell_group_information( const int cell, con
   m_materials.calculate_local_temp_and_position(cell,m_t_eval_vec);
     
   /// set cell width
-  m_dx = m_materials.get_cell_width();
+  m_dx_c = dx;
+    
   return;
 }
 
@@ -97,6 +98,6 @@ void V_Diffusion_Matrix_Creator::calculate_s_matrix(Eigen::MatrixXd& s_matrix)
       }      
     }
   }
-  s_matrix *= 2./m_dx;
+  s_matrix *= 2./m_dx_c;
 
 }
