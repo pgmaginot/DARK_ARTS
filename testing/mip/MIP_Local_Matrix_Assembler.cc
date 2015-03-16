@@ -127,7 +127,7 @@ int main(int argc, char** argv)
     
     local_assembler.calculate_left_boundary_matrices(kappa_m12, kappa_p12 ,   
       dx_c, dx_cp1, d_c_l , d_c_r , d_cp1_l, r_sig_a, s_mat,
-      cell_c, cell_cp1, rhs);
+      cell_c, cell_cp1);
       
       
     std::cout << "\nLeft boundary\nExpected cell c: \n" << expected_cell_c <<
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
     Eigen::MatrixXd right_expected_cell_c = Eigen::MatrixXd::Zero(3,3);
     local_assembler.calculate_right_boundary_matrices(kappa_m12, kappa_p12 ,   
       dx_cm1, dx_c, d_cm1_r , d_c_l , d_c_r , r_sig_a, s_mat,
-      cell_cm1,cell_c,rhs);
+      cell_cm1,cell_c);
       
       right_expected_cell_c(0,0) = 10.363414634 ; 
       right_expected_cell_c(0,1) = -1.675609756 ; 

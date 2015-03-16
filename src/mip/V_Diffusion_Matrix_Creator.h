@@ -35,7 +35,7 @@ public:
   
   void set_cell_group_information( const int cell, const int group, const double dx);
     
-  virtual void calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::MatrixXd& r_sig_a, Eigen::MatrixXd& r_sig_s) = 0;
+  virtual void calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(Eigen::MatrixXd& r_sig_a,Eigen::MatrixXd& r_sig_s) =0;
 
   void calculate_d_dependent_quantities(double& d_r_cm1, double& d_l_c , double& d_r_c , double& d_l_cp1, Eigen::MatrixXd& s_matrix);  
    

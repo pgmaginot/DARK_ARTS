@@ -23,7 +23,9 @@ public:
   virtual void add_left_boundary_contributions(const double kappa_12, const double kappa_32 ,   
     const double d_1_l , const double d_1_r , const double d_2_l,
     const double dx_1, const double dx_2, 
-    Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1, Eigen::VectorXd& rhs) = 0;
+    Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1) = 0;
+    
+  virtual void add_left_boundary_rhs_contributions(Eigen::VectorXd& rhs) = 0;
   
   void set_time(const double time);
   void set_incoming_current(const double incoming_current);

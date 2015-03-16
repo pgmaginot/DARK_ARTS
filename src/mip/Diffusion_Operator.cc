@@ -13,18 +13,33 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_np(fem_quadrature.get_number_of_interpolation_points()),
   m_n_cell(cell_data.get_total_number_of_cells() ),
   m_n_mip_loops( is_wg_solve ? ( angular_quadrature.get_number_of_groups() ) : (1) ),
-  m_n_mip_sys_size( (is_wg_solve) ? (m_n_cell*m_np) 
-      : ( (input_reader.get_lmfga_structure() == NO_COLLAPSE) ? (m_n_cell*m_np*angular_quadrature.get_number_of_groups() ) : (m_n_cell*m_np) ) ),
+  m_n_mip_blocks(   (is_wg_solve) ? m_n_cell : 
+  ( (input_reader.get_lmfga_structure() == NO_COLLAPSE) ? (m_n_cell*angular_quadrature.get_number_of_groups() ) : m_n_cell)    ),
+  m_n_mip_sys_size( m_n_mip_blocks*m_np) ,
+      
   m_r_sig_s(Eigen::MatrixXd::Zero(m_np,m_np) ),
   m_r_sig_a(Eigen::MatrixXd::Zero(m_np,m_np) ), 
   
+  m_cell_cm1(Eigen::MatrixXd::Zero(m_np,m_np) ), 
+  m_cell_c(Eigen::MatrixXd::Zero(m_np,m_np) ), 
+  m_cell_cp1(Eigen::MatrixXd::Zero(m_np,m_np) ), 
   
-  m_no_mu_pos_l_matrix(Eigen::MatrixXd::Zero(m_np,m_np) ),
-  m_no_mu_neg_l_matrix(Eigen::MatrixXd::Zero(m_np,m_np) ),
+  m_d_r_cm1(-1.) ,  
+  m_d_l_c(-1.) , 
+  m_d_r_c(-1.) ,  
+  m_d_l_cp1(-1.) , 
+  m_kappa_cm12(-1.) ,
+  m_kappa_cp12(-1.) , 
+  m_dx_cm1(0.) , 
+  m_dx_c(0.),
+  m_dx_cp1(0.),
   
+  m_cell_data(cell_data),
   m_sdirk_a_stage(-1.),
   m_dt(-1.),  
   m_time_stage(-1.),
+  m_matrix_initial_build(false),
+  m_kappa_calculator( m_np-1, (is_wg_solve ? (input_reader.get_wg_z_mip() ) : (-1.) ) ),
   m_local_assembler(fem_quadrature,input_reader)
 {    
   if(is_wg_solve)
@@ -115,27 +130,70 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   
 }
 
-// void Diffusion_Operator::build_rhs(const int mip_loop_number)
-// {
-  // int cell = 0; 
-  // int grp = 0;
-  // for(int i=0; i < m_n_mip_blocks ; i++)
-  // {
-    // m_cell_group_order->get_cell_and_group(i,mip_loop_number,cell,grp);
-  // }
-  // return;
-// } 
+void Diffusion_Operator::build_rhs(const int mip_loop_number, const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old)
+{
+  int cell = 0; 
+  int grp = 0;
+  for(int i=0; i < m_n_mip_blocks ; i++)
+  {
+    m_diffusion_ordering->get_cell_and_group(i,mip_loop_number,cell,grp);
+    
+  }
+  return;
+} 
 
-// void Diffusion_Operator::build_matrix(const int mip_loop_number)
-// {
+void Diffusion_Operator::build_matrix(const int mip_loop_number)
+{
+  int cell = 0; 
+  int grp = 0;
+  for(int i=0; i < m_n_mip_blocks ; i++)
+  {
+    m_diffusion_ordering->get_cell_and_group(i,mip_loop_number,cell,grp);
+    
+    m_diffusion_matrix_creator->calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(m_r_sig_a,m_r_sig_s);
 
-  // return;
-// }
+    m_diffusion_matrix_creator->calculate_d_dependent_quantities(m_d_r_cm1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_s_matrix); 
 
-// void Diffusion_Operator::build_matrix_and_rhs(const int mip_loop_number)
-// {
+    if(cell==0)
+    {
+      m_dx_c=m_cell_data.get_cell_width(0) ;
+      m_dx_cp1 = m_cell_data.get_cell_width(1) ; 
+      m_kappa_cm12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_l_c);
+      m_kappa_cp12 = m_kappa_calculator.calculate_interior_edge_kappa(m_dx_c, m_dx_cp1 , m_d_r_c , m_d_l_cp1) ;
+      
+      m_local_assembler.calculate_left_boundary_matrices(m_kappa_cm12, m_kappa_cp12 , 
+        m_dx_c, m_dx_cp1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_r_sig_a, m_s_matrix, m_cell_c, m_cell_cp1);
+        
+    }
+    else if(cell == (m_n_cell-1))
+    {
+      m_dx_cm1 = m_dx_c;
+      m_dx_c = m_dx_cp1;
+      
+      m_kappa_cm12 = m_kappa_cp12;
+      m_kappa_cp12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_r_c) ;
+      
+      m_local_assembler.calculate_right_boundary_matrices( m_kappa_cm12 , m_kappa_cp12 ,m_dx_cm1 , m_dx_c , 
+        m_d_r_cm1,  m_d_l_c , m_d_r_c, m_r_sig_a, m_s_matrix, m_cell_cm1 , m_cell_c); 
+    }
+    else
+    {
+      m_dx_cm1 = m_dx_c;
+      m_dx_c = m_dx_cp1;
+      m_dx_cp1 = m_cell_data.get_cell_width(cell+1);      
+      
+      m_kappa_cm12 = m_kappa_cp12; 
+      m_kappa_cp12 = m_kappa_calculator.calculate_interior_edge_kappa(m_dx_c, m_dx_cp1 , m_d_r_c , m_d_l_cp1) ;
+      
+      m_local_assembler.calculate_interior_matrices( m_kappa_cm12 , m_kappa_cp12 ,m_dx_cm1 , m_dx_c , m_dx_cp1 , 
+        m_d_r_cm1,  m_d_l_c , m_d_r_c, m_d_l_cp1 , m_r_sig_a, m_s_matrix, m_cell_cm1 , m_cell_c, m_cell_cp1); 
+    }
+    
+    
+  }
+  return;
+}
 
-// }
 
 Diffusion_Operator::~Diffusion_Operator()
 {

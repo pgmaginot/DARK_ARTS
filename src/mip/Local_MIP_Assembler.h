@@ -28,7 +28,9 @@ public:
     const double dx_c, const double dx_cp1, 
     const double d_c_l , const double d_c_r , const double d_cp1_l,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-    Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1, Eigen::VectorXd& rhs);
+    Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1);
+    
+  void additive_update_left_boundary_rhs(Eigen::VectorXd& rhs);
     
   void calculate_interior_matrices(const double kappa_cm12, const double kappa_cp12 , 
     const double dx_cm1, const double dx_c, const double dx_cp1, 
@@ -40,7 +42,9 @@ public:
     const double dx_cm1, const double dx_c, 
     const double d_cm1_r, const double d_c_l , const double d_c_r ,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c, Eigen::VectorXd& rhs);
+    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c);
+    
+  void additive_update_right_boundary_rhs(Eigen::VectorXd& rhs);
     
 protected:
   /** ****************************************************************

@@ -24,8 +24,8 @@ public:
   */
   void set_time_data( const double dt, const double time_stage, const double sdirk_a_of_stage ) override;
     
-  void calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::MatrixXd& r_sig_a, Eigen::MatrixXd& r_sig_s) override;
-    
+  void calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(Eigen::MatrixXd& r_sig_a,Eigen::MatrixXd& r_sig_s) override;
+      
 protected:
   double m_rk_a_ii;
   double m_dt;

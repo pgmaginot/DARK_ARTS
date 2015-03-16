@@ -185,11 +185,11 @@ int main(int argc, char** argv)
     
     matrix_creator->set_time_data(dt,t_stage,rk_a);
     matrix_creator->set_cell_group_information(1,0,dx_1);
-    matrix_creator->calculate_pseudo_r_sig_a_and_r_sig_s(calc_r_sig_a_1,calc_r_sig_s_1);
+    matrix_creator->calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(calc_r_sig_a_1,calc_r_sig_s_1);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_1);
     
     matrix_creator->set_cell_group_information(4,0,dx_2);
-    matrix_creator->calculate_pseudo_r_sig_a_and_r_sig_s(calc_r_sig_a_2,calc_r_sig_s_2);
+    matrix_creator->calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(calc_r_sig_a_2,calc_r_sig_s_2);
     matrix_creator->calculate_d_dependent_quantities(d_cm1_r , d_c_l, d_c_r , d_cp1_l, calculated_s_matrix_2);
     
     std::cout << "Region 0\n"; 

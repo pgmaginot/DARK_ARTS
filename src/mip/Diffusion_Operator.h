@@ -22,6 +22,7 @@
 #include "MG_LMFGA_No_Collapse_Group_Outer_Diffusion_Ordering.h"
 
 #include "Local_MIP_Assembler.h"
+#include "MIP_Kappa_Calculator.h"
 
 #include "MIP_Left_Boundary_Reflective.h"
 #include "MIP_Left_Boundary_Incident_Flux.h"
@@ -43,23 +44,47 @@ public:
   virtual ~Diffusion_Operator();
 
   bool check_all_eigen_variables_for_finite(void);
+  
+  void build_matrix(const int mip_loop_number);
+  
+  void build_rhs(const int mip_loop_number, const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old);
+  
+  void solve_system();
     
 protected:
   const double m_sn_w;
+  /// number of unknowns per DFEM 
   const int m_np;
+  /// number of spatial cells
   const int m_n_cell;
+  /// number of loops (groups) per solve (primarily for MG within group scattering DSA, all other times in 1)
   const int m_n_mip_loops;
+  /// n_cell most times or n_cell x n_groups if doing LMFGA without group collapse
+  const int m_n_mip_blocks;
+  /// n_el x m_n_mip_blocks
   const int m_n_mip_sys_size;
   
   Eigen::MatrixXd m_r_sig_s;
   Eigen::MatrixXd m_r_sig_a;
+  Eigen::MatrixXd m_s_matrix;
   
-  Eigen::MatrixXd m_no_mu_pos_l_matrix;
-  Eigen::MatrixXd m_no_mu_neg_l_matrix;
+  Eigen::MatrixXd m_cell_cm1;
+  Eigen::MatrixXd m_cell_c;
+  Eigen::MatrixXd m_cell_cp1;
   
+  double m_d_r_cm1 ,  m_d_l_c , m_d_r_c , m_d_l_cp1;
+  double m_kappa_cm12 , m_kappa_cp12;
+  double m_dx_cm1 , m_dx_c , m_dx_cp1;
+  
+  const Cell_Data& m_cell_data;
+    
   double m_sdirk_a_stage;
   int m_dt;
   double m_time_stage;
+  
+  bool m_matrix_initial_build;
+  
+  MIP_Kappa_Calculator m_kappa_calculator;
     
   std::shared_ptr<V_Diffusion_Matrix_Creator> m_diffusion_matrix_creator;  
   

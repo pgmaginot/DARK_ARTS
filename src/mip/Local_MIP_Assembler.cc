@@ -54,12 +54,17 @@ void Local_MIP_Assembler::calculate_left_boundary_matrices(const double kappa_12
   const double dx_c, const double dx_cp1, 
   const double d_c_l , const double d_c_r , const double d_cp1_l,
   const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-  Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1, Eigen::VectorXd& rhs)
+  Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1)
 {  
   cell_c = r_sig_a + s_matrix;
   
-  m_left_boundary->add_left_boundary_contributions(kappa_12,kappa_32, d_c_l, d_c_r , d_cp1_l, dx_c, dx_cp1 , cell_c , cell_cp1, rhs);  
+  m_left_boundary->add_left_boundary_contributions(kappa_12,kappa_32, d_c_l, d_c_r , d_cp1_l, dx_c, dx_cp1 , cell_c , cell_cp1);  
   return;
+}
+
+void Local_MIP_Assembler::additive_update_left_boundary_rhs(Eigen::VectorXd& rhs)
+{
+  m_left_boundary->add_left_boundary_rhs_contributions(rhs);
 }
     
 void Local_MIP_Assembler::calculate_interior_matrices(const double kappa_cm12, const double kappa_cp12 , 
@@ -87,12 +92,18 @@ void Local_MIP_Assembler::calculate_right_boundary_matrices(const double kappa_n
   const double dx_cm1, const double dx_c, 
   const double d_cm1_r, const double d_c_l , const double d_c_r , 
   const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-  Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c, Eigen::VectorXd& rhs)
+  Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c)
 {
   cell_c = r_sig_a + s_matrix;
   
   m_right_boundary->add_right_boundary_contributions(kappa_nm12, kappa_np12 ,d_cm1_r, d_c_l ,d_c_r , 
-    dx_cm1, dx_c, cell_cm1, cell_c, rhs);
+    dx_cm1, dx_c, cell_cm1, cell_c);
     
   return;
 }    
+
+void Local_MIP_Assembler::additive_update_right_boundary_rhs(Eigen::VectorXd& rhs)
+{
+  m_right_boundary->add_right_boundary_rhs_contributions(rhs);
+}
+

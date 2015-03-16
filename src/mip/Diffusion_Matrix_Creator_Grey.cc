@@ -39,7 +39,7 @@ void Diffusion_Matrix_Creator_Grey::set_time_data( const double dt, const double
   return;
 }
 
-void Diffusion_Matrix_Creator_Grey::calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::MatrixXd& r_sig_a, Eigen::MatrixXd& r_sig_s)
+void Diffusion_Matrix_Creator_Grey::calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(Eigen::MatrixXd& r_sig_a,Eigen::MatrixXd& r_sig_s)
 {
   m_dx_mass = m_dx_c/2.*m_mass;
   
@@ -75,6 +75,7 @@ void Diffusion_Matrix_Creator_Grey::calculate_pseudo_r_sig_a_and_r_sig_s(Eigen::
   r_sig_s = m_sum_sn_w*m_dt*m_rk_a_ii*m_r_sig_a*m_temporary_mat + m_r_sig_s;
   
   r_sig_a = m_r_sig_s + m_r_sig_a + (1./(m_rk_a_ii*m_dt*m_c_speed))*m_dx_mass - r_sig_s;
+  return;
 }
 
 void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_cm1, double& d_l_c , double& d_r_c , double& d_l_cp1)
