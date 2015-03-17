@@ -31,10 +31,10 @@ Local_MIP_Assembler::Local_MIP_Assembler(const Fem_Quadrature& fem_quadrature, c
   m_Rst_L(m_Rs.transpose() * m_L),
   m_Rt_Ls(m_R.transpose() * m_Ls)
   {
-    std::cout << "m_L: " << m_L << std::endl;
-    std::cout << "m_R: " << m_R << std::endl;
-    std::cout << "m_Ls: " << m_Ls << std::endl;
-    std::cout << "m_Rs: " << m_Rs << std::endl;
+    // std::cout << "m_L: " << m_L << std::endl;
+    // std::cout << "m_R: " << m_R << std::endl;
+    // std::cout << "m_Ls: " << m_Ls << std::endl;
+    // std::cout << "m_Rs: " << m_Rs << std::endl;
     
     /// set MIP boundary condition functions
     if( input_reader.get_radiation_bc_type_left() == REFLECTIVE_BC)
@@ -54,7 +54,8 @@ void Local_MIP_Assembler::calculate_left_boundary_matrices(const double kappa_12
   const double dx_c, const double dx_cp1, 
   const double d_c_l , const double d_c_r , const double d_cp1_l,
   const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-  Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1)
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c, 
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1)
 {  
   cell_c = r_sig_a + s_matrix;
   
@@ -71,7 +72,9 @@ void Local_MIP_Assembler::calculate_interior_matrices(const double kappa_cm12, c
   const double dx_cm1, const double dx_c, const double dx_cp1, 
   const double d_cm1_r, const double d_c_l , const double d_c_r , const double d_cp1_l,
   const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-  Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1)
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cm1, 
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c, 
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1)
 {
   /**
     \f[
@@ -92,7 +95,8 @@ void Local_MIP_Assembler::calculate_right_boundary_matrices(const double kappa_n
   const double dx_cm1, const double dx_c, 
   const double d_cm1_r, const double d_c_l , const double d_c_r , 
   const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-  Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c)
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cm1, 
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c)
 {
   cell_c = r_sig_a + s_matrix;
   

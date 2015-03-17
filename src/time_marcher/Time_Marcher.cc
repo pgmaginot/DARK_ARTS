@@ -99,6 +99,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);  
   
   for( ; t_step < max_step; t_step++)
+  // for( ; t_step < 1; t_step++)
   {
     if( (t_step % 20) == 0)
       m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );  
@@ -209,6 +210,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-6)
       break;
   }
+  m_intensity_update->kill_petsc_objects();
   
   /// call for end spatial error only
   /// we were fancy with space_time error and output the error during the destructor call

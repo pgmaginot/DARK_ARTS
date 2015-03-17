@@ -48,6 +48,11 @@ Intensity_Update_MF::Intensity_Update_MF(const Input_Reader& input_reader,
 
 }
 
+void Intensity_Update_MF::kill_petsc_objects()
+{
+  return;
+}
+
 
 int Intensity_Update_MF::update_intensity(Intensity_Moment_Data& phi)
 {  

@@ -12,8 +12,7 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_sn_w( angular_quadrature.get_sum_w() ),
   m_np(fem_quadrature.get_number_of_interpolation_points()),
   m_n_cell(cell_data.get_total_number_of_cells() ),
-  m_n_mip_loops( is_wg_solve ? ( angular_quadrature.get_number_of_groups() ) : (1) ),
-  m_n_mip_blocks(   (is_wg_solve) ? m_n_cell : 
+  m_n_mip_blocks(   (is_wg_solve) ? (m_n_cell*angular_quadrature.get_number_of_groups()) : 
   ( (input_reader.get_lmfga_structure() == NO_COLLAPSE) ? (m_n_cell*angular_quadrature.get_number_of_groups() ) : m_n_cell)    ),
   m_n_mip_sys_size( m_n_mip_blocks*m_np) ,
       
@@ -23,6 +22,10 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_cell_cm1(Eigen::MatrixXd::Zero(m_np,m_np) ), 
   m_cell_c(Eigen::MatrixXd::Zero(m_np,m_np) ), 
   m_cell_cp1(Eigen::MatrixXd::Zero(m_np,m_np) ), 
+  
+  m_rhs_local(Eigen::VectorXd::Zero(m_np) ),
+  m_phi_new_vec(Eigen::VectorXd::Zero(m_np) ),
+  m_phi_old_vec(Eigen::VectorXd::Zero(m_np) ),
   
   m_d_r_cm1(-1.) ,  
   m_d_l_c(-1.) , 
@@ -40,8 +43,10 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_time_stage(-1.),
   m_matrix_initial_build(false),
   m_kappa_calculator( m_np-1, (is_wg_solve ? (input_reader.get_wg_z_mip() ) : (-1.) ) ),
-  m_local_assembler(fem_quadrature,input_reader)
+  m_local_assembler(fem_quadrature,input_reader),
+  m_pointer_to_eigen_m_rhs( &m_rhs_local(0) )
 {    
+  m_row_destination = new PetscInt[m_np];
   if(is_wg_solve)
   {
     if(n_groups ==1)
@@ -55,7 +60,6 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     {
       throw Dark_Arts_Exception(TIME_MARCHER , "MF within group scattering MIP not coded");
       
-      m_diffusion_ordering = std::make_shared<MG_WG_Diffusion_Ordering>(cell_data,angular_quadrature);
     }  
   }
   else
@@ -65,16 +69,11 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     {
       throw Dark_Arts_Exception(TIME_MARCHER , "MF LMFGA with Group Collapse Not Coded");
       
-      m_diffusion_ordering = std::make_shared<MG_LMFGA_Group_Collapse_Diffusion_Ordering>(cell_data,angular_quadrature);
     }
     else if( lmfga_type == NO_COLLAPSE)
     {
-      throw Dark_Arts_Exception(TIME_MARCHER , "MF LMFGA without Group Collapse Not Coded");
-      
-      
-      m_diffusion_ordering = std::make_shared<MG_LMFGA_No_Collapse_Group_Outer_Diffusion_Ordering>(cell_data,angular_quadrature);
-      
-      m_diffusion_ordering = std::make_shared<MG_LMFGA_No_Collapse_Cell_Outer_Diffusion_Ordering>(cell_data,angular_quadrature);
+      throw Dark_Arts_Exception(TIME_MARCHER , "MF LMFGA without Group Collapse Not Coded");      
+   
     }  
   }
   
@@ -82,6 +81,8 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     throw Dark_Arts_Exception(TRANSPORT, "Unable to allocate a Diffusion_Matrix_Creator in Diffusion_Operator");
     
   /// initialize PETSC data
+  // m_petsc_err = PetscMalloc(m_np*sizeof(PetscInt),&m_row_destination);
+  
   m_petsc_err = VecCreate(PETSC_COMM_WORLD,&m_mip_solution);   CHKERRV(m_petsc_err);  
   m_petsc_err = VecCreate(PETSC_COMM_WORLD,&m_mip_rhs);   CHKERRV(m_petsc_err); 
 
@@ -90,6 +91,9 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   
   m_petsc_err = VecSetFromOptions(m_mip_rhs); CHKERRV(m_petsc_err) ;
   m_petsc_err = VecSetFromOptions(m_mip_solution); CHKERRV(m_petsc_err) ;
+  
+  // m_petsc_err = VecSet(m_mip_rhs,0.);
+  m_petsc_err = VecSet(m_mip_solution,0.);
   
   /**
     To change values:
@@ -126,50 +130,104 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   */
   
   /// set MIP matrix structure one time for faster assembly
-  
-  
 }
 
-void Diffusion_Operator::build_rhs(const int mip_loop_number, const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old)
+void Diffusion_Operator::kill_petsc_objects()
+{
+  delete[] m_row_destination;
+  VecDestroy( &m_mip_solution);
+  VecDestroy( &m_mip_rhs);
+  return;
+}
+
+Diffusion_Operator::~Diffusion_Operator()
+{
+
+}
+
+void Diffusion_Operator::build_rhs(const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old)
 {
   int cell = 0; 
   int grp = 0;
   for(int i=0; i < m_n_mip_blocks ; i++)
   {
-    m_diffusion_ordering->get_cell_and_group(i,mip_loop_number,cell,grp);
+    m_diffusion_ordering->get_cell_and_group(i,cell,grp);
     
+    m_diffusion_matrix_creator->set_cell_group_information(cell,grp,m_cell_data.get_cell_width(cell) );
+    m_diffusion_matrix_creator->calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(m_r_sig_a,m_r_sig_s);
+    
+    phi_new.get_cell_angle_integrated_intensity(cell,grp,0,m_phi_new_vec);
+    phi_old.get_cell_angle_integrated_intensity(cell,grp,0,m_phi_old_vec);
+    
+    m_rhs_local = m_r_sig_s*(m_phi_new_vec - m_phi_old_vec);
+    
+    /// save into PETSc vector
+    /// first fill row destination index
+    // std::cout << "This is the local Eigen vector: \n" << m_rhs_local << std::endl;
+    for(int el= 0 ; el < m_np ; el++)
+    {
+      m_row_destination[el]= el + m_np*i;
+      // std::cout << "PETSc pointer["<<el<<"]: " << m_pointer_to_eigen_m_rhs[el] <<std::endl;
+    }
+    m_petsc_err = VecSetValues( m_mip_rhs , m_np , m_row_destination , m_pointer_to_eigen_m_rhs, INSERT_VALUES);
   }
+  m_petsc_err = VecAssemblyBegin(m_mip_rhs);
+  m_petsc_err = VecAssemblyEnd(m_mip_rhs);
+  
+  // VecView(m_mip_rhs,PETSC_VIEWER_STDOUT_WORLD);
+  
   return;
 } 
 
-void Diffusion_Operator::build_matrix(const int mip_loop_number)
+void Diffusion_Operator::build_matrix()
 {
   int cell = 0; 
   int grp = 0;
   for(int i=0; i < m_n_mip_blocks ; i++)
   {
-    m_diffusion_ordering->get_cell_and_group(i,mip_loop_number,cell,grp);
+    /// determine cell and group for material property evaluation
+    m_diffusion_ordering->get_cell_and_group(i,cell,grp);
+    // std::cout << "n_mip_blcks: " << m_n_mip_blocks << std::endl
+              // << "cell: " << cell << std::endl
+              // << "grp: " << grp << std::endl;
     
-    m_diffusion_matrix_creator->calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(m_r_sig_a,m_r_sig_s);
-
-    m_diffusion_matrix_creator->calculate_d_dependent_quantities(m_d_r_cm1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_s_matrix); 
-
+    /// determine dx of current cell since V_Diffusion_Matrix_Creator::calculate_pseudo_r_sig_a_and_pseudo_r_sig_s requires dx_cell
     if(cell==0)
     {
       m_dx_c=m_cell_data.get_cell_width(0) ;
       m_dx_cp1 = m_cell_data.get_cell_width(1) ; 
-      m_kappa_cm12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_l_c);
-      m_kappa_cp12 = m_kappa_calculator.calculate_interior_edge_kappa(m_dx_c, m_dx_cp1 , m_d_r_c , m_d_l_cp1) ;
-      
-      m_local_assembler.calculate_left_boundary_matrices(m_kappa_cm12, m_kappa_cp12 , 
-        m_dx_c, m_dx_cp1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_r_sig_a, m_s_matrix, m_cell_c, m_cell_cp1);
-        
     }
     else if(cell == (m_n_cell-1))
     {
       m_dx_cm1 = m_dx_c;
       m_dx_c = m_dx_cp1;
+    }
+    else
+    {
+      m_dx_cm1 = m_dx_c;
+      m_dx_c = m_dx_cp1;
+      m_dx_cp1 = m_cell_data.get_cell_width(cell+1);      
+    }
+    
+    /// send cell number, group number, and dx of current cell to m_diffusion_matrix_creator
+    m_diffusion_matrix_creator->set_cell_group_information( cell, grp, m_dx_c);
+    
+    /// calculate \f$ \mathbf{R}_{\widetilde{\Sigma}_a} \f$ and \mathbf{R}_{\widetilde{\Sigma}_s} \f$
+    m_diffusion_matrix_creator->calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(m_r_sig_a,m_r_sig_s);
+
+    /// calculate the various diffusion coefficients we need at cell edges
+    m_diffusion_matrix_creator->calculate_d_dependent_quantities(m_d_r_cm1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_s_matrix); 
+
+    if(cell==0)
+    {
+      m_kappa_cm12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_l_c);
+      m_kappa_cp12 = m_kappa_calculator.calculate_interior_edge_kappa(m_dx_c, m_dx_cp1 , m_d_r_c , m_d_l_cp1) ;
       
+      m_local_assembler.calculate_left_boundary_matrices(m_kappa_cm12, m_kappa_cp12 , 
+        m_dx_c, m_dx_cp1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_r_sig_a, m_s_matrix, m_cell_c, m_cell_cp1);        
+    }
+    else if(cell == (m_n_cell-1))
+    {
       m_kappa_cm12 = m_kappa_cp12;
       m_kappa_cp12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_r_c) ;
       
@@ -178,43 +236,78 @@ void Diffusion_Operator::build_matrix(const int mip_loop_number)
     }
     else
     {
-      m_dx_cm1 = m_dx_c;
-      m_dx_c = m_dx_cp1;
-      m_dx_cp1 = m_cell_data.get_cell_width(cell+1);      
-      
       m_kappa_cm12 = m_kappa_cp12; 
       m_kappa_cp12 = m_kappa_calculator.calculate_interior_edge_kappa(m_dx_c, m_dx_cp1 , m_d_r_c , m_d_l_cp1) ;
       
       m_local_assembler.calculate_interior_matrices( m_kappa_cm12 , m_kappa_cp12 ,m_dx_cm1 , m_dx_c , m_dx_cp1 , 
         m_d_r_cm1,  m_d_l_c , m_d_r_c, m_d_l_cp1 , m_r_sig_a, m_s_matrix, m_cell_cm1 , m_cell_c, m_cell_cp1); 
-    }
+    }    
     
+    // std::cout << "dx_cm1: " << m_dx_cm1 << std::endl
+              // << "dx_c: " << m_dx_c << std::endl
+              // << "dx_cp1: " << m_dx_cp1 << std::endl
+              // << "kappa_left: " << m_kappa_cm12 << std::endl
+              // << "kappa_right: " << m_kappa_cp12 << std::endl
+              // << "d_r_cm1: " << m_d_r_cm1 << std::endl
+              // << "d_l_c: " << m_d_l_c << std::endl
+              // << "d_r_c: " << m_d_r_c << std::endl
+              // << "d_l_cp1: " << m_d_l_cp1 << std::endl;
+    // Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> row_major;
+    // row_major = m_cell_c;
+    // std::cout << "This is the normal Eigen view  of cell c: \n" << m_cell_c << std::endl;
+    // std::cout << "This is what we see when we look at it as in row major\n" << row_major << std::endl;
     
   }
   return;
 }
 
-
-Diffusion_Operator::~Diffusion_Operator()
+void Diffusion_Operator::set_time_data(  const double dt, const double time_stage, const double rk_a_ii)
 {
-  VecDestroy( &m_mip_solution);
-  VecDestroy( &m_mip_rhs);
+  // m_sdirk_a_stage = rk_a_ii;
+  // m_dt=dt;
+  // m_time_stage=time_stage;
+  m_diffusion_matrix_creator->set_time_data( dt, time_stage, rk_a_ii);
+  /// new time stage, set-up matrix
+  build_matrix();
 }
 
-
-bool Diffusion_Operator::check_all_eigen_variables_for_finite(void)
+void Diffusion_Operator::solve_system()
 {
-  bool bad_eigen_variables = false;
-  std::stringstream err;
-  err << std::endl;
+  return;
+}
+
+void Diffusion_Operator::update(Intensity_Moment_Data& phi_new , const Intensity_Moment_Data& phi_old)
+{
+  /// build the driving source (rhs)
+  build_rhs(phi_new,phi_old);
+  /// invert the diffusion operator
+  solve_system();
+  /// map the solution back into phi_new
+  map_solution_into_intensity_moment_data(phi_new);
   
-  // if(!m_r_sig_t.allFinite())
-  // {
-    // bad_eigen_variables = true;
-    // err << "m_r_sig_t has non finite values!\n";
-  // }
+  return;
+}
+
+void Diffusion_Operator::map_solution_into_intensity_moment_data(Intensity_Moment_Data& phi_new)
+{
+  int cell = 0; 
+  int grp = 0;
   
-  std::cout << err.str();
+  double* update_ptr;
+  
+  VecGetArray(m_mip_rhs,&update_ptr);
+  int n_local = 0;
+  // std::cout << "In update section" << std::endl; 
+  for(int i=0; i < m_n_mip_blocks ; i++)
+  {
+    m_diffusion_ordering->get_cell_and_group(i,cell,grp);
+    phi_new.add_from_array_pointer( &update_ptr[n_local] , cell, grp);
+    // for(int el = 0 ; el < m_np ; el++)
+      // std::cout << update_ptr[n_local+el] << std::endl;      
     
-  return bad_eigen_variables;
+    n_local += m_np;      
+  }
+  
+  VecRestoreArray(m_mip_rhs,&update_ptr);
+  return;
 }

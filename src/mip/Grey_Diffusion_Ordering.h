@@ -18,7 +18,7 @@ public:
     
   virtual ~Grey_Diffusion_Ordering(){}
     
-  void get_cell_and_group(const int block_i , const int mip_loop_number,  int& cell , int& group) override;
+  void get_cell_and_group(const int block_i , int& cell , int& group) override;
   
 protected:
 

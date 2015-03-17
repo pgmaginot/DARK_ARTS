@@ -16,10 +16,6 @@
 #include "Diffusion_Matrix_Creator_Grey.h"
 
 #include "Grey_Diffusion_Ordering.h"
-#include "MG_WG_Diffusion_Ordering.h"
-#include "MG_LMFGA_Group_Collapse_Diffusion_Ordering.h"
-#include "MG_LMFGA_No_Collapse_Cell_Outer_Diffusion_Ordering.h"
-#include "MG_LMFGA_No_Collapse_Group_Outer_Diffusion_Ordering.h"
 
 #include "Local_MIP_Assembler.h"
 #include "MIP_Kappa_Calculator.h"
@@ -29,7 +25,7 @@
 #include "MIP_Right_Boundary_Incident_Flux.h"
 
 #include <petscksp.h>
-
+#include <petscsys.h>
 /** @file   Diffusion_Operator.h
   *   @author pmaginot
   *   @brief a class that creates a MIP diffusion matrix and inverts it, updating an intensity_moment_data object 
@@ -42,24 +38,20 @@ public:
     const int n_groups, const Temperature_Data& t_eval, const bool is_wg_solve);
     
   virtual ~Diffusion_Operator();
-
-  bool check_all_eigen_variables_for_finite(void);
   
-  void build_matrix(const int mip_loop_number);
+  void set_time_data(  const double dt, const double time_stage, const double rk_a_ii);
   
-  void build_rhs(const int mip_loop_number, const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old);
-  
-  void solve_system();
+  void update(Intensity_Moment_Data& phi_new , const Intensity_Moment_Data& phi_old);
     
+  void kill_petsc_objects();
+  
 protected:
   const double m_sn_w;
   /// number of unknowns per DFEM 
   const int m_np;
   /// number of spatial cells
   const int m_n_cell;
-  /// number of loops (groups) per solve (primarily for MG within group scattering DSA, all other times in 1)
-  const int m_n_mip_loops;
-  /// n_cell most times or n_cell x n_groups if doing LMFGA without group collapse
+  /// n_cell most times , n_cell x n_groups if doing LMFGA without group collapse, also n_cell x n_groups if doing wg scattering for multi-group
   const int m_n_mip_blocks;
   /// n_el x m_n_mip_blocks
   const int m_n_mip_sys_size;
@@ -68,9 +60,13 @@ protected:
   Eigen::MatrixXd m_r_sig_a;
   Eigen::MatrixXd m_s_matrix;
   
-  Eigen::MatrixXd m_cell_cm1;
-  Eigen::MatrixXd m_cell_c;
-  Eigen::MatrixXd m_cell_cp1;
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_cell_cm1;
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_cell_c;
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> m_cell_cp1;
+  
+  Eigen::VectorXd m_rhs_local;
+  Eigen::VectorXd m_phi_new_vec;
+  Eigen::VectorXd m_phi_old_vec;
   
   double m_d_r_cm1 ,  m_d_l_c , m_d_r_c , m_d_l_cp1;
   double m_kappa_cm12 , m_kappa_cp12;
@@ -79,12 +75,12 @@ protected:
   const Cell_Data& m_cell_data;
     
   double m_sdirk_a_stage;
-  int m_dt;
+  double m_dt;
   double m_time_stage;
   
   bool m_matrix_initial_build;
   
-  MIP_Kappa_Calculator m_kappa_calculator;
+  MIP_Kappa_Calculator m_kappa_calculator;  
     
   std::shared_ptr<V_Diffusion_Matrix_Creator> m_diffusion_matrix_creator;  
   
@@ -92,15 +88,22 @@ protected:
   
   Local_MIP_Assembler m_local_assembler;  
   /// PETSc variables 
+  PetscInt *m_row_destination;
+  double *m_pointer_to_eigen_m_rhs;
+  
   PetscErrorCode m_petsc_err;  
   Mat m_mip_global;
   KSP m_krylov_solver;
   Vec m_mip_solution;
-  Vec m_mip_rhs;
+  Vec m_mip_rhs;  
   
-  PetscReal *m_pointer_to_eigen_data;
-  int *m_vec_index_array;
+  void solve_system();
   
+  void build_matrix();
+  
+  void build_rhs(const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old);    
+  
+  void map_solution_into_intensity_moment_data(Intensity_Moment_Data& phi_new);
 };
 
 #endif

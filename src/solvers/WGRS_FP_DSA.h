@@ -28,8 +28,12 @@ public:
     std::vector<double>& phi_ref_norm);
     
   virtual ~WGRS_FP_DSA(){}
+  
+  void kill_petsc_objects() override;
 
   int solve(Intensity_Moment_Data& phi_new) override;
+  
+  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
 protected:  
   const int m_n_groups;
   const double m_wg_tolerance;

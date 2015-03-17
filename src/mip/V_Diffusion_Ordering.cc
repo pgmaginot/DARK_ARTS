@@ -9,11 +9,10 @@
 
 #include "V_Diffusion_Ordering.h"
 
-V_Diffusion_Ordering::V_Diffusion_Ordering(const Cell_Data& cell_data, const Angular_Quadrature& angular_quadrature, const int n_mip_loops)
+V_Diffusion_Ordering::V_Diffusion_Ordering(const Cell_Data& cell_data, const Angular_Quadrature& angular_quadrature)
 :
   m_n_groups(angular_quadrature.get_number_of_groups() ),
-  m_n_cells(cell_data.get_total_number_of_cells() ),
-  m_n_mip_loops(n_mip_loops)
+  m_n_cells(cell_data.get_total_number_of_cells() )
 {
 
 }

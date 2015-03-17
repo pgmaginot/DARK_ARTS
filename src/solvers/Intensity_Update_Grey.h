@@ -27,6 +27,8 @@ public:
     
   virtual ~Intensity_Update_Grey(){}
 
+  void kill_petsc_objects() override;
+  
   int update_intensity(Intensity_Moment_Data& phi) override;
 
 };

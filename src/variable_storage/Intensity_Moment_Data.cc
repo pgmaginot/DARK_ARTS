@@ -338,3 +338,13 @@ void Intensity_Moment_Data::update_phi_and_norms(const Intensity_Data& i_old)
 
   return;
 }
+
+void Intensity_Moment_Data::add_from_array_pointer( double *update_array , const int cell, const int group)
+{
+  int val_loc = angle_integrated_data_locator(0,cell,group,0);
+  
+  for(int i=0; i< m_el_per_cell ; i++)
+    m_phi[val_loc+i] += update_array[i];
+    
+  return;
+}

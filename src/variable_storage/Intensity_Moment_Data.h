@@ -53,6 +53,8 @@ public:
   void mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double> dfem_interp_points, const Input_Reader& input_reader, const Angular_Quadrature& angular_quadrature);
 
   void update_phi_and_norms(const Intensity_Data& i_old);
+  
+  void add_from_array_pointer( double *update_array  , const int cell, const int group);
 private:  
   /// total number of cells in the problem
   const int m_cells;

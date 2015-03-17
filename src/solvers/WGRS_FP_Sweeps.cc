@@ -22,6 +22,12 @@ WGRS_FP_Sweeps::WGRS_FP_Sweeps(const Input_Reader& input_reader,
 {
  
 }
+
+void WGRS_FP_Sweeps::kill_petsc_objects()
+{
+  return;
+}
+
 int WGRS_FP_Sweeps::solve(Intensity_Moment_Data& phi_new)
 {
   /** phi_new is what we will return

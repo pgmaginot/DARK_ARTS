@@ -27,7 +27,8 @@ m_Rt_Rs(m_R.transpose() * m_Rs)
 void MIP_Right_Boundary_Incident_Flux::add_right_boundary_contributions(const double kappa_nm12, const double kappa_np12 ,   
     const double d_cm1_r, const double d_c_l , const double d_c_r , 
     const double dx_cm1, const double dx_c, 
-    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c)
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cm1, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c)
 {
   cell_cm1 += -kappa_nm12*m_Lt_R - d_c_l/dx_c*m_Lst_R + d_cm1_r/dx_cm1*m_Lt_Rs;
   

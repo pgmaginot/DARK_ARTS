@@ -30,6 +30,8 @@ public:
   virtual ~Intensity_Update_MF(){}
 
   int update_intensity(Intensity_Moment_Data& phi) override;
+  
+  void kill_petsc_objects() override;
 
 private:
   std::shared_ptr<V_MF_ARD_Solver> m_ard_solver;

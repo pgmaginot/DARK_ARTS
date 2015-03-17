@@ -31,11 +31,15 @@ public:
     
   virtual ~V_WGRS(){}
 
+  virtual void kill_petsc_objects() = 0;
+  
   virtual int solve(Intensity_Moment_Data& phi_new) = 0;
 
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   
-  void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
+  /// not every method needs a different set_time_data.  However, those methods that have a diffusion operator are going to want to
+  /// override this function
+  virtual void set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage );
   
   void sweep_for_k_i(K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
 protected:

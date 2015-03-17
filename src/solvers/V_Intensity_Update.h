@@ -29,6 +29,8 @@ public:
     std::vector<double>& phi_ref_norm);
     
   virtual ~V_Intensity_Update(){}
+  
+  virtual void kill_petsc_objects() = 0;
 
   virtual int update_intensity(Intensity_Moment_Data& phi) = 0;
   

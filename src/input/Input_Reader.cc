@@ -1748,7 +1748,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   if(solve_type_str == "FP_SWEEPS")
     m_wg_solve_type = FP_SWEEPS;
   else if (solve_type_str == "FP_DSA")
-    m_wg_solve_type = FP_SWEEPS;
+    m_wg_solve_type = FP_DSA;
   else if (solve_type_str == "KRYLOV_SWEEPS")
     m_wg_solve_type = KRYLOV_SWEEPS;
   else if (solve_type_str == "KRYLOV_DSA")
@@ -1772,7 +1772,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   {
     TiXmlElement* mip_options_elem = solver_type_elem->FirstChildElement( "MIP_solve_options" );
     if(!mip_options_elem)
-      throw Dark_Arts_Exception(INPUT, "FP_DSA or KRYLOV_DSA require a MIP_solve_options block in SOLVER element");
+      throw Dark_Arts_Exception(INPUT, "FP_DSA or KRYLOV_DSA require a MIP_solve_options block in WG_solver_type element");
       
     TiXmlElement* z_mip_elem = mip_options_elem->FirstChildElement( "Z_mip" );
     if(!z_mip_elem)

@@ -25,7 +25,8 @@ public:
   void add_right_boundary_contributions(const double kappa_nm12, const double kappa_np12 ,   
     const double d_cm1_r, const double d_c_l , const double d_c_r , 
     const double dx_cm1, const double dx_c, 
-    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c) override;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cm1, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c) override;
     
     void add_right_boundary_rhs_contributions(Eigen::VectorXd& rhs) override;
     

@@ -26,7 +26,7 @@ public:
   V_Diffusion_Matrix_Creator(const Fem_Quadrature& fem_quadrature, Materials& materials,
     const Angular_Quadrature& angular_quadrature , const Temperature_Data& t_star, const int n_cells, const Input_Reader& input_reader);
     
-  virtual ~V_Diffusion_Matrix_Creator(){}
+  virtual ~V_Diffusion_Matrix_Creator(){ }
    
   /** MF needs to update M, r_cv, and spectrium \f$ \sum_{g=0}^G{\mathbf{R}_{\sigma_{a,g}} \mathbf{D}_g}   \f$
     Grey needs to update M, r_cv only

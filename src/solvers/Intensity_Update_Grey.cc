@@ -18,6 +18,11 @@ Intensity_Update_Grey::Intensity_Update_Grey(const Input_Reader& input_reader,
  
 }
 
+void Intensity_Update_Grey::kill_petsc_objects()
+{
+  m_within_group_radiation_solver->kill_petsc_objects();
+}
+
 int Intensity_Update_Grey::update_intensity(Intensity_Moment_Data& phi)
 {
   /**

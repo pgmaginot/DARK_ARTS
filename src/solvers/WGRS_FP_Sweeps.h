@@ -26,6 +26,8 @@ public:
     
   virtual ~WGRS_FP_Sweeps(){}
 
+  void kill_petsc_objects() override;
+  
   int solve(Intensity_Moment_Data& phi_new) override;
 protected:
   

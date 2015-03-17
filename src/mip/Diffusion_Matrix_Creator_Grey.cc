@@ -130,7 +130,7 @@ void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_c
   m_materials.get_sigma_a(0, m_sig_a_for_d_coeff);
   m_materials.get_sigma_s(0, 0, m_d_at_integration_pts);
   
-  std::cout << "D at integration points: " << std::endl;
+  // std::cout << "D at integration points: " << std::endl;
   for(int i=0; i < m_n_integration_pts ; i++)
   {
     m_d_at_integration_pts[i] = 1./(3.*(m_d_at_integration_pts[i] + m_sig_a_for_d_coeff[i] + m_tau));

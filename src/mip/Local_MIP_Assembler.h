@@ -28,7 +28,8 @@ public:
     const double dx_c, const double dx_cp1, 
     const double d_c_l , const double d_c_r , const double d_cp1_l,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-    Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1);
     
   void additive_update_left_boundary_rhs(Eigen::VectorXd& rhs);
     
@@ -36,13 +37,16 @@ public:
     const double dx_cm1, const double dx_c, const double dx_cp1, 
     const double d_cm12_r, const double d_c_l , const double d_c_r , const double d_cp1_l,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cm1, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1);
     
   void calculate_right_boundary_matrices(const double kappa_nm12, const double kappa_np12 , 
     const double dx_cm1, const double dx_c, 
     const double d_cm1_r, const double d_c_l , const double d_c_r ,
     const Eigen::MatrixXd& r_sig_a, const Eigen::MatrixXd& s_matrix,
-    Eigen::MatrixXd& cell_cm1, Eigen::MatrixXd& cell_c);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cm1, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c);
     
   void additive_update_right_boundary_rhs(Eigen::VectorXd& rhs);
     

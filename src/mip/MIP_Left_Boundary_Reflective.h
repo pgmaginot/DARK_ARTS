@@ -21,7 +21,8 @@ public:
   void add_left_boundary_contributions(const double kappa_12, const double kappa_32 ,   
     const double d_1_l , const double d_1_r , const double d_2_l,
     const double dx_1, const double dx_2, 
-    Eigen::MatrixXd& cell_c, Eigen::MatrixXd& cell_cp1) override;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c, 
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1) override;
     
   void add_left_boundary_rhs_contributions(Eigen::VectorXd& rhs) override;
     

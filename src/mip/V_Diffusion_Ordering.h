@@ -16,11 +16,11 @@ class V_Diffusion_Ordering
 public:
   /// Only able to initialize if given an Input_Reader object
   /// constructor defined in Fem_Quadrature.cc
-  V_Diffusion_Ordering(const Cell_Data& cell_data, const Angular_Quadrature& angular_quadrature, const int n_mip_loops);
+  V_Diffusion_Ordering(const Cell_Data& cell_data, const Angular_Quadrature& angular_quadrature);
     
   virtual ~V_Diffusion_Ordering(){}
     
-  virtual void get_cell_and_group(const int block_i , const int mip_loop_number,  int& cell , int& group) = 0;
+  virtual void get_cell_and_group(const int block_i , int& cell , int& group) = 0;
   
   void check_bounds(const int cell_num , const int group_num);
   
@@ -31,7 +31,6 @@ protected:
    */   
   const int m_n_groups;
   const int m_n_cells;
-  const int m_n_mip_loops;
 };
 
 #endif

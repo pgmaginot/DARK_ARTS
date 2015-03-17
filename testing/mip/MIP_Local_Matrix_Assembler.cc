@@ -92,9 +92,9 @@ int main(int argc, char** argv)
     s_mat(1,2) = -3.1;
     s_mat(2,1) = -3.1;
     
-    Eigen::MatrixXd cell_cm1 = Eigen::MatrixXd::Zero(3,3);
-    Eigen::MatrixXd cell_c = Eigen::MatrixXd::Zero(3,3);
-    Eigen::MatrixXd cell_cp1 = Eigen::MatrixXd::Zero(3,3);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> cell_cm1 = Eigen::MatrixXd::Zero(3,3);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> cell_c = Eigen::MatrixXd::Zero(3,3);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> cell_cp1 = Eigen::MatrixXd::Zero(3,3);
     
     Eigen::VectorXd rhs = Eigen::VectorXd::Zero(3);   
     /// left boundary matrices
