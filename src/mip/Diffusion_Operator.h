@@ -90,6 +90,11 @@ protected:
   /// PETSc variables 
   PetscInt *m_row_destination;
   double *m_pointer_to_eigen_m_rhs;
+  PetscReal *m_pointer_to_m_cm1;
+  PetscReal *m_pointer_to_m_c;
+  PetscReal *m_pointer_to_m_cp1;
+  
+  PetscInt *m_col_destination;
   
   PetscErrorCode m_petsc_err;  
   Mat m_mip_global;

@@ -44,9 +44,13 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_matrix_initial_build(false),
   m_kappa_calculator( m_np-1, (is_wg_solve ? (input_reader.get_wg_z_mip() ) : (-1.) ) ),
   m_local_assembler(fem_quadrature,input_reader),
-  m_pointer_to_eigen_m_rhs( &m_rhs_local(0) )
+  m_pointer_to_eigen_m_rhs( &m_rhs_local(0) ),
+  m_pointer_to_m_cm1( &m_cell_cm1(0,0) ),
+  m_pointer_to_m_c( &m_cell_c(0,0) ),
+  m_pointer_to_m_cp1( &m_cell_cp1(0,0) )
 {    
   m_row_destination = new PetscInt[m_np];
+  m_col_destination = new PetscInt[m_np];
   if(is_wg_solve)
   {
     if(n_groups ==1)
@@ -95,6 +99,14 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   // m_petsc_err = VecSet(m_mip_rhs,0.);
   m_petsc_err = VecSet(m_mip_solution,0.);
   
+  MatCreate(PETSC_COMM_WORLD, &m_mip_global);
+  MatSetSizes(m_mip_global,PETSC_DECIDE,PETSC_DECIDE,m_n_mip_sys_size,m_n_mip_sys_size);
+  MatSetType(m_mip_global,MATAIJ);
+  // MatSetFromOptions(m_mip_global);
+  
+  /// preallocate maximum required space
+  MatSeqAIJSetPreallocation(m_mip_global, 3*m_np , NULL);
+  
   /**
     To change values:
     Call this each time we are changing entries:
@@ -135,8 +147,10 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
 void Diffusion_Operator::kill_petsc_objects()
 {
   delete[] m_row_destination;
+  delete[] m_col_destination;
   VecDestroy( &m_mip_solution);
   VecDestroy( &m_mip_rhs);
+  MatDestroy( &m_mip_global);
   return;
 }
 
@@ -218,13 +232,30 @@ void Diffusion_Operator::build_matrix()
     /// calculate the various diffusion coefficients we need at cell edges
     m_diffusion_matrix_creator->calculate_d_dependent_quantities(m_d_r_cm1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_s_matrix); 
 
+    int el_i , el_j;
     if(cell==0)
     {
       m_kappa_cm12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_l_c);
       m_kappa_cp12 = m_kappa_calculator.calculate_interior_edge_kappa(m_dx_c, m_dx_cp1 , m_d_r_c , m_d_l_cp1) ;
       
       m_local_assembler.calculate_left_boundary_matrices(m_kappa_cm12, m_kappa_cp12 , 
-        m_dx_c, m_dx_cp1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_r_sig_a, m_s_matrix, m_cell_c, m_cell_cp1);        
+        m_dx_c, m_dx_cp1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_r_sig_a, m_s_matrix, m_cell_c, m_cell_cp1);  
+
+      for( el_i = 0 ; el_i < m_np ; el_i++)
+        m_row_destination[el_i] = i*m_np + el_i;        
+      
+      /// cell c first
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = i*m_np + el_j;
+        
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_c, INSERT_VALUES);
+        
+      /// cell cp1
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = (i+1)*m_np + el_j;
+            
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cp1, INSERT_VALUES);
+        
     }
     else if(cell == (m_n_cell-1))
     {
@@ -233,6 +264,21 @@ void Diffusion_Operator::build_matrix()
       
       m_local_assembler.calculate_right_boundary_matrices( m_kappa_cm12 , m_kappa_cp12 ,m_dx_cm1 , m_dx_c , 
         m_d_r_cm1,  m_d_l_c , m_d_r_c, m_r_sig_a, m_s_matrix, m_cell_cm1 , m_cell_c); 
+        
+      for( el_i = 0 ; el_i < m_np ; el_i++)
+        m_row_destination[el_i] = i*m_np + el_i;    
+
+      /// cell c-1 first
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = (i-1)*m_np + el_j;
+        
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cm1, INSERT_VALUES);
+      
+      /// cell c
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = i*m_np + el_j;
+        
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_c, INSERT_VALUES);
     }
     else
     {
@@ -241,6 +287,28 @@ void Diffusion_Operator::build_matrix()
       
       m_local_assembler.calculate_interior_matrices( m_kappa_cm12 , m_kappa_cp12 ,m_dx_cm1 , m_dx_c , m_dx_cp1 , 
         m_d_r_cm1,  m_d_l_c , m_d_r_c, m_d_l_cp1 , m_r_sig_a, m_s_matrix, m_cell_cm1 , m_cell_c, m_cell_cp1); 
+        
+      /// cell c-1 first
+      for( el_i = 0 ; el_i < m_np ; el_i++)
+        m_row_destination[el_i] = i*m_np + el_i; 
+        
+        /// cell c-1 first
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = (i-1)*m_np + el_j;
+        
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cm1, INSERT_VALUES);
+      
+      /// cell c
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = i*m_np + el_j;
+        
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_c, INSERT_VALUES);
+      
+      /// cell cp1
+      for(el_j=0;el_j < m_np ; el_j++)
+        m_col_destination[el_j] = (i+1)*m_np + el_j;
+            
+      MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cp1, INSERT_VALUES);
     }    
     
     // std::cout << "dx_cm1: " << m_dx_cm1 << std::endl
@@ -257,7 +325,14 @@ void Diffusion_Operator::build_matrix()
     // std::cout << "This is the normal Eigen view  of cell c: \n" << m_cell_c << std::endl;
     // std::cout << "This is what we see when we look at it as in row major\n" << row_major << std::endl;
     
-  }
+  } 
+  
+  
+  MatAssemblyBegin(m_mip_global,MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(m_mip_global,MAT_FINAL_ASSEMBLY);
+  
+  // MatView(m_mip_global,PETSC_VIEWER_STDOUT_SELF);
+  
   return;
 }
 
