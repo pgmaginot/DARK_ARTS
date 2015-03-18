@@ -96,7 +96,8 @@ void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_c
     m_t_eval.get_cell_temperature(m_cell_num-1,m_t_eval_vec) ;  
     m_materials.calculate_right_edge_temp_and_position(m_cell_num-1,m_t_eval_vec);   
     
-    d_r_cm1 = 1./(3.*( m_tau + m_materials.get_right_sigma_a(0) + m_materials.get_right_sigma_s(0,0) )); 
+    d_r_cm1 = 1.;
+    d_r_cm1 /=  3.*( m_tau + m_materials.get_right_sigma_a(0) + m_materials.get_right_sigma_s(0,0) ); 
     
     m_materials.clear_right_edge_set();
   }
@@ -109,7 +110,8 @@ void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_c
   {
     m_t_eval.get_cell_temperature(m_cell_num+1,m_t_eval_vec) ;  
     m_materials.calculate_left_edge_temp_and_position(m_cell_num+1,m_t_eval_vec);   
-    d_l_cp1 = 1./(3.*( m_tau + m_materials.get_left_sigma_a(0) + m_materials.get_left_sigma_s(0,0) )); 
+    d_l_cp1 = 1.;
+    d_l_cp1 /=  3.*( m_tau + m_materials.get_left_sigma_a(0) + m_materials.get_left_sigma_s(0,0) ); 
     m_materials.clear_left_edge_set();
   }
   
@@ -118,8 +120,10 @@ void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_c
   m_materials.calculate_right_edge_temp_and_position(m_cell_num,m_t_eval_vec);  
   m_materials.calculate_left_edge_temp_and_position(m_cell_num,m_t_eval_vec);  
   
-  d_l_c = 1./(3.*( m_tau + m_materials.get_left_sigma_a(0) + m_materials.get_left_sigma_s(0,0) )); 
-  d_r_c = 1./(3.*( m_tau + m_materials.get_right_sigma_a(0) + m_materials.get_right_sigma_s(0,0) )); 
+  d_l_c = 1.;
+  d_l_c /=  3.*( m_tau + m_materials.get_left_sigma_a(0) + m_materials.get_left_sigma_s(0,0) ); 
+  d_r_c = 1.;
+  d_r_c /= 3.*( m_tau + m_materials.get_right_sigma_a(0) + m_materials.get_right_sigma_s(0,0) ); 
   
   m_materials.clear_right_edge_set();
   m_materials.clear_left_edge_set();
@@ -127,13 +131,14 @@ void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_c
   /// evaluate cell interior diffusion coefficients
   m_materials.calculate_local_temp_and_position(m_cell_num,m_t_eval_vec);
   
+  /// expecting d at integration points.  Materials accounts for the particular XS treatment we are considering
   m_materials.get_sigma_a(0, m_sig_a_for_d_coeff);
   m_materials.get_sigma_s(0, 0, m_d_at_integration_pts);
   
   // std::cout << "D at integration points: " << std::endl;
   for(int i=0; i < m_n_integration_pts ; i++)
   {
-    m_d_at_integration_pts[i] = 1./(3.*(m_d_at_integration_pts[i] + m_sig_a_for_d_coeff[i] + m_tau));
+    m_d_at_integration_pts[i] = 1./ (3.*(m_d_at_integration_pts[i] + m_sig_a_for_d_coeff[i] + m_tau) );
      // std::cout << m_d_at_integration_pts[i] << std::endl;
   }
     

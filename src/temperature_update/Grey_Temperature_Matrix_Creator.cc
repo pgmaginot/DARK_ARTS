@@ -72,7 +72,8 @@ void Grey_Temperature_Matrix_Creator::calculate_update_quantities(const int cell
    \f]
   */
   scratch_mat = Eigen::MatrixXd::Zero(m_np,m_np);
-  scratch_mat = m_r_cv.fullPivLu().solve(m_r_sig_a*m_d_matrix);
+  coefficient = m_r_sig_a*m_d_matrix;
+  scratch_mat = m_r_cv.fullPivLu().solve(coefficient);
   
   coefficient = m_identity_matrix + m_sn_w*m_dt*m_rk_a[m_stage]*scratch_mat;
 

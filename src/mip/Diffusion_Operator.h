@@ -35,7 +35,8 @@ class Diffusion_Operator
 public:
   Diffusion_Operator(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, 
     const Cell_Data& cell_data, Materials& materials, const Angular_Quadrature& angular_quadrature,
-    const int n_groups, const Temperature_Data& t_eval, const bool is_wg_solve);
+    const int n_groups, const Temperature_Data& t_eval, const bool is_wg_solve,
+    const double abs_tol, const double rel_tol , const double div_tol);
     
   virtual ~Diffusion_Operator();
   
@@ -44,6 +45,8 @@ public:
   void update(Intensity_Moment_Data& phi_new , const Intensity_Moment_Data& phi_old);
     
   void kill_petsc_objects();
+  
+  void dump_matrix();
   
 protected:
   const double m_sn_w;
@@ -99,6 +102,7 @@ protected:
   PetscErrorCode m_petsc_err;  
   Mat m_mip_global;
   KSP m_krylov_solver;
+  PC  m_pre_conditioner;   
   Vec m_mip_solution;
   Vec m_mip_rhs;  
   

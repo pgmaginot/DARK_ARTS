@@ -7,7 +7,8 @@
 
 Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, 
   const Cell_Data& cell_data, Materials& materials, const Angular_Quadrature& angular_quadrature,
-  const int n_groups, const Temperature_Data& t_eval, const bool is_wg_solve)
+  const int n_groups, const Temperature_Data& t_eval, const bool is_wg_solve,
+  const double abs_tol, const double rel_tol , const double div_tol)
 :
   m_sn_w( angular_quadrature.get_sum_w() ),
   m_np(fem_quadrature.get_number_of_interpolation_points()),
@@ -62,8 +63,7 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     }
     else
     {
-      throw Dark_Arts_Exception(TIME_MARCHER , "MF within group scattering MIP not coded");
-      
+      throw Dark_Arts_Exception(TIME_MARCHER , "MF within group scattering MIP not coded");      
     }  
   }
   else
@@ -107,6 +107,12 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   /// preallocate maximum required space
   MatSeqAIJSetPreallocation(m_mip_global, 3*m_np , NULL);
   
+  KSPCreate(PETSC_COMM_WORLD,&m_krylov_solver);
+  
+  /// (KSP, rel_tol, abs_tol, divergence_tol , maximum_iterations)
+  // KSPSetTolerances(m_krylov_solver, 1.0E-10, PETSC_DEFAULT, PETSC_DEFAULT, m_n_mip_blocks*m_np);
+  KSPSetFromOptions(m_krylov_solver);
+  
   /**
     To change values:
     Call this each time we are changing entries:
@@ -140,8 +146,6 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     for(int i=0;i<4*4 ; i++)
       std::cout << "arr_ptr[" << i << "]: " << arr_ptr[i] << std::endl;
   */
-  
-  /// set MIP matrix structure one time for faster assembly
 }
 
 void Diffusion_Operator::kill_petsc_objects()
@@ -151,12 +155,20 @@ void Diffusion_Operator::kill_petsc_objects()
   VecDestroy( &m_mip_solution);
   VecDestroy( &m_mip_rhs);
   MatDestroy( &m_mip_global);
+  KSPDestroy(&m_krylov_solver);
   return;
 }
 
 Diffusion_Operator::~Diffusion_Operator()
 {
 
+}
+
+void Diffusion_Operator::dump_matrix()
+{
+  PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+  MatView(m_mip_global, PETSC_VIEWER_STDOUT_WORLD);
+  return;
 }
 
 void Diffusion_Operator::build_rhs(const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old)
@@ -174,7 +186,7 @@ void Diffusion_Operator::build_rhs(const Intensity_Moment_Data& phi_new, const I
     phi_old.get_cell_angle_integrated_intensity(cell,grp,0,m_phi_old_vec);
     
     m_rhs_local = m_r_sig_s*(m_phi_new_vec - m_phi_old_vec);
-    
+    m_pointer_to_eigen_m_rhs = &m_rhs_local(0);
     /// save into PETSc vector
     /// first fill row destination index
     // std::cout << "This is the local Eigen vector: \n" << m_rhs_local << std::endl;
@@ -188,8 +200,6 @@ void Diffusion_Operator::build_rhs(const Intensity_Moment_Data& phi_new, const I
   m_petsc_err = VecAssemblyBegin(m_mip_rhs);
   m_petsc_err = VecAssemblyEnd(m_mip_rhs);
   
-  // VecView(m_mip_rhs,PETSC_VIEWER_STDOUT_WORLD);
-  
   return;
 } 
 
@@ -201,6 +211,7 @@ void Diffusion_Operator::build_matrix()
   {
     /// determine cell and group for material property evaluation
     m_diffusion_ordering->get_cell_and_group(i,cell,grp);
+    
     // std::cout << "n_mip_blcks: " << m_n_mip_blocks << std::endl
               // << "cell: " << cell << std::endl
               // << "grp: " << grp << std::endl;
@@ -344,10 +355,19 @@ void Diffusion_Operator::set_time_data(  const double dt, const double time_stag
   m_diffusion_matrix_creator->set_time_data( dt, time_stage, rk_a_ii);
   /// new time stage, set-up matrix
   build_matrix();
+  /// associate the new matrix with the krylov solver
+  /// no preconditioning
+  KSPSetOperators(m_krylov_solver,m_mip_global,m_mip_global,SAME_NONZERO_PATTERN);
+  // KSPSetType(m_krylov_solver,KSPCG);
+  KSPSetFromOptions(m_krylov_solver);
+  // KSPGetPC(m_krylov_solver, &m_pre_conditioner);
+  // PCSetType(m_pre_conditioner , PCHYPRE);
+  return;
 }
 
 void Diffusion_Operator::solve_system()
 {
+  KSPSolve(m_krylov_solver,m_mip_rhs,m_mip_solution);
   return;
 }
 

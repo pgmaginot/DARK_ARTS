@@ -75,6 +75,8 @@ protected:
   const Eigen::MatrixXd m_Rst_L;
   const Eigen::MatrixXd m_Rt_Ls;
   
+  const int m_np;
+  
   std::shared_ptr<V_MIP_Left_Boundary> m_left_boundary;
   std::shared_ptr<V_MIP_Right_Boundary> m_right_boundary;
     

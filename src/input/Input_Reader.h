@@ -162,6 +162,8 @@ public:
   void get_output_directory(std::string& out_path) const {out_path = m_output_directory; return;}
   void get_short_input_filename(std::string& short_input) const{short_input = m_short_input_file; return;}
   
+  bool get_output_suppression(void) const { return m_suppress_output_dumps; }
+  
   std::string get_output_directory(void) const {return m_output_directory;}
   std::string get_short_input_filename(void) const{return m_short_input_file; }
   std::string get_filename_base_for_results(void) const{ return m_results_file_base; }
@@ -177,6 +179,7 @@ protected:
   bool m_space_time_error = false;
   std::string m_output_directory;
   std::string m_short_input_file;
+  bool m_suppress_output_dumps = false;
   
   /// Restart type
   RESTART_TYPE m_restart_type = INVALID_RESTART_TYPE;

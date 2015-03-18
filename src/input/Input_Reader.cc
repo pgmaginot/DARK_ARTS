@@ -532,6 +532,10 @@ int Input_Reader::load_output_data(TiXmlElement* output_element)
   if(!output_dir_elem)
     throw Dark_Arts_Exception(INPUT , "In OUTPUT block, missing Output_directory element");
     
+  TiXmlElement* suppress_elem = output_element->FirstChildElement( "Suppress_data_dumps" );
+  if( suppress_elem )
+    m_suppress_output_dumps = true;
+    
   m_output_directory = output_dir_elem->GetText() ;
     
   std::string type_str  = type_elem->GetText();
@@ -1559,7 +1563,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
     {
       TiXmlElement* opacity_interp_point_type_elem = opacity_treatment_elem->FirstChildElement( "Opacity_interpolation_point_type");
       if(!opacity_interp_point_type_elem)
-        throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interp_point_type_elem element ");
+        throw Dark_Arts_Exception(INPUT, "SPATIAL_DISCRETIZATION Block: Missing Opacity_interpolation_point_type element ");
         
       std::string opacity_intep_type_str = opacity_interp_point_type_elem->GetText();
       transform(opacity_intep_type_str.begin() , opacity_intep_type_str.end() , opacity_intep_type_str.begin() , toupper);

@@ -46,7 +46,7 @@ private:
   const int m_max_damps;
   const int m_max_thermal_iter;
   
-  
+  const bool m_suppress_output;
   
   Err_Temperature m_err_temperature;
   Status_Generator m_status_generator;
@@ -60,6 +60,10 @@ private:
   
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
   Temperature_Update m_temperature_update;
+  
+  const Input_Reader& m_input_reader;
+  const Cell_Data& m_cell_data;
+  const Angular_Quadrature& m_angular_quadrature;
   
   std::vector<double> dfem_interp_points;
   

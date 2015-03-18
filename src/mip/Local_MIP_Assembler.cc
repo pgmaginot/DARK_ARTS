@@ -29,7 +29,8 @@ Local_MIP_Assembler::Local_MIP_Assembler(const Fem_Quadrature& fem_quadrature, c
   
   m_Rt_L(m_R.transpose() * m_L),
   m_Rst_L(m_Rs.transpose() * m_L),
-  m_Rt_Ls(m_R.transpose() * m_Ls)
+  m_Rt_Ls(m_R.transpose() * m_Ls),
+  m_np(fem_quadrature.get_number_of_interpolation_points() )
   {
     // std::cout << "m_L: " << m_L << std::endl;
     // std::cout << "m_R: " << m_R << std::endl;
@@ -58,6 +59,7 @@ void Local_MIP_Assembler::calculate_left_boundary_matrices(const double kappa_12
   Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1)
 {  
   cell_c = r_sig_a + s_matrix;
+  cell_cp1 = Eigen::MatrixXd::Zero(m_np,m_np);
   
   m_left_boundary->add_left_boundary_contributions(kappa_12,kappa_32, d_c_l, d_c_r , d_cp1_l, dx_c, dx_cp1 , cell_c , cell_cp1);  
   return;
@@ -99,7 +101,7 @@ void Local_MIP_Assembler::calculate_right_boundary_matrices(const double kappa_n
   Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c)
 {
   cell_c = r_sig_a + s_matrix;
-  
+  cell_cm1 = Eigen::MatrixXd::Zero(m_np,m_np);
   m_right_boundary->add_right_boundary_contributions(kappa_nm12, kappa_np12 ,d_cm1_r, d_c_l ,d_c_r , 
     dx_cm1, dx_c, cell_cm1, cell_c);
     

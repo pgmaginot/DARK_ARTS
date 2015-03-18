@@ -88,14 +88,18 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   m_hold_matrix = m_coefficient.fullPivLu().solve(m_identity_matrix); //inverse();
   m_coefficient = m_hold_matrix;
   
+  // std::cout << "Dead here in matrix creator" << std::endl;
+  // std::cout << "m_n_l_mom: " << m_n_l_mom << std::endl;
   for(int l=0; l< m_n_l_mom ; l++)
+  {
     m_mtrx_builder->construct_r_sigma_s(m_r_sig_s,m_group_num,l);
-  
+  }
   m_r_sig_t = m_r_sig_a + m_r_sig_s[0];
   
   /// calculate \f$ \bar{\bar{\mathbf{R}}}_{\sigma_t} \f$
   m_r_sig_t += 1./(m_c*m_dt*m_rk_a[m_stage])*m_dx_div_2_mass; 
 
+  // std::cout << "still alive" << std::endl;
   /// add \f$ \bar{\bar{\mathbf \nu}} \mathbf{R}_{\sigma_a} \f$ contribution to m_sig_s
   ///   m_r_sig_s[0] += (m_sn_w*m_dt*m_rk_a[m_stage])*m_r_sig_a*m_d_matrix*m_coefficient*m_r_cv*m_r_sig_a
   m_hold_matrix = m_r_cv*m_r_sig_a;
@@ -110,6 +114,8 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   
   /// \f$ \text{m_xi_isotropic} = \vec{T}^n - - \vec{T}^* \f$
   m_xi_isotropic = m_t_old_vec - m_t_star_vec;
+  
+  // std::cout << "here too alive" << std::endl;
   
   /// \f$ \text{m_xi_isotropic} += \Delta t \sum_{j=1}^{i-1}{a_{ij} \vec{k}_{T,j} } \f$
   for(int s=0; s< m_stage ; s++)
@@ -127,11 +133,14 @@ void Sweep_Matrix_Creator_Grey::update_group_dependencies(const int grp)
   m_temp_vec = m_driving_source - m_sn_w*m_r_sig_a*m_planck_vec;
   m_xi_isotropic += m_dt*m_rk_a[m_stage]*m_r_cv*m_temp_vec;
   
-  m_hold_matrix = m_r_sig_a*m_d_matrix*m_coefficient;
+  // std::cout << "almosst done" << std::endl;
+  hold3 = m_d_matrix*m_coefficient;
+  m_hold_matrix = m_r_sig_a*hold3;
   
   m_temp_vec = m_hold_matrix*m_xi_isotropic;
   
   m_xi_isotropic = m_temp_vec + m_r_sig_a*m_planck_vec;
+  
   
   return;
 }

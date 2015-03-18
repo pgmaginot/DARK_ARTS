@@ -19,12 +19,16 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_checkpoint_frequency(input_reader.get_restart_frequency() ),
     m_max_damps(input_reader.get_max_damp_iters() ),
     m_max_thermal_iter( input_reader.get_max_thermal_iteration() ),
+    m_suppress_output( input_reader.get_output_suppression() ),
     m_err_temperature( fem_quadrature.get_number_of_interpolation_points() ),
     m_status_generator(input_reader.get_output_directory() + input_reader.get_short_input_filename() ),
     m_output_generator(angular_quadrature,fem_quadrature, cell_data, input_reader),
     m_calculate_space_time_error( input_reader.record_space_time_error() ),
     m_calculate_final_space_error( input_reader.record_final_space_error() ),
-    m_temperature_update(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, t_old, m_ard_phi)
+    m_temperature_update(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, t_old, m_ard_phi),
+    m_input_reader(input_reader),
+    m_cell_data(cell_data),
+    m_angular_quadrature(angular_quadrature)
 {     
   try{
     std::vector<double> phi_ref_norm;
@@ -102,7 +106,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   // for( ; t_step < 1; t_step++)
   {
     if( (t_step % 20) == 0)
-      m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );  
+      m_err_temperature.set_small_number( 1.0E-4*t_old.calculate_average() );  
     
     dt = time_data.get_dt(t_step,time);
     
@@ -137,14 +141,14 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// Intensity_Update objects are linked to m_star at construction        
         inners = m_intensity_update->update_intensity(m_ard_phi);
         
-        // m_ard_phi.mms_cheat(time_stage,cell_data,dfem_interp_points,input_reader,angular_quadrature);
+        // m_ard_phi.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader,m_angular_quadrature);
           
         /// then update temperature given the new intensity
         /// give a damping coefficient to possibly control this Newton (like) iteration)
         /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
         m_err_temperature.clear();
         m_temperature_update.update_temperature(m_t_star, m_k_t, m_damping, m_err_temperature ); 
-        // m_t_star.mms_cheat(time_stage,cell_data,dfem_interp_points,input_reader);
+        // m_t_star.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader);
         double norm_relative_change = m_err_temperature.get_worst_err();
         std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter <<
           " Number of Transport solves: " << inners << " Thermal error: " << norm_relative_change << std::endl;
@@ -199,15 +203,19 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
 
-    if( (t_step % m_checkpoint_frequency) == 0)
+    
+    if(!m_suppress_output)
     {
-      m_output_generator.write_xml(false,t_step,i_old);
-      m_output_generator.write_xml(false,t_step,t_old);
-      m_output_generator.write_xml(false,t_step,m_ard_phi);    
+      if( (t_step % m_checkpoint_frequency) == 0)
+      {
+        m_output_generator.write_xml(false,t_step,i_old);
+        m_output_generator.write_xml(false,t_step,t_old);
+        m_output_generator.write_xml(false,t_step,m_ard_phi);    
+      }
     }
     
     /// check to see if we are at the end of the time marching scheme
-    if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-6)
+    if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-4)
       break;
   }
   m_intensity_update->kill_petsc_objects();
@@ -224,9 +232,12 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     m_final_space_error_calculator->record_error(time,t_step,t_old, m_ard_phi);
   }
   /// dump final solutions, always!
-  m_output_generator.write_xml(true,0,i_old);
-  m_output_generator.write_xml(true,0,t_old);
-  m_output_generator.write_xml(true,0,m_ard_phi);
+  if(!m_suppress_output)
+  {
+    m_output_generator.write_xml(true,0,i_old);
+    m_output_generator.write_xml(true,0,t_old);
+    m_output_generator.write_xml(true,0,m_ard_phi);
+  }
   
   return;
 }

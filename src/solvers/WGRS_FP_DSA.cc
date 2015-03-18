@@ -19,7 +19,9 @@ WGRS_FP_DSA::WGRS_FP_DSA(const Input_Reader& input_reader,
   m_max_sweeps( input_reader.get_max_number_sweeps() ),
   /// initialize to zero
   m_phi_old(cell_data, angular_quadrature,fem_quadrature,phi_ref_norm),
-  m_diffusion_operator(input_reader,fem_quadrature,cell_data,materials,angular_quadrature,m_n_groups,t_star,true)
+  m_diffusion_operator(input_reader,fem_quadrature,cell_data,materials,angular_quadrature,m_n_groups,t_star,true,
+    1.0E-12,
+    input_reader.get_within_group_solve_tolerance() , 1.0 )
 {
  
 }
@@ -52,11 +54,11 @@ int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new)
     const bool is_krylov = false;
     
     m_transport_sweep.set_sweep_type(is_k_i,is_krylov);
-    /// on first sweep, m_phi_old is a zero vector
+    /// on first sweep, m_phi_old is a zero vector 
     m_transport_sweep.sweep_mesh(m_phi_old , phi_new);
     
     /// if reflective, need to send some data to diffusion operator !!!!! (this is not yet coded...) 
-    m_diffusion_operator.update(m_phi_old , phi_new);
+    m_diffusion_operator.update(phi_new,m_phi_old);
     /// calculate the error, normalize to phi_new
     m_err.clear();
     phi_new.normalized_difference(m_phi_old,m_err);    
