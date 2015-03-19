@@ -225,11 +225,12 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   if(m_calculate_final_space_error)
   {
     /// need to calculate m_ard_phi from i_old, since m_ard_phi is at the last time stage value
+    m_ard_phi.clear_angle_integrated_intensity();
     m_ard_phi.update_phi_and_norms(i_old);
     
     /// t_step is off by 1
     t_step++;
-    m_final_space_error_calculator->record_error(time,t_step,t_old, m_ard_phi);
+    m_final_space_error_calculator->record_error(time,t_step,t_old, m_ard_phi, m_status_generator.get_total_thermals() , m_status_generator.get_total_sweeps() );
   }
   /// dump final solutions, always!
   if(!m_suppress_output)

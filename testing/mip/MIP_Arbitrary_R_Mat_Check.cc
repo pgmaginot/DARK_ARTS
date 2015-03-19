@@ -47,9 +47,7 @@ int main(int argc, char** argv)
   
   
   const int n_cell = cell_data.get_total_number_of_cells();
-  const int n_dir = angular_quadrature.get_number_of_dir();
   const int n_dfem_p = fem_quadrature.get_number_of_interpolation_points();
-  const double sn_w = angular_quadrature.get_sum_w();
   
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
 

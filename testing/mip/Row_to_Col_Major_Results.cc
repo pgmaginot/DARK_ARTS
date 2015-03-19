@@ -9,7 +9,6 @@
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.0E-8;
   
   try{
     const int n_p = 4;

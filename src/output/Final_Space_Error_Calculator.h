@@ -26,7 +26,8 @@ public:
     
   virtual ~Final_Space_Error_Calculator(){}
   
-  void record_error(const double time_final , const int n_steps, const Temperature_Data& temperature, const Intensity_Moment_Data& phi);
+  void record_error(const double time_final , const int n_steps, const Temperature_Data& temperature, 
+    const Intensity_Moment_Data& phi, const int n_thermals, const int n_sweeps);
 
 protected:
 

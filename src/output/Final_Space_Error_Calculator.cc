@@ -27,8 +27,8 @@ Final_Space_Error_Calculator::Final_Space_Error_Calculator(const Angular_Quadrat
   m_thermal_tolerance(input_reader.get_thermal_tolerance() ),
   m_phi_l2_filename( "_final_space_phi_L2_error.txt" ),
   m_phi_A_filename( "_final_space_phi_A_error.txt" ),
-  m_temp_l2_filename( "_final_space_tempeature_L2_error.txt" ),
-  m_temp_A_filename( "_final_space_tempeature_A_error.txt" ),
+  m_temp_l2_filename( "_final_space_temperature_L2_error.txt" ),
+  m_temp_A_filename( "_final_space_temperature_A_error.txt" ),
   m_output_file_phi_l2( filename_base += m_phi_l2_filename , std::ofstream::app),
   m_output_file_phi_A( filename_base.replace( filename_base.find(m_phi_l2_filename) , m_phi_l2_filename.length() ,m_phi_A_filename), std::ofstream::app),
   m_output_file_temp_l2( filename_base.replace( filename_base.find(m_phi_A_filename) , m_phi_A_filename.length() ,m_temp_l2_filename), std::ofstream::app),
@@ -82,7 +82,8 @@ Final_Space_Error_Calculator::Final_Space_Error_Calculator(const Angular_Quadrat
 }
 
 void Final_Space_Error_Calculator::record_error(
-  const double time_final , const int n_steps, const Temperature_Data& temperature, const Intensity_Moment_Data& phi)
+  const double time_final , const int n_steps, const Temperature_Data& temperature, const Intensity_Moment_Data& phi
+  , const int n_thermals, const int n_sweeps)
 {  
   m_phi_l2_err = m_space_l2_error_calculator.calculate_l2_error(time_final,phi);
   m_temperature_l2_err = m_space_l2_error_calculator.calculate_l2_error(time_final,temperature);
@@ -96,7 +97,8 @@ void Final_Space_Error_Calculator::record_error(
   m_output_file_phi_l2  << " WG_tol: " << std::scientific << std::setprecision(5) << m_wg_tolerance;
   m_output_file_phi_l2 << " BG_tol: " << std::scientific << std::setprecision(5) << m_bg_tolerance;
   m_output_file_phi_l2 << " Thermal_tol: " << std::scientific << std::setprecision(5) << m_thermal_tolerance;
-  m_output_file_phi_l2 << " Err: " <<  std::scientific << std::setprecision(15) << m_phi_l2_err << std::endl;
+  m_output_file_phi_l2 << " Err: " <<  std::scientific << std::setprecision(15) << m_phi_l2_err 
+                        << " Total_thermals: " << n_thermals << " Total_sweeps: " << n_sweeps << std::endl;
                        
   m_output_file_temp_l2 << "N_cells: " << std::setw(4) << m_n_cell << " Fem_ord: " << std::setw(2) << m_dfem_ord  << " Time_str: " << m_time_str ;
   m_output_file_temp_l2 << " N_steps: " << std::setw(6) << n_steps ;
@@ -104,7 +106,8 @@ void Final_Space_Error_Calculator::record_error(
   m_output_file_temp_l2  << " WG_tol: " << std::scientific << std::setprecision(5) << m_wg_tolerance ;
   m_output_file_temp_l2 << " BG_tol: " << std::scientific << std::setprecision(5) << m_bg_tolerance;
   m_output_file_temp_l2 << " Thermal_tol: " << std::scientific << std::setprecision(5) << m_thermal_tolerance;
-  m_output_file_temp_l2 << " Err: " << std::scientific << std::setprecision(15) << m_temperature_l2_err << std::endl;
+  m_output_file_temp_l2 << " Err: " << std::scientific << std::setprecision(15) << m_temperature_l2_err 
+                        << " Total_thermals: " << n_thermals << " Total_sweeps: " << n_sweeps << std::endl;
                        
   m_output_file_phi_A << "N_cells: " << std::setw(4) << m_n_cell << " Fem_ord: " << std::setw(2) << m_dfem_ord  << " Time_str: " << m_time_str ;
   m_output_file_phi_A << " N_steps: " << std::setw(6) << n_steps ;
@@ -112,7 +115,8 @@ void Final_Space_Error_Calculator::record_error(
   m_output_file_phi_A  << " WG_tol: " << std::scientific << std::setprecision(5) << m_wg_tolerance;
   m_output_file_phi_A << " BG_tol: " << std::scientific << std::setprecision(5) << m_bg_tolerance ;
   m_output_file_phi_A << " Thermal_tol: " << std::scientific << std::setprecision(5) << m_thermal_tolerance;
-  m_output_file_phi_A  << " Err: " << std::scientific << std::setprecision(15) << m_phi_A_err << std::endl;
+  m_output_file_phi_A  << " Err: " << std::scientific << std::setprecision(15) << m_phi_A_err 
+                        << " Total_thermals: " << n_thermals << " Total_sweeps: " << n_sweeps << std::endl;
                        
   m_output_file_temp_A << "N_cells: " << std::setw(4) << m_n_cell << " Fem_ord: " << std::setw(2) << m_dfem_ord  << " Time_str: " << m_time_str ;
   m_output_file_temp_A << " N_steps: " << std::setw(6) << n_steps ;
@@ -120,7 +124,8 @@ void Final_Space_Error_Calculator::record_error(
   m_output_file_temp_A  << " WG_tol: " << std::scientific << std::setprecision(5) << m_wg_tolerance;
   m_output_file_temp_A << " BG_tol: " << std::scientific << std::setprecision(5) << m_bg_tolerance;
   m_output_file_temp_A << " Thermal_tol: " << std::scientific << std::setprecision(5) << m_thermal_tolerance ;
-  m_output_file_temp_A  << " Err: " << std::scientific << std::setprecision(15) << m_temperature_A_err << std::endl;
+  m_output_file_temp_A  << " Err: " << std::scientific << std::setprecision(15) << m_temperature_A_err
+                        << " Total_thermals: " << n_thermals << " Total_sweeps: " << n_sweeps << std::endl;
   
   return;
 }

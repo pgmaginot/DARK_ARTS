@@ -9,7 +9,7 @@ Fem_Quadrature::Fem_Quadrature(const Input_Reader& input_reader, const Quadrule_
 :
 m_n_interpolation_points( input_reader.get_dfem_degree() + 1),
 m_int_method( input_reader.get_integration_method() ),
-m_n_source_points( 2*m_n_interpolation_points + 1 ),
+m_n_source_points( 2*m_n_interpolation_points + 5 ),
 m_xs_extra_points( 10)
 {
   try{
@@ -185,7 +185,7 @@ m_xs_extra_points( 10)
     /// use Lobatto just for giggles in case we really want to caputre the end point data
     m_source_points.resize(m_n_source_points,0.);
     m_source_weights.resize(m_n_source_points,0.);
-    quad_fun.lobatto_compute(m_n_source_points , m_source_points, m_source_weights);
+    quad_fun.legendre_ek_compute(m_n_source_points , m_source_points, m_source_weights);
     /// calculate dfem at source weigths
     evaluate_lagrange_func(m_dfem_interpolation_points, m_source_points,m_dfem_at_source_moments); 
   }

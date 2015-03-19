@@ -28,7 +28,6 @@ static char help[] = "A character array that PETSc might be expecting";
 int main(int argc, char** argv)
 {
   int val = 0;
-  const double tol = 1.0E-6;
   
   PetscErrorCode ierr;  
   PetscMPIInt size;
@@ -58,8 +57,6 @@ int main(int argc, char** argv)
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );    
     
   /// Create a Materials object that contains all opacity, heat capacity, and source objects
-
-    const int n_l_mom = angular_quadrature.get_number_of_leg_moments();
     Materials materials( input_reader, fem_quadrature , cell_data, angular_quadrature );  
     Time_Data time_data(input_reader);
     Temperature_Data t_old(fem_quadrature, input_reader, cell_data);      
@@ -99,5 +96,5 @@ int main(int argc, char** argv)
     da.testing_message();
   }
   ierr = PetscFinalize();
-  return -1;
+  return val;
 }
