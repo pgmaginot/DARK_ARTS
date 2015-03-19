@@ -399,6 +399,10 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     {
       m_cv_obj[mat_num] = std::make_shared<Cv_Rational>( input_reader, mat_num)   ;
     }
+    else if(cv_type == POLYNOMIAL_CV)
+    {
+      m_cv_obj[mat_num] = std::make_shared<Cv_Polynomial_Temperature>( input_reader, mat_num );
+    }
     else
       throw Dark_Arts_Exception(SUPPORT_OBJECT , "Requesting to initialize an undefined VCv object");
     

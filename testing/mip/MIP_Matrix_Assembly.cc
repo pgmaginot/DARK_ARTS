@@ -65,6 +65,7 @@ int main(int argc, char** argv)
     const double time_stage = dt + time_data.get_t_start();
     double rk_a_ii = 1.;
 
+    const int n_p = fem_quadrature.get_number_of_interpolation_points() ;
   try{
     Diffusion_Operator diffusion_operator(input_reader, fem_quadrature, cell_data, 
       materials, angular_quadrature, 1,t_old, true,1.0E-20, 1.0E-10 , 2.);
@@ -72,6 +73,31 @@ int main(int argc, char** argv)
     diffusion_operator.set_time_data(dt, time_stage, rk_a_ii);
     
     diffusion_operator.dump_matrix();
+    
+    val = -1.;
+    
+    std::vector<double> ref_norm(1,0.);
+    Intensity_Moment_Data phi_old(cell_data, angular_quadrature, fem_quadrature, ref_norm);  
+    Intensity_Moment_Data phi_new(phi_old);
+    
+    Eigen::VectorXd phi_old_vec = Eigen::VectorXd::Zero(n_p);
+    Eigen::VectorXd phi_new_vec = Eigen::VectorXd::Zero(n_p);
+    for(int el = 0; el < n_p ;el++)
+    {
+        phi_old_vec(el) = 0.1;
+        phi_new_vec(el) = 0.7;
+    }
+    
+    for(int i = 0 ; i < cell_data.get_total_number_of_cells() ; i++)
+    {
+      phi_old.set_cell_angle_integrated_intensity(i,0,0,phi_old_vec);
+      phi_new.set_cell_angle_integrated_intensity(i,0,0,phi_new_vec);
+    }
+    
+    diffusion_operator.make_and_dump_rhs(phi_new , phi_old);
+    
+    std::cout << "Update follows\n" << std::endl;
+    diffusion_operator.after_rhs_solve_system_and_dump_solution();
     
     double sig_a = 4.0;
     double sig_s = 1.0;
@@ -88,6 +114,7 @@ int main(int argc, char** argv)
     
     std::cout << "Pseudo sig_s: " << pseudo_sig_s << std::endl;
     std::cout << "Pseudp sig_t: " << pseudo_sig_t << std::endl;
+      
       
   }
   catch(const Dark_Arts_Exception& da)

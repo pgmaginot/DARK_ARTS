@@ -10,6 +10,7 @@
 
 
 #include "Eigen/Dense"
+#include "Eigen/Sparse"
 
 #include "Intensity_Moment_Data.h"
 
@@ -30,6 +31,9 @@
   *   @author pmaginot
   *   @brief a class that creates a MIP diffusion matrix and inverts it, updating an intensity_moment_data object 
  */
+ 
+typedef Eigen::Triplet<double> Trip;
+ 
 class Diffusion_Operator
 {
 public:
@@ -48,6 +52,8 @@ public:
   
   void dump_matrix();
   
+  void make_and_dump_rhs(const Intensity_Moment_Data& phi_new , const Intensity_Moment_Data& phi_old);
+  void after_rhs_solve_system_and_dump_solution();
 protected:
   const double m_sn_w;
   /// number of unknowns per DFEM 
@@ -90,6 +96,14 @@ protected:
   std::shared_ptr<V_Diffusion_Ordering> m_diffusion_ordering;
   
   Local_MIP_Assembler m_local_assembler;  
+  
+  /// Eigen sparse matrix
+  // std::vector<Trip> m_triplet_list;
+  // Eigen::SparseMatrix<double> m_mip_matrix;
+  // Eigen::ConjugateGradient<Eigen::SparseMatrix<double>> m_eigen_solver;
+  // Eigen::VectorXd m_mip_eigen_solution;
+  // Eigen::VectorXd m_mip_eigen_rhs;
+    
   /// PETSc variables 
   PetscInt *m_row_destination;
   double *m_pointer_to_eigen_m_rhs;

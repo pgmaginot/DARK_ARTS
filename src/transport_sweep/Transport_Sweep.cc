@@ -337,6 +337,8 @@ void Transport_Sweep::sweep_mesh(Intensity_Moment_Data& phi_old, Intensity_Momen
           /// add in \f$ \mathbf{R}_{\sigma_t} \f$
           m_sweep_matrix_creator->get_r_sig_t(m_matrix_scratch);   
           
+          // double sig_t = m_matrix_scratch(0,0);
+          
           m_lhs_mat += m_matrix_scratch; 
           
           /// build RHS vector
@@ -349,12 +351,17 @@ void Transport_Sweep::sweep_mesh(Intensity_Moment_Data& phi_old, Intensity_Momen
           m_sweep_source->get_source(m_vector_scratch);          
           m_rhs_vec += m_vector_scratch;
           
-          /// add in scattering moments
+          /// add in scattering momentsd
+          // double sig_s = 0;
           for(int l=0;l<m_n_l_mom;l++)
           {          
             m_sweep_matrix_creator->get_r_sig_s(m_matrix_scratch,l);
+            // if(l==0)
+              // sig_s = m_matrix_scratch(0,0);
             m_rhs_vec += m_ang_quad.get_leg_poly(dir,l)*m_matrix_scratch*m_local_phi[l];
           }
+          
+          // std::cout << "Lazy guess of c: " << sig_s/sig_t << std::endl;
           /// get the local solution
           m_local_soln = m_lhs_mat.fullPivLu().solve(m_rhs_vec);
                     

@@ -25,6 +25,7 @@
 #include "Source_T_MMS.h"
 #include "Cv_Constant.h"
 #include "Cv_Rational.h"
+#include "Cv_Polynomial_Temperature.h"
 
 #include "XS_Treatment_SLXS.h"
 #include "XS_Treatment_Moment_Preserving.h"

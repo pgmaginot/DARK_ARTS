@@ -29,7 +29,7 @@ void MIP_Left_Boundary_Incident_Flux::add_left_boundary_contributions(const doub
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_c, 
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& cell_cp1) 
 {
-  cell_c += kappa_32*m_Rt_R - d_1_r/dx_1*m_Rst_R - d_1_r/dx_1*m_Rt_Rs + kappa_12*m_Lt_L - d_1_l/dx_1*m_Lst_L - d_1_l/dx_1*m_Lt_Ls;
+  cell_c += kappa_32*m_Rt_R - d_1_r/dx_1*m_Rst_R - d_1_r/dx_1*m_Rt_Rs + kappa_12*m_Lt_L + d_1_l/dx_1*m_Lst_L + d_1_l/dx_1*m_Lt_Ls;
   
   cell_cp1 += -kappa_32*m_Rt_L + d_1_r/dx_1*m_Rst_L - d_2_l/dx_2*m_Rt_Ls;
   

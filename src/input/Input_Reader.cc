@@ -749,6 +749,9 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   m_scat_opacity_poly.resize(m_number_materials);
   m_abs_opacity_poly.resize(m_number_materials);
   
+  m_cv_polynomial_coeff.resize(m_number_materials);
+  m_cv_poly_max_power.resize(m_number_materials,0);
+  
   TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
   if(!units_elem)
   {
@@ -1308,6 +1311,48 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         throw Dark_Arts_Exception(INPUT, err.str() );
       }      
     }
+    else if( cv_str == "POLYNOMIAL_CV")
+    {
+      m_material_cv_type[mat_num] = POLYNOMIAL_CV;
+      TiXmlElement* cv_poly_degree_elem = cv_type->FirstChildElement( "Polynomial_cv_degree" );
+      TiXmlElement* cv_coeff = cv_type->FirstChildElement( "Polynomial_cv_coefficient" );
+      m_cv_poly_max_power[mat_num] = atoi(cv_poly_degree_elem->GetText() );
+      if( m_cv_poly_max_power[mat_num] < 0)
+      {
+        std::stringstream err;
+        err << "In material: " << mat_num << " polynomial Cv requires degree >=0 ";
+        throw Dark_Arts_Exception(INPUT, err.str() );      
+      }
+      m_cv_polynomial_coeff[mat_num].resize(m_cv_poly_max_power[mat_num] + 1, 0.);
+      for( int i = 0 ; i < m_cv_poly_max_power[mat_num]  ; i++)
+      {
+        if(!cv_coeff)
+        {
+          std::stringstream err;
+          err << "Missing coefficent of polynomial degree: " << i << " in material: " << mat_num<< " Cv_polynomial"; 
+          throw Dark_Arts_Exception(INPUT, err.str() ) ; 
+        }
+        if(i != atoi(cv_coeff->GetText() ) )
+        {
+          std::stringstream err;
+          err << "Coefficents of Cv polynomial do not match input labeling for degree: " << i << " in material: " << mat_num<< " Cv_polynomial"; 
+          throw Dark_Arts_Exception(INPUT, err.str() ) ; 
+        }
+             
+        TiXmlElement* val_elem = cv_coeff->FirstChildElement( "Value" );
+        if(!val_elem)
+        {
+          std::stringstream err;
+          err << "Coefficient: " << i << " in material " << mat_num << " Cv_Polynomial is missinng Value element";
+          throw Dark_Arts_Exception(INPUT, err.str() );
+        }
+        m_cv_polynomial_coeff[mat_num][i] = atof(val_elem->GetText() );
+        
+        cv_coeff = cv_coeff->NextSiblingElement("Polynomial_cv_coefficient");
+      }
+      
+      
+    }
     
     if(m_material_cv_type[mat_num] == INVALID_CV_TYPE)
     {
@@ -1761,6 +1806,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   if(m_wg_solve_type == INVALID_WG_SOLVE_TYPE)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element:Invalid within group radiation solver type");
   
+
   if( (m_wg_solve_type == FP_SWEEPS) || (m_wg_solve_type == FP_DSA))
   {
     TiXmlElement* num_sweep_elem = solver_type_elem->FirstChildElement( "Max_within_group_sweeps");
@@ -1774,6 +1820,31 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   
   if( (m_wg_solve_type == FP_DSA) || (m_wg_solve_type==KRYLOV_DSA) )
   {
+    int total_cells = 0;
+    if(m_number_regions < 0)
+    {
+      throw Dark_Arts_Exception(INPUT , "Cant perform this check, need to know the number of cells first");
+    }
+    else
+    {
+      for(int i = 0 ; i < m_number_regions ; i++)
+        total_cells += m_cells_per_region[i];
+    }
+    if( total_cells < 32 )
+    {
+      std::cout << "Stop being CUTE.  Need more cells for DSA operator to not die.  No DSA for you" << std::endl;
+      
+      if(m_wg_solve_type == FP_DSA)
+      {
+        m_wg_solve_type = FP_SWEEPS;
+      }
+        
+      if(m_wg_solve_type == KRYLOV_DSA)
+      {
+        m_wg_solve_type=KRYLOV_SWEEPS;
+      }
+    }
+    
     TiXmlElement* mip_options_elem = solver_type_elem->FirstChildElement( "MIP_solve_options" );
     if(!mip_options_elem)
       throw Dark_Arts_Exception(INPUT, "FP_DSA or KRYLOV_DSA require a MIP_solve_options block in WG_solver_type element");

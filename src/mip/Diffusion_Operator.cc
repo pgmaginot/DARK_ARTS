@@ -5,6 +5,7 @@
 
 #include "Diffusion_Operator.h"
 
+
 Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const Fem_Quadrature& fem_quadrature, 
   const Cell_Data& cell_data, Materials& materials, const Angular_Quadrature& angular_quadrature,
   const int n_groups, const Temperature_Data& t_eval, const bool is_wg_solve,
@@ -84,9 +85,7 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   if( !m_diffusion_matrix_creator )
     throw Dark_Arts_Exception(TRANSPORT, "Unable to allocate a Diffusion_Matrix_Creator in Diffusion_Operator");
     
-  /// initialize PETSC data
-  // m_petsc_err = PetscMalloc(m_np*sizeof(PetscInt),&m_row_destination);
-  
+  /// initialize PETSC data  
   m_petsc_err = VecCreate(PETSC_COMM_WORLD,&m_mip_solution);   CHKERRV(m_petsc_err);  
   m_petsc_err = VecCreate(PETSC_COMM_WORLD,&m_mip_rhs);   CHKERRV(m_petsc_err); 
 
@@ -96,13 +95,15 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_petsc_err = VecSetFromOptions(m_mip_rhs); CHKERRV(m_petsc_err) ;
   m_petsc_err = VecSetFromOptions(m_mip_solution); CHKERRV(m_petsc_err) ;
   
-  // m_petsc_err = VecSet(m_mip_rhs,0.);
+  m_petsc_err = VecSet(m_mip_rhs,0.);
   m_petsc_err = VecSet(m_mip_solution,0.);
+  
+  // m_triplet_list.reserve(m_np*m_np*3*m_n_mip_blocks);
   
   MatCreate(PETSC_COMM_WORLD, &m_mip_global);
   MatSetSizes(m_mip_global,PETSC_DECIDE,PETSC_DECIDE,m_n_mip_sys_size,m_n_mip_sys_size);
   MatSetType(m_mip_global,MATAIJ);
-  // MatSetFromOptions(m_mip_global);
+  MatSetFromOptions(m_mip_global);
   
   /// preallocate maximum required space
   MatSeqAIJSetPreallocation(m_mip_global, 3*m_np , NULL);
@@ -110,8 +111,18 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   KSPCreate(PETSC_COMM_WORLD,&m_krylov_solver);
   
   /// (KSP, rel_tol, abs_tol, divergence_tol , maximum_iterations)
-  // KSPSetTolerances(m_krylov_solver, 1.0E-10, PETSC_DEFAULT, PETSC_DEFAULT, m_n_mip_blocks*m_np);
+  // KSPSetFromOptions(m_krylov_solver);
+  
+  // KSPSetType(m_krylov_solver,KSPPREONLY);
+  // KSPGetPC(m_krylov_solver, &m_pre_conditioner);
+  // PCSetType(m_pre_conditioner , PCLU);
+
+  KSPSetType(m_krylov_solver,KSPCG);
+  KSPGetPC(m_krylov_solver, &m_pre_conditioner);
+  PCSetType(m_pre_conditioner , PCGAMG);
   KSPSetFromOptions(m_krylov_solver);
+  // KSPSetTolerances(m_krylov_solver, 1.0E-8, 1.0E-16, 1.0, m_n_mip_blocks*m_np);
+  
   
   /**
     To change values:
@@ -186,15 +197,16 @@ void Diffusion_Operator::build_rhs(const Intensity_Moment_Data& phi_new, const I
     phi_old.get_cell_angle_integrated_intensity(cell,grp,0,m_phi_old_vec);
     
     m_rhs_local = m_r_sig_s*(m_phi_new_vec - m_phi_old_vec);
-    m_pointer_to_eigen_m_rhs = &m_rhs_local(0);
+    // m_pointer_to_eigen_m_rhs = &m_rhs_local(0);
     /// save into PETSc vector
     /// first fill row destination index
     // std::cout << "This is the local Eigen vector: \n" << m_rhs_local << std::endl;
     for(int el= 0 ; el < m_np ; el++)
     {
       m_row_destination[el]= el + m_np*i;
-      // std::cout << "PETSc pointer["<<el<<"]: " << m_pointer_to_eigen_m_rhs[el] <<std::endl;
+      // // std::cout << "PETSc pointer["<<el<<"]: " << m_pointer_to_eigen_m_rhs[el] <<std::endl;
     }
+    // m_mip_eigen_rhs.segment(i*m_np,m_np) = m_rhs_local;
     m_petsc_err = VecSetValues( m_mip_rhs , m_np , m_row_destination , m_pointer_to_eigen_m_rhs, INSERT_VALUES);
   }
   m_petsc_err = VecAssemblyBegin(m_mip_rhs);
@@ -244,6 +256,8 @@ void Diffusion_Operator::build_matrix()
     m_diffusion_matrix_creator->calculate_d_dependent_quantities(m_d_r_cm1, m_d_l_c , m_d_r_c , m_d_l_cp1, m_s_matrix); 
 
     int el_i , el_j;
+    // int global_row = 0;
+    // int global_col = 0;
     if(cell==0)
     {
       m_kappa_cm12 = m_kappa_calculator.calculate_boundary_kappa(m_dx_c, m_d_l_c);
@@ -259,11 +273,55 @@ void Diffusion_Operator::build_matrix()
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = i*m_np + el_j;
         
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_c(i,j)));
+          // }
+        // }  
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_c(i,j));            
+          // }
+        // }
+      // }
+        
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_c, INSERT_VALUES);
         
+      
+      
       /// cell cp1
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i+1)*m_np + el_j;
+        
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_cp1(i,j)));
+          // }
+        // }
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_cp1(i,j));            
+          // }
+        // }
+      // }
             
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cp1, INSERT_VALUES);
         
@@ -284,10 +342,53 @@ void Diffusion_Operator::build_matrix()
         m_col_destination[el_j] = (i-1)*m_np + el_j;
         
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cm1, INSERT_VALUES);
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_cm1(i,j)));
+          // }
+        // }
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_cm1(i,j));            
+          // }
+        // }
+      // }
       
+     
       /// cell c
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = i*m_np + el_j;
+        
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_c(i,j)));
+          // }
+        // }
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_c(i,j));            
+          // }
+        // }
+      // }
+      
         
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_c, INSERT_VALUES);
     }
@@ -307,6 +408,26 @@ void Diffusion_Operator::build_matrix()
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i-1)*m_np + el_j;
         
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_cm1(i,j)));
+          // }
+        // }
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_cm1(i,j));            
+          // }
+        // }
+      // }
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cm1, INSERT_VALUES);
       
       /// cell c
@@ -314,11 +435,51 @@ void Diffusion_Operator::build_matrix()
         m_col_destination[el_j] = i*m_np + el_j;
         
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_c, INSERT_VALUES);
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_c(i,j)));
+          // }
+        // }
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_c(i,j));            
+          // }
+        // }
+      // }
       
       /// cell cp1
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i+1)*m_np + el_j;
             
+      // if(m_matrix_initial_build)
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list.push_back(Trip(m_row_destination[i],m_col_destination[j],m_cell_cp1(i,j)));
+          // } 
+        // }
+      // }
+      // else
+      // {
+        // for(int i=0; i < m_np ; i++)
+        // {
+          // for(int j=0; j<m_np ; j++)
+          // {
+            // m_triplet_list[triplet_index] = Trip(m_row_destination[i],m_col_destination[j],m_cell_cp1(i,j));            
+          // }
+        // }
+      // }
       MatSetValues(m_mip_global, m_np, m_row_destination, m_np, m_col_destination, m_pointer_to_m_cp1, INSERT_VALUES);
     }    
     
@@ -337,8 +498,13 @@ void Diffusion_Operator::build_matrix()
     // std::cout << "This is what we see when we look at it as in row major\n" << row_major << std::endl;
     
   } 
-  
-  
+  // m_mip_matrix.setFromTriplets( m_triplet_list.begin(), m_triplet_list.end());
+  // if(m_matrix_initial_build)
+  // {
+    // m_matrix_initial_build = false;
+    // m_eigen_solver.analyzePattern(m_mip_matrix);
+    // m_eigen_solver.factorize(m_mip_matrix);
+  // }
   MatAssemblyBegin(m_mip_global,MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd(m_mip_global,MAT_FINAL_ASSEMBLY);
   
@@ -358,16 +524,19 @@ void Diffusion_Operator::set_time_data(  const double dt, const double time_stag
   /// associate the new matrix with the krylov solver
   /// no preconditioning
   KSPSetOperators(m_krylov_solver,m_mip_global,m_mip_global,SAME_NONZERO_PATTERN);
-  // KSPSetType(m_krylov_solver,KSPCG);
-  KSPSetFromOptions(m_krylov_solver);
-  // KSPGetPC(m_krylov_solver, &m_pre_conditioner);
-  // PCSetType(m_pre_conditioner , PCHYPRE);
+  
+  // KSPSetFromOptions(m_krylov_solver);
+
   return;
 }
 
 void Diffusion_Operator::solve_system()
 {
+  
+  // KSPSetInitialGuessNonzero(m_krylov_solver,PETSC_TRUE);
   KSPSolve(m_krylov_solver,m_mip_rhs,m_mip_solution);
+  
+  // m_mip_eigen_solution = m_eigen_solver.solve(m_mip_eigen_rhs);
   return;
 }
 
@@ -398,11 +567,31 @@ void Diffusion_Operator::map_solution_into_intensity_moment_data(Intensity_Momen
     m_diffusion_ordering->get_cell_and_group(i,cell,grp);
     phi_new.add_from_array_pointer( &update_ptr[n_local] , cell, grp);
     // for(int el = 0 ; el < m_np ; el++)
-      // std::cout << update_ptr[n_local+el] << std::endl;      
+      // std::cout << update_ptr[n_local+el] << std::endl;    
+    
+    // phi_new.add_from_array_pointer( &m_mip_eigen_solution(n_local) , cell, grp);
     
     n_local += m_np;      
   }
   
   VecRestoreArray(m_mip_rhs,&update_ptr);
+  return;
+}
+
+void Diffusion_Operator::make_and_dump_rhs(const Intensity_Moment_Data& phi_new , const Intensity_Moment_Data& phi_old)
+{
+  build_rhs(phi_new,phi_old);
+
+  PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+  VecView(m_mip_rhs, PETSC_VIEWER_STDOUT_WORLD);
+  return;
+}
+
+void Diffusion_Operator::after_rhs_solve_system_and_dump_solution()
+{
+  solve_system();
+
+  PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+  VecView(m_mip_solution, PETSC_VIEWER_STDOUT_WORLD);
   return;
 }

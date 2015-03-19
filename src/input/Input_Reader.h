@@ -89,6 +89,9 @@ public:
   void get_abs_file_str(const int mat_num, std::string& filename) const;
   void get_scat_file_str(const int mat_num, std::string& filename) const;  
   double get_cv_constant(const int mat_num) const;  
+
+  void get_cv_poly_coefficients(const int mat_num, std::vector<double>& poly_coeff) const{ poly_coeff = m_cv_polynomial_coeff[mat_num]; return;}
+  int get_cv_poly_power(const int mat_num) const { return m_cv_poly_max_power[mat_num]; }
   bool use_weird_units(void) const;
   UNITS_TYPE get_units_type(void) const;
   void get_scattering_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
@@ -216,6 +219,9 @@ protected:
   std::vector<double> m_scat_opacity_double_constants_1;
   std::vector<double> m_scat_opacity_double_constants_2;
   std::vector<double> m_cv_constants;
+  std::vector<int> m_cv_poly_max_power;
+  std::vector< std::vector<double> > m_cv_polynomial_coeff;
+
   bool m_weird_units = false;
   UNITS_TYPE m_units_type = INVALID_UNITS_TYPE;
   std::vector< std::vector<double> > m_scat_opacity_poly;
