@@ -31,9 +31,6 @@
   *   @author pmaginot
   *   @brief a class that creates a MIP diffusion matrix and inverts it, updating an intensity_moment_data object 
  */
- 
-typedef Eigen::Triplet<double> Trip;
- 
 class Diffusion_Operator
 {
 public:
@@ -82,12 +79,6 @@ protected:
   double m_dx_cm1 , m_dx_c , m_dx_cp1;
   
   const Cell_Data& m_cell_data;
-    
-  double m_sdirk_a_stage;
-  double m_dt;
-  double m_time_stage;
-  
-  bool m_matrix_initial_build;
   
   MIP_Kappa_Calculator m_kappa_calculator;  
     
@@ -96,14 +87,7 @@ protected:
   std::shared_ptr<V_Diffusion_Ordering> m_diffusion_ordering;
   
   Local_MIP_Assembler m_local_assembler;  
-  
-  /// Eigen sparse matrix
-  // std::vector<Trip> m_triplet_list;
-  // Eigen::SparseMatrix<double> m_mip_matrix;
-  // Eigen::ConjugateGradient<Eigen::SparseMatrix<double>> m_eigen_solver;
-  // Eigen::VectorXd m_mip_eigen_solution;
-  // Eigen::VectorXd m_mip_eigen_rhs;
-    
+      
   /// PETSc variables 
   PetscInt *m_row_destination;
   double *m_pointer_to_eigen_m_rhs;
@@ -127,6 +111,11 @@ protected:
   void build_rhs(const Intensity_Moment_Data& phi_new, const Intensity_Moment_Data& phi_old);    
   
   void map_solution_into_intensity_moment_data(Intensity_Moment_Data& phi_new);
+  
+  void respect_sparsity_loading(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& local_mat, PetscInt row_dest[], PetscInt col_dest[] );
+
+  void dense_dumping(Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>& local_mat, 
+    PetscInt row_dest[], PetscInt col_dest[] );
 };
 
 #endif

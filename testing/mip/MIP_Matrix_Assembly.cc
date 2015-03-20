@@ -26,9 +26,9 @@ static char help[] = "A character array that PETSc might be expecting";
 */ 
 
 int main(int argc, char** argv)
-{
+{  
+  /// change to -1 if you want ctest to dump this output.  Otherwise this test passes always
   int val = 0;
-  
   PetscErrorCode ierr;  
   PetscMPIInt size;
   
@@ -73,9 +73,7 @@ int main(int argc, char** argv)
     diffusion_operator.set_time_data(dt, time_stage, rk_a_ii);
     
     diffusion_operator.dump_matrix();
-    
-    val = -1.;
-    
+        
     std::vector<double> ref_norm(1,0.);
     Intensity_Moment_Data phi_old(cell_data, angular_quadrature, fem_quadrature, ref_norm);  
     Intensity_Moment_Data phi_new(phi_old);
@@ -94,7 +92,7 @@ int main(int argc, char** argv)
       phi_new.set_cell_angle_integrated_intensity(i,0,0,phi_new_vec);
     }
     
-    diffusion_operator.make_and_dump_rhs(phi_new , phi_old);
+    // diffusion_operator.make_and_dump_rhs(phi_new , phi_old);
     
     std::cout << "Update follows\n" << std::endl;
     diffusion_operator.after_rhs_solve_system_and_dump_solution();

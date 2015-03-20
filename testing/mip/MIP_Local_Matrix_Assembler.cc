@@ -101,13 +101,13 @@ int main(int argc, char** argv)
     Eigen::MatrixXd expected_cell_c = Eigen::MatrixXd::Zero(3,3);
     Eigen::MatrixXd expected_cell_cp1 = Eigen::MatrixXd::Zero(3,3);
     
-    expected_cell_c(0,0) = 13.436585366 ; 
-    expected_cell_c(0,1) = -3.724390244 ; 
-    expected_cell_c(0,2) = -2.746341463 ; 
-    expected_cell_c(1,0) = -3.724390244 ; 
+    expected_cell_c(0,0) = 10.363414634 ; 
+    expected_cell_c(0,1) = -1.675609756 ; 
+    expected_cell_c(0,2) = -3.258536585 ; 
+    expected_cell_c(1,0) = -1.675609756 ; 
     expected_cell_c(1,1) =  3.300000000 ; 
     expected_cell_c(1,2) = -1.490243902 ; 
-    expected_cell_c(2,0) = -2.746341463 ; 
+    expected_cell_c(2,0) = -3.258536585 ; 
     expected_cell_c(2,1) = -1.490243902 ; 
     expected_cell_c(2,2) =  2.235365854 ; 
     expected_cell_cp1(0,0) =  0.402439024 ; 
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
     expected_cell_cp1(2,0) =  3.916407982 ; 
     expected_cell_cp1(2,1) = -4.545454545 ; 
     expected_cell_cp1(2,2) =  1.136363636 ; 
-    
+        
     /// right boundary matrices
     Eigen::MatrixXd middle_expected_cell_cm1 = Eigen::MatrixXd::Zero(3,3);
     Eigen::MatrixXd middle_expected_cell_c = Eigen::MatrixXd::Zero(3,3);

@@ -1830,7 +1830,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       for(int i = 0 ; i < m_number_regions ; i++)
         total_cells += m_cells_per_region[i];
     }
-    if( total_cells < 32 )
+    if( total_cells < 3 )
     {
       std::cout << "Stop being CUTE.  Need more cells for DSA operator to not die.  No DSA for you" << std::endl;
       
@@ -2075,6 +2075,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     m_rad_bc_right = MMS_BC;
   }
   
+  /// Make sure if we're specifying MMS problem that we have MMS boundaries (special case of incident flux since we know the solution)
   if(m_material_radiation_source_type[0] == MMS_SOURCE)
     if( m_rad_bc_right != MMS_BC)
     {
@@ -2103,10 +2104,11 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   else if( m_rad_bc_left == INCIDENT_BC )
   {
     /// get all required elements
-    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_energy");
+  ///  TiXmlElement* rad_left_bc_energy_elem = rad_left_bc_type_elem->FirstChildElement( "Incident_energy");
     TiXmlElement* rad_left_bc_angle_incidence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_angle_dependence");
     TiXmlElement* rad_left_bc_time_dependence_elem = rad_left_bc_type_elem->FirstChildElement( "BC_time_dependence");
     TiXmlElement* rad_left_bc_value_type_elem = rad_left_bc_type_elem->FirstChildElement("BC_value_type");
+    TiXmlElement* rad_left_bc_value_elem = rad_left_bc_type_elem->FirstChildElement("BC_value");
     
     if( m_number_groups > 1 )
     {
@@ -2126,22 +2128,22 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
         throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid BC_ENERGY_DEPENDENCE for left BC");
     }
     
-    if(!rad_left_bc_value_elem)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Incident_Energy element in Left Incident_BC block");
-    
     if(!rad_left_bc_value_type_elem)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Value_Type element in Left Incident_BC type");
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_value_type element in Left Incident_BC type");
     
     if(!rad_left_bc_angle_incidence_elem)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Angle_Dependence element in Left Incident_BC block");
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_angle_dependence element in Left Incident_BC block");
 
     if(!rad_left_bc_time_dependence_elem)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Time_Dependence element in Left Incident_BC block");
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_time_dependence element in Left Incident_BC block");
+    
+    if(!rad_left_bc_value_elem)
+      throw Dark_Arts_Exception(INPUT , "Need BC_value element for Left incident flux condition");
     
     /// get value for and error check incident energy value
     m_left_bc_value = atof( rad_left_bc_value_elem->GetText() ); 
     if(m_left_bc_value < 0.)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Left Incident_Energy.  Must be > 0");
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Left BC_Value.  Must be > 0");
     
     std::string left_value_type_str = rad_left_bc_value_type_elem->GetText();
     transform(left_value_type_str.begin() , left_value_type_str.end() , left_value_type_str.begin() , toupper);
@@ -2233,13 +2235,13 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
   else if( m_rad_bc_right == INCIDENT_BC )
   {
     /// get all required elements
-    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "Incident_energy");
+    TiXmlElement* rad_right_bc_value_elem = rad_right_bc_type_elem->FirstChildElement( "BC_value");
     TiXmlElement* rad_right_bc_angle_incidence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_angle_dependence");
     TiXmlElement* rad_right_bc_time_dependence_elem = rad_right_bc_type_elem->FirstChildElement( "BC_time_dependence");
     TiXmlElement* rad_right_bc_value_type_elem = rad_right_bc_type_elem->FirstChildElement("BC_value_type");
     
     if(!rad_right_bc_value_elem)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing Incident_Energy element in Right Incident_BC block");
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_value element in Right Incident_BC block");
       
     if(!rad_right_bc_angle_incidence_elem)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:Missing BC_Angle_Dependence element in Right Incident_BC block");
@@ -2272,7 +2274,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     /// get value for and error check incident energy value
     m_right_bc_value = atof( rad_right_bc_value_elem->GetText() ); 
     if(m_right_bc_value < 0.)
-      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Right Incident_Energy.  Must be > 0");
+      throw Dark_Arts_Exception(INPUT, "In BC_IC element:Invalid value for Right BC_value.  Must be > 0");
     
     std::string right_value_type_str = rad_right_bc_value_type_elem->GetText();
     transform(right_value_type_str.begin() , right_value_type_str.end() , right_value_type_str.begin() , toupper);

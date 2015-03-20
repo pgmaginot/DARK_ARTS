@@ -356,10 +356,14 @@ void Transport_Sweep::sweep_mesh(Intensity_Moment_Data& phi_old, Intensity_Momen
           for(int l=0;l<m_n_l_mom;l++)
           {          
             m_sweep_matrix_creator->get_r_sig_s(m_matrix_scratch,l);
-            // if(l==0)
+            if(l==0)
               // sig_s = m_matrix_scratch(0,0);
+              // std::cout << "constant: " << m_ang_quad.get_leg_poly(dir,l) << std::endl;
+              // std::cout << "r_sig_s in sweep: \n" << m_matrix_scratch << std::endl;
             m_rhs_vec += m_ang_quad.get_leg_poly(dir,l)*m_matrix_scratch*m_local_phi[l];
           }
+          
+          // throw Dark_Arts_Exception(TRANSPORT, "One is enough");
           
           // std::cout << "Lazy guess of c: " << sig_s/sig_t << std::endl;
           /// get the local solution

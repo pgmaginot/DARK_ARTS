@@ -92,12 +92,13 @@ void V_Diffusion_Matrix_Creator::calculate_s_matrix(Eigen::MatrixXd& s_matrix)
     {
       for(int q = 0 ; q < m_n_integration_pts ; q++)
       {
-        // std::cout << "Inside the loop\n";
+        // std::cout << "D at int point: " << m_d_at_integration_pts[q] << std::endl;
+        
         s_matrix(i,j) += m_integration_wts[q]*m_d_at_integration_pts[q]*
           m_dfem_derivatives[q+i*m_n_integration_pts]*m_dfem_derivatives[q+j*m_n_integration_pts];
       }      
     }
   }
-  s_matrix *= 2./m_dx_c;
+  s_matrix *= (2./m_dx_c);
 
 }

@@ -34,13 +34,16 @@ Diffusion_Matrix_Creator_Grey::Diffusion_Matrix_Creator_Grey(const Fem_Quadratur
 void Diffusion_Matrix_Creator_Grey::set_time_data( const double dt, const double time_stage, const double sdirk_a_of_stage )
 {
   m_dt = dt;
-  m_rk_a_ii = sdirk_a_of_stage;
+  m_rk_a_ii = sdirk_a_of_stage;  
   m_tau = 1./(m_c_speed*m_dt*m_rk_a_ii);
   return;
 }
 
 void Diffusion_Matrix_Creator_Grey::calculate_pseudo_r_sig_a_and_pseudo_r_sig_s(Eigen::MatrixXd& r_sig_a,Eigen::MatrixXd& r_sig_s)
 {
+  r_sig_a = Eigen::MatrixXd::Zero(m_np,m_np);
+  r_sig_s = Eigen::MatrixXd::Zero(m_np,m_np);
+  
   m_dx_mass = m_dx_c/2.*m_mass;
   
   m_mtrx_builder->construct_r_sigma_a(m_r_sig_a,m_group_num);
@@ -138,6 +141,9 @@ void Diffusion_Matrix_Creator_Grey::evaluate_diffusion_coefficents(double& d_r_c
   // std::cout << "D at integration points: " << std::endl;
   for(int i=0; i < m_n_integration_pts ; i++)
   {
+    // std::cout << "sig_a: " << m_sig_a_for_d_coeff[i] << std::endl; 
+    // std::cout << "sig_s: " << m_d_at_integration_pts[i] << std::endl; 
+    // std::cout << "m_tau: " << m_tau << std::endl; 
     m_d_at_integration_pts[i] = 1./ (3.*(m_d_at_integration_pts[i] + m_sig_a_for_d_coeff[i] + m_tau) );
      // std::cout << m_d_at_integration_pts[i] << std::endl;
   }

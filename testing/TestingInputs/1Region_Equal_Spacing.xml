@@ -111,11 +111,11 @@
     <BC_value_type> INCIDENT_CURRENT </BC_value_type>
     <!-- Valid options are BC_GLANCE, BC_NORMAL, BC_ISOTROPIC   -->
     <BC_angle_dependence> BC_GLANCE </BC_angle_dependence>   
-    <Incident_energy> 10 </Incident_energy>    
+    <BC_value> 10 </BC_value>    
     <BC_time_dependence> BC_CONSTANT </BC_time_dependence>
    </Left_radiation_bc_type>
    
-   <!-- Valid options are PLANCKIAN_BC, VACUUM   -->
+   <!-- Valid options are INCIDENT_BC, VACUUM   -->
    <Right_radiation_bc_type> VACUUM_BC </Right_radiation_bc_type>
    
    

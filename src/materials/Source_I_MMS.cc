@@ -42,5 +42,7 @@ double  Source_I_MMS::get_intensity_source(const double position,
   val -= sig_s/m_sn_w*m_intensity.get_mms_phi(position,time);;
   val -= sig_a*m_planck.integrate_B_grey(temperature);  
   
+   // for debugging MIP crashing only
+  // val = 0.;
   return val;
 }

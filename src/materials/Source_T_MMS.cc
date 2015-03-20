@@ -42,5 +42,7 @@ double  Source_T_MMS::get_temperature_source(const double position, const double
   
   val = cv*dT_dt - sig_a*( phi - m_sn_w*planck);
                
+ // for debugging MIP crashing only
+  // val = 0.;
   return val;
 }
