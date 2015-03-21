@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "Inputs_Allowed.h"
 #include "Dark_Arts_Exception.h"
+#include "Radiation_BC_Data.h"
 
 /** @file   Input_Reader.h
   *   @author pmaginot
@@ -130,25 +131,25 @@ public:
   double get_region_temperature(const int reg_num) const;
   double get_region_radiation_temperature(const int reg_num) const;
   RADIATION_IC_TYPE get_radiation_ic_type(void) const;
-  RADIATION_BC_TYPE get_radiation_bc_type_left(void) const;
-  RADIATION_BC_TYPE get_radiation_bc_type_right(void) const;
   
-  BC_ANGLE_DEPENDENCE get_left_bc_angle_dependence(void) const;
-  BC_ANGLE_DEPENDENCE get_right_bc_angle_dependence(void) const;
+  RADIATION_BC_TYPE get_radiation_bc_type_left(void) const {return m_left_bc.type;}
+  RADIATION_BC_TYPE get_radiation_bc_type_right(void) const {return m_right_bc.type;}
   
-  double get_left_bc_start_time(void) const;
-  double get_left_bc_end_time(void) const;
-  double get_right_bc_start_time(void) const;
-  double get_right_bc_end_time(void) const;
+  double get_left_bc_constant(void) const {return m_left_bc.value;}
+  double get_right_bc_constant(void) const {return m_right_bc.value;}
+  
+  INCIDENT_BC_VALUE_TYPE get_left_bc_value_type(void) const {return m_left_bc.value_type;}
+  INCIDENT_BC_VALUE_TYPE get_right_bc_value_type(void) const {return m_right_bc.value_type;}
 
-  double get_left_bc_constant(void) const;
-  double get_right_bc_constant(void) const;
+  BC_ANGLE_DEPENDENCE get_left_bc_angle_dependence(void) const {return m_left_bc.angle_dependence;}
+  BC_ANGLE_DEPENDENCE get_right_bc_angle_dependence(void) const {return m_right_bc.angle_dependence;}
+  BC_ENERGY_DEPENDENCE get_left_bc_energy_dependence(void) const {return m_left_bc.energy_dependence;}
+  BC_ENERGY_DEPENDENCE get_right_bc_energy_dependence(void) const {return m_right_bc.energy_dependence;} 
   
-  INCIDENT_BC_VALUE_TYPE get_left_bc_value_type(void) const;
-  INCIDENT_BC_VALUE_TYPE get_right_bc_value_type(void) const;
-
-  BC_ENERGY_DEPENDENCE get_left_bc_energy_dependence(void) const;
-  BC_ENERGY_DEPENDENCE get_right_bc_energy_dependence(void) const;  
+  double get_left_bc_start_time(void) const {return m_left_bc.start_time;}
+  double get_left_bc_end_time(void) const {return m_left_bc.end_time;}
+  double get_right_bc_start_time(void) const {return m_right_bc.start_time;}
+  double get_right_bc_end_time(void) const {return m_right_bc.end_time;}
   
   /// Time_Marcher controls
   int get_iters_before_damping(void) const{ return m_iters_before_damp;}
@@ -295,28 +296,14 @@ protected:
   int m_max_damps = -1;
   
   /// BC_IC block variables
-  TEMPERATURE_IC_TYPE m_temperature_ic_type = INVALID_TEMPERATURE_IC_TYPE;
+  TEMPERATURE_IC_TYPE temperature_ic_type = INVALID_TEMPERATURE_IC_TYPE; 
   std::vector<double> m_region_temperature;
   std::vector<double> m_region_radiation_temperature;
   RADIATION_IC_TYPE m_radiation_ic_type  = INVALID_RADIATION_IC_TYPE;
-
-  RADIATION_BC_TYPE m_rad_bc_right = INVALID_RADIATION_BC_TYPE;
-  double m_right_bc_value = -1.;
-  INCIDENT_BC_VALUE_TYPE m_rad_bc_right_value_type = INVALID_INCIDENT_BC_VALUE_TYPE;
-  BC_ANGLE_DEPENDENCE m_right_bc_angle_dependence  = INVALID_BC_ANGLE_DEPENDENCE;
-  BC_ENERGY_DEPENDENCE m_right_bc_energy_dependence = INVALID_BC_ENERGY_DEPENDENCE;
-  BC_TIME_DEPENDENCE m_right_bc_time_dependence = INVALID_BC_TIME_DEPENDENCE;
-  double m_bc_right_start_time = -1.;
-  double m_bc_right_end_time = -2.;
+  TEMPERATURE_IC_TYPE m_temperature_ic_type = INVALID_TEMPERATURE_IC_TYPE;
   
-  RADIATION_BC_TYPE m_rad_bc_left  = INVALID_RADIATION_BC_TYPE;
-  double m_left_bc_value = -1.;
-  INCIDENT_BC_VALUE_TYPE m_rad_bc_left_value_type = INVALID_INCIDENT_BC_VALUE_TYPE;
-  BC_ANGLE_DEPENDENCE m_left_bc_angle_dependence = INVALID_BC_ANGLE_DEPENDENCE;
-  BC_ENERGY_DEPENDENCE m_left_bc_energy_dependence = INVALID_BC_ENERGY_DEPENDENCE;
-  BC_TIME_DEPENDENCE m_left_bc_time_dependence = INVALID_BC_TIME_DEPENDENCE;
-  double m_bc_left_start_time = -1.;
-  double m_bc_left_end_time = -2.;
+  Radiation_BC_Data m_left_bc;
+  Radiation_BC_Data m_right_bc;
 
   void load_restart_problem(TiXmlElement* restart_elem);
   void load_from_scratch_problem(TiXmlDocument& doc);
@@ -338,6 +325,7 @@ protected:
   void load_mms_poly_constants(TiXmlElement* mms_element, std::vector<double>& poly_constants);
   void load_mms_cos_constants(TiXmlElement* mms_element, std::vector<double>& cos_constants);  
 
+  void load_bc_data(Radiation_BC_Data& bc_data, TiXmlElement* side_element);
 };
 
 

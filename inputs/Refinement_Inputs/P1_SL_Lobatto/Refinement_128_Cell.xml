@@ -1,9 +1,9 @@
 <?xml version="1.0" standalone=no>
 <!-- A comment -->
 <RESTART_FILE>
-  <Data_dump_path> /home/pmaginot/Research/Dissertation_Radtran_MMS_Results/ </Data_dump_path>
+  <Data_dump_path> /scratch/pmaginot/Radtran_Results/ </Data_dump_path>
   <Restart_type> MESH_REFINEMENT 
     <Refinement_factor> 32 </Refinement_factor>
-    <Initial_inputfile> /home/pmaginot/Research/dark_arts_local/inputs/MMS1_SL_Lobatto_P1_4_Cells.xml </Initial_inputfile>
+    <Initial_inputfile> /scratch/pmaginot/dark_arts_local/inputs/SL_Lobatto_P1_4_Cells.xml </Initial_inputfile>
   </Restart_type>
 </RESTART_FILE>

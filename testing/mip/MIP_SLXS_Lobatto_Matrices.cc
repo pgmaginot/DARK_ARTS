@@ -43,9 +43,7 @@ int main(int argc, char** argv)
   Fem_Quadrature fem_quadrature( input_reader , quad_fun);  
   Cell_Data cell_data( input_reader );  
   Angular_Quadrature angular_quadrature( input_reader , quad_fun );    
-  
-  const int n_cell = cell_data.get_total_number_of_cells();
-  const int n_dir = angular_quadrature.get_number_of_dir();
+
   const int n_dfem_p = fem_quadrature.get_number_of_interpolation_points();
   const double sn_w = angular_quadrature.get_sum_w();
   

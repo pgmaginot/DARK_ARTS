@@ -238,6 +238,13 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     m_output_generator.write_xml(true,0,i_old);
     m_output_generator.write_xml(true,0,t_old);
     m_output_generator.write_xml(true,0,m_ard_phi);
+    
+    if(m_input_reader.get_output_type() == DUMP)
+    {
+      m_output_generator.write_txt(true,0,i_old);
+      m_output_generator.write_txt(true,0,t_old);
+      m_output_generator.write_txt(true,0,m_ard_phi);    
+    }
   }
   
   return;

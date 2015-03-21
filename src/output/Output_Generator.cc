@@ -402,7 +402,7 @@ void Output_Generator::write_txt(const bool is_final, const int time_step, const
   if(!output)
     throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() ); 
     
-  output << "#Cell \t Group \t Direction \n" ;
+  output << "#Cell  Group   Direction \n" ;
   for(int el = 0; el < m_n_dfem; el++)
     output << "# Element_"<< el << std::endl;
     
@@ -413,7 +413,7 @@ void Output_Generator::write_txt(const bool is_final, const int time_step, const
     {
       for(int d = 0 ; d < m_n_dir ; d++)
       {        
-        output<< c << '\t' << g << '\t' << d << std::endl;
+        output<< std::setw(5) << c << "  " << g << "  " << d << std::endl;
         intensity.get_cell_intensity(c,g,d,i_vec );
         for(int el = 0; el < m_n_dfem ; el++)
         {
@@ -443,7 +443,7 @@ void Output_Generator::write_txt(const bool is_final, const int time_step, const
   if(!output)
     throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() ); 
     
-  output << "#Cell \t Group \t L_mom \n" ;
+  output << "#Cell    Group    L_mom \n" ;
   for(int el = 0; el < m_n_dfem; el++)
     output << "# Element_"<< el << std::endl;
     
@@ -454,7 +454,7 @@ void Output_Generator::write_txt(const bool is_final, const int time_step, const
     {
       for(int l_mom = 0 ; l_mom < m_n_l_mom ; l_mom++)
       {        
-        output<< c << '\t' << g << '\t' << l_mom << std::endl;
+        output<< std::setw(5) << c << "  " << g << "  " << l_mom << std::endl;
         phi.get_cell_angle_integrated_intensity(c,g,l_mom,phi_vec );
         for(int el = 0; el < m_n_dfem ; el++)
         {
