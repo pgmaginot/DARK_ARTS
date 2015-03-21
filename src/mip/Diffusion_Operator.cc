@@ -94,11 +94,7 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   MatSetSizes(m_mip_global,PETSC_DECIDE,PETSC_DECIDE,m_n_mip_sys_size,m_n_mip_sys_size);
   MatSetType(m_mip_global, MATSEQAIJ);
   /// preallocate maximum required space
-  MatSeqAIJSetPreallocation(m_mip_global, 3*m_np , NULL);
-  
-  std::cout << "Passing this point" << std::endl;
-  
-  
+  MatSeqAIJSetPreallocation(m_mip_global, 3*m_np , NULL);  
   
   /// This might use direct inversion or may do nothing at all
   // KSPCreate(PETSC_COMM_WORLD,&m_krylov_solver);
@@ -150,7 +146,6 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
     for(int i=0;i<4*4 ; i++)
       std::cout << "arr_ptr[" << i << "]: " << arr_ptr[i] << std::endl;
   */
-  std::cout << "Leaving the constructor" << std::endl;
 }
 
 void Diffusion_Operator::kill_petsc_objects()

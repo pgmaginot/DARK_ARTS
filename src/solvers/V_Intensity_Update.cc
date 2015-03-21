@@ -17,13 +17,11 @@ V_Intensity_Update::V_Intensity_Update(const Input_Reader& input_reader,
    WG_SOLVE_TYPE solver_type = input_reader.get_within_group_solve_type();
    if(solver_type == FP_SWEEPS)
    {
-    std::cout << "This is a sweep solve" << std::endl;
     m_within_group_radiation_solver = std::make_shared<WGRS_FP_Sweeps>(input_reader, fem_quadrature, 
       cell_data, materials, angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star, phi_ref_norm);
    }
    else if(solver_type == FP_DSA )
    {
-    std::cout << "This is a DSA solve" << std::endl;
       m_within_group_radiation_solver = std::make_shared<WGRS_FP_DSA>(input_reader, fem_quadrature, 
         cell_data, materials, angular_quadrature, n_stages,t_old, i_old, kt, ki, t_star, phi_ref_norm);
    }

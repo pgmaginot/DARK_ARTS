@@ -503,14 +503,24 @@ void Input_Reader::load_from_scratch_problem(TiXmlDocument& doc)
      
   //! Load Data Appropriately from each input block
   load_region_data(reg_elem);  
+  // std::cout << "Past reader block 1" << std::endl;
   load_angular_discretization_data(angle_elem);
+  // std::cout << "Past reader block 2" << std::endl;
   /// load_material needs angular data to already be loaded
   load_material_data(mat_elem);
+  // std::cout << "Past reader block 3" << std::endl;
   load_time_stepping_data(time_elem);
+  // std::cout << "Past reader block 4" << std::endl;
   load_spatial_discretization_data(discr_elem);
+  // std::cout << "Past reader block 5" << std::endl;
   load_solver_data(solver_elem);
+  // std::cout << "Past reader block 6" << std::endl;
   load_bc_ic_data(bc_ic_elem);
+  // std::cout << "Past reader block 7" << std::endl;
   load_output_data(output_elem);
+  // std::cout << "Past reader block 8" << std::endl;
+  
+  // throw Dark_Arts_Exception(INPUT, "kazy");
   
   return;
 }  
@@ -570,6 +580,8 @@ int Input_Reader::load_output_data(TiXmlElement* output_element)
     m_space_time_error = true;
   }
   
+
+  
   if(m_end_space_error || m_space_time_error)
   {
     TiXmlElement* filename_elem = type_elem->FirstChildElement( "Results_filename_base" );
@@ -577,6 +589,11 @@ int Input_Reader::load_output_data(TiXmlElement* output_element)
       throw Dark_Arts_Exception(INPUT , "Must have Results_filename_base for END_SPACE_ERROR or SPACE_TIME_ERROR or BOTH_ERRORS types");
       
     m_results_file_base = filename_elem->GetText();
+    
+    /// check to make sure this is a MMS problem, since this is the only type of problem we have comparator solutions for
+    if(m_material_radiation_source_type[0] != MMS_SOURCE)
+      throw Dark_Arts_Exception(INPUT, "Can only be an MMS problem to calculate spatial errors!");
+    
   }  
     
   m_restart_frequency = atoi(check_point_elem->GetText() ) ;
@@ -1830,7 +1847,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
       for(int i = 0 ; i < m_number_regions ; i++)
         total_cells += m_cells_per_region[i];
     }
-    if( total_cells < 3 )
+    if( total_cells < 2)
     {
       std::cout << "Stop being CUTE.  Need more cells for DSA operator to not die.  No DSA for you" << std::endl;
       
@@ -1979,6 +1996,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
 {
   TiXmlElement* temp_ic_type_elem = bc_ic_element->FirstChildElement( "Temperature_ic_type");
   TiXmlElement* rad_ic_type_elem = bc_ic_element->FirstChildElement( "Radiation_ic_type");
+  
   TiXmlElement* rad_left_bc_type_elem = bc_ic_element->FirstChildElement( "Left_radiation_bc_type");
   TiXmlElement* rad_right_bc_type_elem = bc_ic_element->FirstChildElement( "Right_radiation_bc_type");
   
@@ -2223,6 +2241,8 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
     /// don't need any additional data
   }
   
+  std::cout << "Finished left BC" << std::endl;
+  
   /// Right radiation boundary condition
   if( m_rad_bc_right == INVALID_RADIATION_BC_TYPE)
   {
@@ -2361,6 +2381,7 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       throw Dark_Arts_Exception(INPUT, "In BC_IC element:A refelective radiation boundary condition is not allowed with Krylov WGRS");
     }
     
+  std::cout << "Into initial conditions" << std::endl;
   /// get radiation initial conditions
   switch( m_radiation_ic_type)
   {
