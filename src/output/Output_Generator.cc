@@ -26,6 +26,8 @@ Output_Generator::Output_Generator(const Angular_Quadrature& angular_quadrature,
   input_reader.get_short_input_filename(short_input);
   m_filename+=short_input;
   output_cell_data();
+  if(input_reader.get_output_type() == DUMP)
+    output_cell_data_text(fem_quadrature);
 }
 
 void Output_Generator::write_xml(const bool is_final, const int time_step, const Temperature_Data& temperature_data)
@@ -574,5 +576,52 @@ void Output_Generator::construct_filename( const int data_type , const bool is_f
   output_filename = m_filename;
   output_filename.replace(output_filename.find(xml_extension),xml_extension.length() , new_str.str() );
 
+  return;
+}
+
+void Output_Generator::output_cell_data_text(const Fem_Quadrature& fem_quadrature)
+{
+  /// Dump text files for MATLAB plotting
+  std::string filename;
+  construct_filename(3,false,1,filename);
+  
+  std::string xml_extension;
+  xml_extension = ".xml";
+  std::string new_str;
+  new_str = ".txt";
+  filename.replace(filename.find(xml_extension),xml_extension.length() , new_str );
+  
+  std::ofstream output{ filename , std::ofstream::out};
+
+  std::stringstream err;
+  err << "Could not open Cell_Data text file: " << filename;
+  if(!output)
+    throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() ); 
+    
+  output << "#Cell\n" ;
+  for(int el = 0; el < m_n_dfem; el++)
+    output << "# Element_"<< el << std::endl;
+    
+  double dx = 0.;
+  double xL = 0.;
+  
+  std::vector<double> fem_pt;
+  fem_quadrature.get_dfem_interpolation_point(fem_pt);
+  
+  for(int c = 0; c < m_n_cells ; c++)
+  {
+    output<< std::setw(5) << c << std::endl;
+    dx = m_cell_data.get_cell_width(c);
+    xL = m_cell_data.get_cell_left_edge(c);
+    for(int el = 0; el < m_n_dfem ; el++)
+    {
+      output << std::scientific << std::setprecision(15) << xL + dx/2.*(1. + fem_pt[el]) << std::endl;
+    }
+    output << std::endl;
+  }
+    
+  output.close();
+  
+  
   return;
 }

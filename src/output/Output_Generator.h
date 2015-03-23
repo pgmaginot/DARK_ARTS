@@ -49,6 +49,7 @@ protected:
   void construct_filename( const int data_type , const bool is_final, const int ts, std::string& output_filename) const;
 
   void output_cell_data(void);
+  void output_cell_data_text(const Fem_Quadrature& fem_quadrature);
 };
 
 

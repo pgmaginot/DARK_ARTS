@@ -257,13 +257,15 @@ void Diffusion_Operator::build_matrix()
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = i*m_np + el_j;
       
-      respect_sparsity_loading(m_cell_c, m_row_destination ,  m_col_destination);
+      // respect_sparsity_loading(m_cell_c, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_c, m_row_destination ,  m_col_destination);
       
       /// cell cp1
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i+1)*m_np + el_j;
       
-      respect_sparsity_loading(m_cell_cp1, m_row_destination ,  m_col_destination);
+      // respect_sparsity_loading(m_cell_cp1, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_cp1, m_row_destination ,  m_col_destination);
     }
     else if(cell == (m_n_cell-1))
     {
@@ -281,14 +283,15 @@ void Diffusion_Operator::build_matrix()
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i-1)*m_np + el_j;
       
-      respect_sparsity_loading(m_cell_cm1, m_row_destination ,  m_col_destination);
+      // respect_sparsity_loading(m_cell_cm1, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_cm1, m_row_destination ,  m_col_destination);
  
       /// cell c
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = i*m_np + el_j;     
         
-      respect_sparsity_loading(m_cell_c, m_row_destination ,  m_col_destination);
-      
+      // respect_sparsity_loading(m_cell_c, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_c, m_row_destination ,  m_col_destination);
     }
     else
     {
@@ -306,19 +309,21 @@ void Diffusion_Operator::build_matrix()
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i-1)*m_np + el_j;
         
-      respect_sparsity_loading(m_cell_cm1, m_row_destination ,  m_col_destination);
-      
+      // respect_sparsity_loading(m_cell_cm1, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_cm1, m_row_destination ,  m_col_destination);
       /// cell c
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = i*m_np + el_j;
         
-      respect_sparsity_loading(m_cell_c, m_row_destination ,  m_col_destination);
+      // respect_sparsity_loading(m_cell_c, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_c, m_row_destination ,  m_col_destination);
  
       /// cell cp1
       for(el_j=0;el_j < m_np ; el_j++)
         m_col_destination[el_j] = (i+1)*m_np + el_j;
 
-      respect_sparsity_loading(m_cell_cp1, m_row_destination ,  m_col_destination);
+      // respect_sparsity_loading(m_cell_cp1, m_row_destination ,  m_col_destination);
+      dense_dumping(m_cell_cp1, m_row_destination ,  m_col_destination);
     }
   } 
  
