@@ -31,7 +31,6 @@ void Input_Reader::read_xml(std::string xmlFile)
 
   if(restart_elem)
   {
-      m_is_restart = true;
     /// mesh refinement or restart run    
     load_restart_problem(restart_elem);
   }
@@ -289,6 +288,7 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
   
   if(type_str == "MESH_REFINEMENT")
   {
+    m_is_mesh_refinement = true;
     m_restart_type = MESH_REFINEMENT;
   }
   else if(type_str == "RESTART")
