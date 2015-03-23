@@ -28,9 +28,10 @@ void Input_Reader::read_xml(std::string xmlFile)
   m_short_input_file = xmlFile.substr(found+1);
   
   TiXmlElement* restart_elem = doc.FirstChildElement( "RESTART_FILE" );  
-  
+
   if(restart_elem)
   {
+      m_is_restart = true;
     /// mesh refinement or restart run    
     load_restart_problem(restart_elem);
   }
@@ -288,7 +289,6 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
   
   if(type_str == "MESH_REFINEMENT")
   {
-    m_is_mesh_refinement = true;
     m_restart_type = MESH_REFINEMENT;
   }
   else if(type_str == "RESTART")
@@ -336,7 +336,18 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
       
       for(int i =0 ; i < m_number_regions ; i++) 
         m_cells_per_region[i] *= m_refinement_factor;      
-            
+      
+      TiXmlElement* time_refinement_factor = type_elem->FirstChildElement( "Time_refinement_factor" );
+      if(time_refinement_factor)
+      {
+        double time_factor = atof(time_refinement_factor->GetText() );
+        if(time_factor < 1.)
+          throw Dark_Arts_Exception(INPUT, "Bad time refinement factor");
+          
+        m_dt_min /= time_factor;
+        m_dt_max /= time_factor;
+      }
+      
       break;
     }
     case RESTART:

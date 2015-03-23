@@ -32,6 +32,7 @@ Transport_BC_Grey_Current::Transport_BC_Grey_Current(const Angular_Quadrature& a
   
   m_non_zero_value = energy_current/half_sum_mu_w;
   
+  
 }
 
 double Transport_BC_Grey_Current::get_boundary_condition(const double mu, const int grp, const double time) 

@@ -89,8 +89,8 @@
   </MATERIALS>
   
   <TIME>
-    <Dt_min> 0.001 </Dt_min>
-    <Dt_max> 0.01 </Dt_max>
+    <Dt_min> 0.0001 </Dt_min>
+    <Dt_max> 0.001 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 2.0 </T_end>
      <Time_solver> Alexander_2_2 </Time_solver>
@@ -132,8 +132,8 @@
       </MIP_solve_options>
     </WG_solver_type>
     
-    <WG_tolerance> 1.0E-12 </WG_tolerance>
-    <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
+    <WG_tolerance> 1.0E-13 </WG_tolerance>
+    <Thermal_tolerance> 1.0E-11 </Thermal_tolerance>
     <Damping_factor> 0.75 </Damping_factor>
     <Iteration_increase_factor> 4 </Iteration_increase_factor>
     <Iterations_before_damping> 100 </Iterations_before_damping>

@@ -22,14 +22,14 @@ Cell_Data::Cell_Data(Input_Reader&  input_reader)
   m_material_num.resize(m_total_cells,0);
     
   try{
-    if(input_reader.is_mesh_refinement() )
-    {
-      read_mesh_and_refine(input_reader);
-    }
-    else
-    {
+    // if(input_reader.is_mesh_refinement() )
+    // {
+      // read_mesh_and_refine(input_reader);
+    // }
+    // else
+    // {
       determine_cell_properties(n_region, cells_per_region, input_reader);
-    }
+    // }
   }
   catch(const Dark_Arts_Exception& da_exception )
   { 
@@ -57,81 +57,82 @@ int Cell_Data::get_total_number_of_cells(void) const
   return m_total_cells;
 }
 
-void Cell_Data::read_mesh_and_refine(const Input_Reader& input_reader)
-{
-  /** determine CellDataDump filename
-   trim .xml from initial filename, add _CellDataDump.xml
-   */
-  std::string celldata_filename;
-  input_reader.get_data_dump_path(celldata_filename);
+// void Cell_Data::read_mesh_and_refine(const Input_Reader& input_reader)
+// {
+  // std::cout << "In this file";
+  // /** determine CellDataDump filename
+   // trim .xml from initial filename, add _CellDataDump.xml
+   // */
+  // std::string celldata_filename;
+  // input_reader.get_data_dump_path(celldata_filename);
   
-  std::string input_file_name_and_path;
-  input_reader.get_initial_input_filename(input_file_name_and_path);
+  // std::string input_file_name_and_path;
+  // input_reader.get_initial_input_filename(input_file_name_and_path);
   
-  /// get only the input file name
-  unsigned found = input_file_name_and_path.find_last_of("/");  
-  celldata_filename.append( input_file_name_and_path.substr(found+1) );
-  /// remove the .xml and add _CellDataDump.xml
+  // /// get only the input file name
+  // unsigned found = input_file_name_and_path.find_last_of("/");  
+  // celldata_filename.append( input_file_name_and_path.substr(found+1) );
+  // /// remove the .xml and add _CellDataDump.xml
   
-  std::string xml_extension = ".xml";
-  celldata_filename.replace(celldata_filename.find(xml_extension),xml_extension.length() , "_CellDataDump.xml" );
+  // std::string xml_extension = ".xml";
+  // celldata_filename.replace(celldata_filename.find(xml_extension),xml_extension.length() , "_CellDataDump.xml" );
   
-  TiXmlDocument doc( celldata_filename.c_str() );  
-  bool loaded = doc.LoadFile();  
-  if( loaded  )
-    std::cout << "Found CellDataDump file: " << celldata_filename << std::endl;
-  else
-  {
-    std::stringstream err;
-    err << "Error reading CellDataDump file: " << celldata_filename << std::endl;
-    throw Dark_Arts_Exception( INPUT ,  err.str() );
-  }
-  TiXmlElement* root = doc.FirstChildElement("CELL_DATA");
+  // TiXmlDocument doc( celldata_filename.c_str() );  
+  // bool loaded = doc.LoadFile();  
+  // if( loaded  )
+    // std::cout << "Found CellDataDump file: " << celldata_filename << std::endl;
+  // else
+  // {
+    // std::stringstream err;
+    // err << "Error reading CellDataDump file: " << celldata_filename << std::endl;
+    // throw Dark_Arts_Exception( INPUT ,  err.str() );
+  // }
+  // TiXmlElement* root = doc.FirstChildElement("CELL_DATA");
   
-  if(!root)
-    throw Dark_Arts_Exception(INPUT, "Could not find CELL_DATA block in CellDataDump file");
+  // if(!root)
+    // throw Dark_Arts_Exception(INPUT, "Could not find CELL_DATA block in CellDataDump file");
     
-  const int incr_factor = input_reader.get_refinement_factor();
-  const int n_original_cells = m_total_cells/incr_factor;
+  // const int incr_factor = input_reader.get_refinement_factor();
+  // const int n_original_cells = m_total_cells/incr_factor;
     
-  TiXmlElement* cell_element = root->FirstChildElement("Cell");
-  int new_cell_cnt = 0;
-  for(int c=0 ; c<n_original_cells ; c++)
-  {
-    int old_cell_num = atoi(cell_element->GetText() );
-    if( old_cell_num != c)
-      throw Dark_Arts_Exception(INPUT , "Cell text not the same as expected cell number");
+  // TiXmlElement* cell_element = root->FirstChildElement("Cell");
+  // int new_cell_cnt = 0;
+  // for(int c=0 ; c<n_original_cells ; c++)
+  // {
+    // int old_cell_num = atoi(cell_element->GetText() );
+    // if( old_cell_num != c)
+      // throw Dark_Arts_Exception(INPUT , "Cell text not the same as expected cell number");
     
-    TiXmlElement* material_element = cell_element->FirstChildElement("Material");    
-    TiXmlElement* dx_old_element = cell_element->FirstChildElement("Cell_width");
-    TiXmlElement* x_left_old_element = cell_element->FirstChildElement("X_left");
+    // TiXmlElement* material_element = cell_element->FirstChildElement("Material");    
+    // TiXmlElement* dx_old_element = cell_element->FirstChildElement("Cell_width");
+    // TiXmlElement* x_left_old_element = cell_element->FirstChildElement("X_left");
       
-    double dx_old = atof(dx_old_element->GetText() );
-    int material_old = atoi(material_element->GetText() );
-    double x_left_old = atof(x_left_old_element->GetText() );
+    // double dx_old = atof(dx_old_element->GetText() );
+    // int material_old = atoi(material_element->GetText() );
+    // double x_left_old = atof(x_left_old_element->GetText() );
     
-    if(dx_old < 0.)
-    {
-      std::stringstream err;
-      err << "Found dx < 0 in CellDataDump that is being read for cell: " << c ;
-      throw Dark_Arts_Exception(INPUT, err.str() );
-    }
-    double dx_new = dx_old/(double (incr_factor));
-    const double dbl_incr_factor = double(incr_factor);
-    for(double n = 0. ; n < dbl_incr_factor ; n+=1. )
-    {
-      m_x_l[new_cell_cnt] = x_left_old + dx_new*n;
-      m_dx[new_cell_cnt] = dx_new;
-      m_material_num[new_cell_cnt] = material_old;
+    // if(dx_old < 0.)
+    // {
+      // std::stringstream err;
+      // err << "Found dx < 0 in CellDataDump that is being read for cell: " << c ;
+      // throw Dark_Arts_Exception(INPUT, err.str() );
+    // }
+    // double dx_new = dx_old/(double (incr_factor));
+    // const double dbl_incr_factor = double(incr_factor);
+    // for(double n = 0. ; n < dbl_incr_factor ; n+=1. )
+    // {
+      // m_x_l[new_cell_cnt] = x_left_old + dx_new*n;
+      // m_dx[new_cell_cnt] = dx_new;
+      // m_material_num[new_cell_cnt] = material_old;
       
-      new_cell_cnt++;
-    }  
+      // new_cell_cnt++;
+    // }  
     
-    cell_element = cell_element->NextSiblingElement("Cell");
-  }
+    // cell_element = cell_element->NextSiblingElement("Cell");
+  // }
    
-  return;
-}
+  // return;
+// }
 
 void Cell_Data::determine_cell_properties(const int n_reg, const std::vector<int>& cell_reg,
   const Input_Reader& input_reader)
