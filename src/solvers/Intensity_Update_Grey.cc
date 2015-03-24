@@ -23,12 +23,12 @@ void Intensity_Update_Grey::kill_petsc_objects()
   m_within_group_radiation_solver->kill_petsc_objects();
 }
 
-int Intensity_Update_Grey::update_intensity(Intensity_Moment_Data& phi)
+int Intensity_Update_Grey::update_intensity(Intensity_Moment_Data& phi, bool& update_success)
 {
   /**
     For the grey problem, the entire solve is carried out by the V_WGRS solver, so this looks particluarly emptry.  The MF case is not empty!
   */  
-  int inners = m_within_group_radiation_solver->solve(phi);
+  int inners = m_within_group_radiation_solver->solve(phi,update_success);
   
   return inners;
 }

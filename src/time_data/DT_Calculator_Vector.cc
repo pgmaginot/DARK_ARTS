@@ -13,7 +13,7 @@ DT_Calculator_Vector::DT_Calculator_Vector(const Input_Reader& input_reader)
     m_small_steps[i] += m_small_steps[i-1];
 }
 
-double DT_Calculator_Vector::calculate_dt(const int step)
+double DT_Calculator_Vector::calculate_dt(const int step, const double dt_old)
 {
   double dt = m_dt_max;  
   

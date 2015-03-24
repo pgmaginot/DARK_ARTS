@@ -36,5 +36,5 @@ Scattering_Opacity_Rational::~Scattering_Opacity_Rational(){}
 double  Scattering_Opacity_Rational::get_scattering_opacity(const int l_mom, const int group, 
   const double temperature, const double position)
 {
-  return m_const/(m_offset + pow(temperature,m_p));
+  return m_const/(m_offset + pow( fabs(temperature),m_p));
 }

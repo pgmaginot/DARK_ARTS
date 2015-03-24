@@ -26,7 +26,7 @@ public:
   double get_b(const int stage) const;
   double get_c(const int stage) const;
   
-  double get_dt(const int step, const double time_now);
+  double get_dt(const int step, const double time_now, const double dt_old);
   
   double get_t_start(void) const;
   double get_t_end(void) const;

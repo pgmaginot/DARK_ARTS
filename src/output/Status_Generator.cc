@@ -22,13 +22,15 @@ Status_Generator::Status_Generator(std::string input_file):
 
 }
 
-void Status_Generator::write_iteration_status(const int step, const int stage, const double dt , const int inners , const double err, const double damp) 
+void Status_Generator::write_iteration_status(const int step, const int stage, const int therm_iter , 
+  const double dt , const int inners , const double err, const double damp) 
 {
   m_total_thermal_iterations++;
   m_total_inner_solves += inners;
   
-  m_status_stream <<  "Time_step: " << step  << 
-                      " Stage: " << stage <<                       
+  m_status_stream <<  "Time_step: " << std::setw(6) << step  << 
+                      " Stage: " << std::setw(2) << stage <<     
+                      " Thermal_iter: " << std::setw(4) << therm_iter << 
                       " dt: " ;
   m_status_stream << std::scientific << std::setprecision(15) << dt ;
   m_status_stream << " number_of_inner_solves: " << inners ;

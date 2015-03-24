@@ -29,7 +29,7 @@ public:
 
   void kill_petsc_objects() override;
   
-  int update_intensity(Intensity_Moment_Data& phi) override;
+  int update_intensity(Intensity_Moment_Data& phi, bool& update_sucess) override;
 
 };
 

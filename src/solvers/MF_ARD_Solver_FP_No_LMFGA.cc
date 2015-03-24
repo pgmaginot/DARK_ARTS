@@ -24,7 +24,8 @@ int MF_ARD_Solver_FP_No_LMFGA::solve_ard_problem(Intensity_Moment_Data& ard_phi_
     /// set which phi we will be using for ard
     m_wgrs->set_ard_phi_ptr(&m_ard_old);
     /// get a new ard_phi based on the old value
-    inners += m_wgrs->solve(ard_phi_new);
+    bool wg_success = false;
+    inners += m_wgrs->solve(ard_phi_new,wg_success);
     /// get normalized change
     ard_phi_new.normalized_difference(m_ard_old,m_ard_err);
     /// check if change indciates convergence

@@ -155,6 +155,7 @@ int main(int argc, char** argv)
   catch(const Dark_Arts_Exception& da_exception )
   {
     da_exception.testing_message();
+    val = -1;
   }
 
   

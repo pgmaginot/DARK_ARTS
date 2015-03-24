@@ -97,7 +97,8 @@ int main(int argc, char** argv)
     
     wgrs->set_time_data( dt, time_eval, rk_a , stage );
     /// phi will be changed in here
-    int n_sweeps = wgrs->solve(phi);  
+    bool success = false;
+    int n_sweeps = wgrs->solve(phi,success);  
     
     if(n_sweeps == 0)
       throw Dark_Arts_Exception(TRANSPORT , "Used zero sweeps!");

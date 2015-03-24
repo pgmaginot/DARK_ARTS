@@ -14,6 +14,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_ard_phi( cell_data, angular_quadrature, fem_quadrature, i_old ),
     m_damping(1.),
     m_iters_before_damping(input_reader.get_iters_before_damping() ),
+    m_damp_trigger_initial(m_iters_before_damping),
     m_damping_decrease_factor(input_reader.get_damping_factor() ),
     m_iteration_increase_factor(input_reader.get_iter_increase_factor() ),
     m_checkpoint_frequency(input_reader.get_restart_frequency() ),
@@ -28,7 +29,8 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_temperature_update(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, t_old, m_ard_phi),
     m_input_reader(input_reader),
     m_cell_data(cell_data),
-    m_angular_quadrature(angular_quadrature)
+    m_angular_quadrature(angular_quadrature),
+    recent_iteration_errors(5,0.)
 {     
   try{
     std::vector<double> phi_ref_norm;
@@ -93,7 +95,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   int max_step = int( (time_data.get_t_end() - time_data.get_t_start() )/time_data.get_dt_min() );
   
-  double dt = 0.;
+  double dt = time_data.get_dt_min();
   double time_stage = 0.;
   
   int times_damped = 0;
@@ -102,21 +104,28 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   std::vector<double> rk_a_of_stage_i(m_n_stages,0.);  
   
+  /// use some extra things to see if we are just slowly converging before damping
+
+  
   for( ; t_step < max_step; t_step++)
   // for( ; t_step < 1; t_step++)
   {
     if( (t_step % 20) == 0)
-      m_err_temperature.set_small_number( 1.0E-4*t_old.calculate_average() );  
+      m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );  
     
-    dt = time_data.get_dt(t_step,time);
+    dt = time_data.get_dt(t_step,time,dt);
     
     /// initial temperature iterate guess is t_old
     m_t_star = t_old;
     
     for(int stage = 0; stage < m_n_stages ; stage++)
     {
+      /// variables to control non-linear thermal iteration
+      bool converged_thermal = false;
+      /// damping factor, time damped, reset threshold to apply damping
       m_damping = 1.; 
       times_damped = 0;
+      m_iters_before_damping = m_damp_trigger_initial;
       
       time_stage = time + dt*time_data.get_c(stage);
       
@@ -139,36 +148,60 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// converge the thermal linearization
         /// first get an intensity given the temperature iterate
         /// Intensity_Update objects are linked to m_star at construction        
-        inners = m_intensity_update->update_intensity(m_ard_phi);
+        bool intensity_update_success = false;
+        m_ard_phi.clear_angle_integrated_intensity();
+        inners = m_intensity_update->update_intensity(m_ard_phi,intensity_update_success);
         
         // m_ard_phi.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader,m_angular_quadrature);
-          
-        /// then update temperature given the new intensity
-        /// give a damping coefficient to possibly control this Newton (like) iteration)
-        /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
-        m_err_temperature.clear();
-        m_temperature_update.update_temperature(m_t_star, m_k_t, m_damping, m_err_temperature ); 
-        // m_t_star.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader);
-        double norm_relative_change = m_err_temperature.get_worst_err();
-        std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter <<
-          " Number of Transport solves: " << inners << " Thermal error: " << norm_relative_change << std::endl;
-        /// write to iteration status file
-        m_status_generator.write_iteration_status(t_step, stage, dt , inners , norm_relative_change, m_damping);
         
+        double norm_relative_change = 0.;
+        if(intensity_update_success)
+        {
+          /// then update temperature given the new intensity
+          /// give a damping coefficient to possibly control this Newton (like) iteration)
+          /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
+          m_err_temperature.clear();
+          m_temperature_update.update_temperature(m_t_star, m_k_t, m_damping, m_err_temperature ); 
+          // m_t_star.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader);
+          norm_relative_change = m_err_temperature.get_worst_err();
+          cascade_thermal_err(norm_relative_change);
+          std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter <<
+            " Number of Transport solves: " << inners << " Thermal error: " << norm_relative_change << std::endl;
+          /// write to iteration status file
+          m_status_generator.write_iteration_status(t_step, stage, therm_iter, dt , inners , norm_relative_change, m_damping);
+        }
+        else
+        {
+          /// restart this time step, with a smaller dt
+          // std::cout << "Intensity Update Needing to cut dt" << std::endl;
+          
+          break;
+        }
         /// check convergence of temperature
         if( norm_relative_change < m_thermal_tolerance)
         {
+          converged_thermal = true;
           break;
         }     
         else
         {
           /// damp if necessary 
-          if(therm_iter > m_iters_before_damping)
+          if( (therm_iter > m_iters_before_damping) )
           {
+            if( determine_if_just_slowly_converging() )
+            {
+              m_iters_before_damping *= 2;
+            }
+            else
+            {
+              // std::cout << "Damping thermal iteration\n" ;
+              
               therm_iter = 0;
-              m_iters_before_damping *= m_iteration_increase_factor;
+              m_iters_before_damping = int( ceil( m_iteration_increase_factor*double(m_iters_before_damping) ) );
+              // std::cout << "iters before damping again: " << m_iters_before_damping << std::endl;
               times_damped++;
               m_damping *= m_damping_decrease_factor;
+              // std::cout << "New damping factor: " << m_damping << std::endl;
               m_t_star = t_old;
               if(times_damped > m_max_damps) 
               {
@@ -179,15 +212,28 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
                 m_output_generator.write_xml(false,t_step,m_ard_phi);
                 throw Dark_Arts_Exception(TIME_MARCHER, err);
               }
+            }
           }          
         }       
       }    
+      
+      if(!converged_thermal)
+      {
+        /// get out of here. Get to the top of the stage loop
+        /// use a smaller dt
+        /// restart with the last temperature we accepted
+        // std::cout << "Cutting time step size" << std::endl;
+        stage = 0;
+        dt *= m_damping_decrease_factor;
+        m_t_star = t_old;
+        continue;
+      }
+      
       /** calculate k_I and k_T
        * our intensity and update objects were initialized with const ptr to m_k_i and m_k_t respectively,
        * but let's just call the calculate k_i and k_t functions by passing references to the objects we want to change
        * this will then imply that the more frequently called update functions are not modifying the 
       */
-      
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
       m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       m_temperature_update.calculate_k_t(m_t_star, m_k_t);
@@ -197,13 +243,14 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         m_space_time_error_calculator->record_error(dt, stage, time_stage, m_ard_phi, m_t_star);
       
     }
+
     /// advance to the next time step, overwrite t_old
     time += dt;
     /// these are the only functions that change I_old and T_old
     m_k_i.advance_intensity(i_old,dt,m_time_data);
     m_k_t.advance_temperature(t_old,dt,m_time_data);
 
-    
+      
     if(!m_suppress_output)
     {
       if( (t_step % m_checkpoint_frequency) == 0)
@@ -213,8 +260,8 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         m_output_generator.write_xml(false,t_step,m_ard_phi);    
       }
     }
-    
-    /// check to see if we are at the end of the time marching scheme
+      
+      /// check to see if we are at the end of the time marching scheme
     if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-4)
       break;
   }
@@ -248,4 +295,41 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   }
   
   return;
+}
+
+void Time_Marcher::cascade_thermal_err(const double last_err)
+{
+  recent_iteration_errors[4] = recent_iteration_errors[3];
+  recent_iteration_errors[3] = recent_iteration_errors[2];
+  recent_iteration_errors[2] = recent_iteration_errors[1];
+  recent_iteration_errors[1] = recent_iteration_errors[0];
+  recent_iteration_errors[0] = last_err;
+  
+  return;
+}
+
+bool Time_Marcher::determine_if_just_slowly_converging(void)
+{
+  if(m_already_extended)
+  {
+    m_already_extended = false;
+    return false;
+  }
+  else
+  {
+    bool reducing = false;
+    for(int i = 0 ; i < 4; i++)
+    {
+      double reduction = (recent_iteration_errors[i+1]/recent_iteration_errors[i]);
+      // std::cout << "reduction factor[" << i << "]: " << reduction << std::endl;
+      
+      reducing = (reduction > 1.0 );
+      if(!reducing)
+      {
+        return false;
+      }
+    }  
+  }
+  m_already_extended = true;
+  return true;
 }

@@ -39,7 +39,7 @@ void WGRS_FP_DSA::kill_petsc_objects()
   return;
 }
 
-int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new)
+int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new, bool& update_success)
 {
   /** phi_new is what we will return
    * m_phi_old is a variable local to WGRS_FP_SWEEPS, we need to clear phi_old to start
@@ -72,6 +72,11 @@ int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new)
       m_phi_old = phi_new;
     }
   }
+  
+  if( (m_err.get_worst_err() < m_wg_tolerance) )
+    update_success = true;
+  else
+    update_success = false;
   
   return n_sweep;
 }

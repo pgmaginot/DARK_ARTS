@@ -9,7 +9,7 @@ DT_Calculator_Ramp::DT_Calculator_Ramp(const Input_Reader& input_reader)
 
 }
 
-double DT_Calculator_Ramp::calculate_dt(const int step)
+double DT_Calculator_Ramp::calculate_dt(const int step, const double dt_old)
 {
   double dt = 0.;
   /// linearly ramp time step from dt_min (step==0) to dt_max step >= 

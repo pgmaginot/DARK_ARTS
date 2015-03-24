@@ -85,7 +85,8 @@ int main(int argc, char** argv)
       const double time_eval = time_data.get_t_start() + double(repeat+1)*dt;
       
       i_update->set_time_data( dt, time_eval, rk_a, stage );
-      int n_inner = i_update->update_intensity(phi_comparison);
+      bool update_success = false;
+      int n_inner = i_update->update_intensity(phi_comparison,update_success);
       
       std::cout << "N_inner = " << n_inner << std::endl;
       // if(n_inner == 0 )

@@ -33,7 +33,7 @@ public:
 
   virtual void kill_petsc_objects() = 0;
   
-  virtual int solve(Intensity_Moment_Data& phi_new) = 0;
+  virtual int solve(Intensity_Moment_Data& phi_new, bool& update_sucess) = 0;
 
   void set_ard_phi_ptr(Intensity_Moment_Data* ard_phi_ptr);
   

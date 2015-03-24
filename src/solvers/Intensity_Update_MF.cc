@@ -54,7 +54,7 @@ void Intensity_Update_MF::kill_petsc_objects()
 }
 
 
-int Intensity_Update_MF::update_intensity(Intensity_Moment_Data& phi)
+int Intensity_Update_MF::update_intensity(Intensity_Moment_Data& phi, bool& update_sucess)
 {  
   /** there are options for solving the MF absorption re-emission problem
     1) fixed point, no diffusion operator acceleration

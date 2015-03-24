@@ -154,7 +154,7 @@ public:
   /// Time_Marcher controls
   int get_iters_before_damping(void) const{ return m_iters_before_damp;}
   double get_damping_factor(void) const { return m_damping_factor;}
-  int get_iter_increase_factor(void) const { return m_iter_increase_factor;}
+  double get_iter_increase_factor(void) const { return m_iter_increase_factor;}
   int get_max_damp_iters(void) const {return m_max_damps;}
   
   /// Output variables
@@ -291,7 +291,7 @@ protected:
   /// thermal iteration parameters
   int m_iters_before_damp =-1;
   double m_damping_factor = 2.;
-  int m_iter_increase_factor = 0;
+  double m_iter_increase_factor = 0.1;
   int m_restart_frequency = -1;
   int m_max_damps = -1;
   

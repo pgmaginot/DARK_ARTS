@@ -15,7 +15,7 @@ public:
     
   virtual ~DT_Calculator_Exponential(){}
 
-  double calculate_dt(const int step) override;
+  double calculate_dt(const int step, const double dt_old) override;
 
 protected:
   const double m_ratio;

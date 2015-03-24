@@ -143,11 +143,11 @@ int main(int argc, char** argv)
   
   /// test in a fake time loop
   double time_now = t_start;
-  double dt;
+  double dt=time_data.get_dt_min();
   try{
     for(int ts = 0; ts < too_many_steps; ts++)
     {
-      dt = time_data.get_dt(ts,time_now);
+      dt = time_data.get_dt(ts,time_now,dt);
       
       if( fabs(dt - expected_dt[ts]) > tol)
         throw Dark_Arts_Exception(TIME_MARCHER , "Not calculating correct exponential dt");

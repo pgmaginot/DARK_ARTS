@@ -28,7 +28,7 @@ public:
 
   void kill_petsc_objects() override;
   
-  int solve(Intensity_Moment_Data& phi_new) override;
+  int solve(Intensity_Moment_Data& phi_new, bool& update_success) override;
 protected:
   
   

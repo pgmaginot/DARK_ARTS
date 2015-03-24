@@ -148,9 +148,9 @@ double Time_Data::get_c(const int stage) const
   return m_c[stage];
 }
 
-double Time_Data::get_dt(const int step, const double time_now)
+double Time_Data::get_dt(const int step, const double time_now, const double dt_old)
 {
-  double dt = m_calculate_dt->calculate_dt(step);
+  double dt = m_calculate_dt->calculate_dt(step,dt_old);
   if( (time_now + dt ) > m_t_end)
   {
     /// taking full time step suggested by starting method will end time past desired t_end

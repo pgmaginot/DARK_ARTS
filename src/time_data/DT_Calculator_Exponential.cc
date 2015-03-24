@@ -9,17 +9,20 @@ DT_Calculator_Exponential::DT_Calculator_Exponential(const Input_Reader& input_r
 
 }
 
-double DT_Calculator_Exponential::calculate_dt(const int step)
+double DT_Calculator_Exponential::calculate_dt(const int step, const double dt_old)
 {
-  double dt = 0.;
-  if( step < m_step_max)
+  double dt;
+  if(step ==0)
   {
-    dt = m_dt_min * pow(m_ratio,step);
+    dt = m_dt_min;
   }
-  else
+  else 
   {
+    dt = dt_old*m_ratio;
+  }
+  
+  if( dt > m_dt_max)
     dt = m_dt_max;
-  }
 
   return dt;
 }

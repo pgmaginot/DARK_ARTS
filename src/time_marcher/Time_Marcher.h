@@ -40,8 +40,9 @@ private:
   /// damping variable, and temperature update err object used to track thermal iteration progress
   double m_damping;  
   int m_iters_before_damping;
+  const int m_damp_trigger_initial;
   const double m_damping_decrease_factor;
-  const int m_iteration_increase_factor;
+  const double m_iteration_increase_factor;
   const int m_checkpoint_frequency;
   const int m_max_damps;
   const int m_max_thermal_iter;
@@ -66,6 +67,12 @@ private:
   const Angular_Quadrature& m_angular_quadrature;
   
   std::vector<double> dfem_interp_points;
+  
+  void cascade_thermal_err(const double last_iter );
+  bool determine_if_just_slowly_converging(void);
+  bool m_already_extended = false;
+  std::vector<double> recent_iteration_errors;
+  
   
 };
 

@@ -19,7 +19,7 @@ public:
     
   virtual ~Status_Generator(){ write_final_counts(); m_status_stream.close(); }
   
-  void write_iteration_status(const int step, const int stage, const double dt , const int inners , const double err, const double damp) ;
+  void write_iteration_status(const int step, const int stage, const int therm_iter , const double dt , const int inners , const double err, const double damp) ;
   
   int get_total_thermals(void) const {return m_total_thermal_iterations;}
   int get_total_sweeps(void) const {return m_total_inner_solves;}

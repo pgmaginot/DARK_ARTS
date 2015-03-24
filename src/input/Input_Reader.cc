@@ -1725,7 +1725,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   m_max_damps = atoi(n_damps_elem->GetText() );
   m_iters_before_damp = atoi(iter_before_damp_elem->GetText() );
   m_damping_factor = atof(damping_factor_elem->GetText() );
-  m_iter_increase_factor = atoi(increase_elem->GetText() );
+  m_iter_increase_factor = atof(increase_elem->GetText() );
   m_max_thermals = atoi(n_thermals_elem->GetText() );
   
   if(m_max_thermals < 1)
@@ -1740,7 +1740,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   if( (m_damping_factor < 0.) || ( fabs(m_damping_factor) > 1.) )
     throw Dark_Arts_Exception(INPUT, "Damping factor must be a positive float less than 1.");
     
-  if( m_iter_increase_factor < 2)
+  if( m_iter_increase_factor < 1.)
     throw Dark_Arts_Exception(INPUT, "Must increase iterations by at least a factor of 2 for damping");
   
     

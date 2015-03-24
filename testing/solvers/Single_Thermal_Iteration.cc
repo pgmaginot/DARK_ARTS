@@ -99,7 +99,8 @@ int main(int argc, char** argv)
     double time = time_data.get_t_start();
     int t_step = 0;
 
-    double dt = time_data.get_dt(t_step,time);
+    double dt = time_data.get_dt_min(); 
+    dt = time_data.get_dt(t_step,time,dt);
     
     t_star = t_old;
         
@@ -114,7 +115,8 @@ int main(int argc, char** argv)
     Err_Temperature err_temperature(n_p);
     err_temperature.set_small_number(1.0E-4*t_old.calculate_average());
  
-    int inners = intensity_update->update_intensity(ard_phi);
+    bool update_success = false;
+    int inners = intensity_update->update_intensity(ard_phi,update_success);
     temperature_update.update_temperature(t_star, kt, 1.0, err_temperature);
         
     if(inners == 0)
