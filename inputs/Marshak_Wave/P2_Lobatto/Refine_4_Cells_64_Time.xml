@@ -4,7 +4,7 @@
   <Data_dump_path> /scratch/pmaginot/Marshak_Results/ </Data_dump_path>
   <Restart_type> MESH_REFINEMENT 
     <Refinement_factor> 4 </Refinement_factor>
-    <Time_refinement_factor> 4 </Time_refinement_factor>
-    <Initial_inputfile> /scratch/pmaginot/dark_arts_local/inputs/Marshak_Wave/Marshak_Wave_SL_Lobatto_P1_Base.xml </Initial_inputfile>
+    <Time_refinement_factor> 64 </Time_refinement_factor>
+    <Initial_inputfile> /scratch/pmaginot/dark_arts_local/inputs/Marshak_Wave/Marshak_Wave_SL_Lobatto_P2_Base.xml </Initial_inputfile>
   </Restart_type>
 </RESTART_FILE>
