@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone=no>
+<!-- A comment -->
+<RESTART_FILE>
+  <Data_dump_path> /scratch/pmaginot/Marshak_Results/ </Data_dump_path>
+  <Restart_type> MESH_REFINEMENT 
+    <Refinement_factor> 1 </Refinement_factor>
+    <Time_refinement_factor> 16 </Time_refinement_factor>
+    <Initial_inputfile> /scratch/pmaginot/dark_arts_local/inputs/Marshak_Wave/Marshak_Wave_Constant_XS_P1.xml </Initial_inputfile>
+  </Restart_type>
+</RESTART_FILE>
