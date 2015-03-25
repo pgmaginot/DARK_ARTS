@@ -22,9 +22,30 @@ Output_Generator::Output_Generator(const Angular_Quadrature& angular_quadrature,
  m_cell_data( cell_data )
 {
   input_reader.get_output_directory(m_filename);
-  std::string short_input;
-  input_reader.get_short_input_filename(short_input);
-  m_filename+=short_input;
+  if(input_reader.is_mesh_refinement() )
+  {
+    std::string base_file_with_path = input_reader.get_initial_input_filename();
+    unsigned int found = base_file_with_path.find_last_of("/");
+    std::string base_short = base_file_with_path.substr(found+1);  
+      
+    m_filename.append(base_short);
+    std::string xml_ext = ".xml";
+    m_filename.replace( m_filename.find(xml_ext) , xml_ext.length() , "_");
+    std::string short_input; 
+    input_reader.get_short_input_filename(short_input);
+    m_filename.append(short_input);
+  }  
+  else
+  {
+    std::string short_input; 
+    input_reader.get_short_input_filename(short_input);
+    /// make sure output 
+    m_filename+=short_input;
+  }
+
+  /// short_input is the called filename e.g. dark_arts ../inputs/filename.xml
+  /// if this is a refinement run, we are going to want to store append the base name too
+  
   output_cell_data();
   if(input_reader.get_output_type() == DUMP)
     output_cell_data_text(fem_quadrature);

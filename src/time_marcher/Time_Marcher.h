@@ -19,7 +19,7 @@ public:
   Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data);
+    const Time_Data& time_data, std::string& stat_file);
     
   virtual ~Time_Marcher(){}
   

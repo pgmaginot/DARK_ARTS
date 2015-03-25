@@ -171,6 +171,7 @@ public:
   std::string get_output_directory(void) const {return m_output_directory;}
   std::string get_short_input_filename(void) const{return m_short_input_file; }
   std::string get_filename_base_for_results(void) const{ return m_results_file_base; }
+  std::string get_initial_input_filename(void) const {return m_initial_input_str;}
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/

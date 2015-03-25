@@ -17,6 +17,7 @@ Status_Generator::Status_Generator(std::string input_file):
   m_total_thermal_iterations(0),
   m_total_inner_solves(0)
 {
+  std::cout << "This is the stat file: " << m_stat_file << std::endl;
   if(!m_status_stream)
     throw Dark_Arts_Exception(SUPPORT_OBJECT, "Could not create iteration Status_Generator filestream");
 

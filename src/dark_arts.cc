@@ -74,16 +74,43 @@ int main(int argc, char** argv)
     Temperature_Data temperature_old( fem_quadrature, input_reader, cell_data);
     std::cout << "Temperature object created" << std::endl;
 
-    std::string input_filename = argv[1];
-    unsigned int found = input_filename.find_last_of("/");
-    std::string short_input_filename = input_filename.substr(found+1);  
-    std::string output_directory;
-    input_reader.get_output_directory(output_directory);
-    output_directory.append(short_input_filename);
+    /// create filename for status generator
+    /// for mesh refinement runs: output_dir/short_base_filename_refinement.xml
+    /// otherwise: output_dir/
+    
+    std::string stat_file_path_and_name;
+    if( input_reader.is_mesh_refinement() )
+    {
+      std::string base_file_with_path = input_reader.get_initial_input_filename();
+      unsigned int found = base_file_with_path.find_last_of("/");
+      std::string base_short = base_file_with_path.substr(found+1);  
+      
+      stat_file_path_and_name = input_reader.get_output_directory();
+      stat_file_path_and_name.append(base_short);
+      std::string xml_ext = ".xml";
+      stat_file_path_and_name.replace( stat_file_path_and_name.find(xml_ext) , xml_ext.length() , "_");
+      
+      std::string input_filename = argv[1];
+      found = input_filename.find_last_of("/");
+      std::string short_input_filename = input_filename.substr(found+1); 
+      
+      stat_file_path_and_name.append( short_input_filename );
+    }
+    else
+    {
+      std::string input_filename = argv[1];
+      unsigned int found = input_filename.find_last_of("/");
+      std::string short_input_filename = input_filename.substr(found+1);  
+      std::string output_directory;
+      input_reader.get_output_directory(output_directory);
+      // output_directory.append(short_input_filename);
+      stat_file_path_and_name = output_directory + short_input_filename;
+    }
+    
     
     /// Time Marcher.  This object will take care of solving the problem
     Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
-      cell_data, materials, temperature_old, intensity_old, time_data);    
+      cell_data, materials, temperature_old, intensity_old, time_data,stat_file_path_and_name);    
       std::cout << "Time_Marcher object created"<< std::endl;  
   
   /// this is the entire time loop !

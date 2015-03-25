@@ -3,7 +3,7 @@
 <INPUT_FILE>
   <OUTPUT>
     <Output_type> DUMP </Output_type>
-    <Checkpoint_frequency> 100 </Checkpoint_frequency>
+    <Checkpoint_frequency> 10000 </Checkpoint_frequency>
     <Output_directory> /scratch/pmaginot/Marshak_Results/ </Output_directory>
   </OUTPUT>
   
