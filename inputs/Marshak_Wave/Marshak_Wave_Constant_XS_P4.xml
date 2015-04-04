@@ -61,7 +61,7 @@
   <SPATIAL_DISCRETIZATION>
     <DFEM_degree> 4 </DFEM_degree>
     <Integration_type> Self_lumping </Integration_type>
-    <DFEM_interpolation_point_type> Gauss </DFEM_interpolation_point_type>
+    <DFEM_interpolation_point_type> Lobatto </DFEM_interpolation_point_type>
     <Opacity_treatment> Moment_preserving
       <Opacity_polynomial_degree> 0 </Opacity_polynomial_degree>
     </Opacity_treatment>    
