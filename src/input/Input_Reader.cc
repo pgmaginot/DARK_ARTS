@@ -314,13 +314,8 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
     {
       /// load everything basically the same as before, but change the number of cells per region from the initial file
       TiXmlElement* refine_factor = type_elem->FirstChildElement( "Refinement_factor");
-      
-      if(!refine_factor)
-        throw Dark_Arts_Exception(INPUT, "Must have Refinement_factor block for MESH_REFINEMENT restarts");      
-        
-      m_refinement_factor = atoi( refine_factor->GetText() );
-      if(m_refinement_factor < 1)
-        throw Dark_Arts_Exception(INPUT , "Spatial refinement factor must be an integer greater than 1");     
+      TiXmlElement* time_refinement_factor = type_elem->FirstChildElement( "Time_refinement_factor" );
+      TiXmlElement* trial_space_degree_elem = type_elem->FirstChildElement( "Trial_space_degree" );
       
       TiXmlDocument doc( m_initial_input_str.c_str() );  
       bool loaded = doc.LoadFile();  
@@ -332,12 +327,23 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
         std::cout << "Failed to find initial input file: " << m_initial_input_str << std::endl;
         throw Dark_Arts_Exception( INPUT , "Error reading initial input file, file non-existent or XML error" );
       }      
+      
+      /// get the initial input file
       load_from_scratch_problem(doc);
       
-      for(int i =0 ; i < m_number_regions ; i++) 
-        m_cells_per_region[i] *= m_refinement_factor;      
+      /// change things about the initial input file
+      /// number of spatial cells
+      if(refine_factor)
+      {        
+        m_refinement_factor = atoi( refine_factor->GetText() );
+        if(m_refinement_factor < 1)
+          throw Dark_Arts_Exception(INPUT , "Spatial refinement factor must be an integer greater than 1");     
+        
+        for(int i =0 ; i < m_number_regions ; i++) 
+          m_cells_per_region[i] *= m_refinement_factor;      
+      }      
       
-      TiXmlElement* time_refinement_factor = type_elem->FirstChildElement( "Time_refinement_factor" );
+      /// time step size
       if(time_refinement_factor)
       {
         double time_factor = atof(time_refinement_factor->GetText() );
@@ -347,6 +353,19 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
         m_dt_min /= time_factor;
         m_dt_max /= time_factor;
       }
+      
+      /// trial space degree
+      if(trial_space_degree_elem)
+      {
+        int trial_space_degree = atoi(trial_space_degree_elem->GetText() );
+        if( trial_space_degree < 1)
+          throw Dark_Arts_Exception(INPUT , "Invalid trial space degree for MESH_REFINEMENT");
+        else
+          m_dfem_trial_space_degree = trial_space_degree;        
+      }
+      
+      if( (!trial_space_degree_elem) && (!time_refinement_factor) && (!refine_factor))
+        throw Dark_Arts_Exception(INPUT, "MESH_REFINEMENT input without any mesh refinement parameters");
       
       break;
     }
