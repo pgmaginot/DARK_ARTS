@@ -319,8 +319,8 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
         throw Dark_Arts_Exception(INPUT, "Must have Refinement_factor block for MESH_REFINEMENT restarts");      
         
       m_refinement_factor = atoi( refine_factor->GetText() );
-      if(m_refinement_factor < 2)
-        throw Dark_Arts_Exception(INPUT , "Refinement factor must be an integer greater than 1");     
+      if(m_refinement_factor < 1)
+        throw Dark_Arts_Exception(INPUT , "Spatial refinement factor must be an integer greater than 1");     
       
       TiXmlDocument doc( m_initial_input_str.c_str() );  
       bool loaded = doc.LoadFile();  
@@ -342,7 +342,7 @@ RADIATION_IC_TYPE Input_Reader::get_radiation_ic_type(void) const
       {
         double time_factor = atof(time_refinement_factor->GetText() );
         if(time_factor < 1.)
-          throw Dark_Arts_Exception(INPUT, "Bad time refinement factor");
+          throw Dark_Arts_Exception(INPUT, "Time refinement factor must be greater than 1.");
           
         m_dt_min /= time_factor;
         m_dt_max /= time_factor;

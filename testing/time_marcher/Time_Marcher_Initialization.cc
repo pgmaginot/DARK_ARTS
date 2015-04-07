@@ -74,10 +74,9 @@ int main(int argc, char** argv)
     std::string input_filename = argv[1];
     unsigned int found = input_filename.find_last_of("/");
     std::string short_input_filename = input_filename.substr(found+1);  
-
     /// Time Marcher.  This object will take care of solving the problem
     Time_Marcher time_marcher(input_reader, angular_quadrature,fem_quadrature,
-    cell_data, materials, temperature_old, intensity_old, time_data);    
+    cell_data, materials, temperature_old, intensity_old, time_data, short_input_filename);    
     std::cout << "Time_Marcher object created"<< std::endl;  
   }
   catch(const Dark_Arts_Exception& da)
