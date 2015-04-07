@@ -75,7 +75,7 @@
     <Dt_max> 1.0 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 1.0 </T_end>
-     <Time_solver> Implicit_Euler </Time_solver>
+     <Time_solver> Alexander_2_2 </Time_solver>
     <!--
       <Starting_method> Exponential </Starting_method>
     <Increase_factor> 1.25 </Increase_factor>
