@@ -35,7 +35,7 @@
       </Absorption_opacity_type>      
       
       <Cv_type> Constant_CV 
-         <Constant_value> 0.2 </Constant_value>        
+         <Cv_constant> 0.2 </Cv_constant>        
       </Cv_type>
       
       <Radiation_fixed_source_type> MMS_source 
