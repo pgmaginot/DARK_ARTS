@@ -6,7 +6,7 @@
       <Results_filename_base> MMS_Constant_Space </Results_filename_base>
     </Output_type>
     <Checkpoint_frequency> 10000 </Checkpoint_frequency>
-    <Output_directory> /scratch/pmaginot/Radtran_Results/ </Output_directory>
+    <Output_directory> /scratch/pmaginot/Constant_Space_Results/ </Output_directory>
     <Suppress_data_dumps> doesnt_matter </Suppress_data_dumps>
   </OUTPUT>
   
