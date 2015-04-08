@@ -77,7 +77,7 @@
   <SOLVER>
     <!-- Valid options are FP_SWEEPS, FP_DSA, KRYLOV_SWEEPS, KRYLOV_DSA   -->
     <WG_solver_type> FP_DSA
-      <Max_within_group_sweeps> 200 </Max_within_group_sweeps>
+      <Max_within_group_sweeps> 2000 </Max_within_group_sweeps>
       <MIP_solve_options>
         <Z_mip> 2.0 </Z_mip>
       </MIP_solve_options>
@@ -87,8 +87,8 @@
     <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
     <Damping_factor> 0.7 </Damping_factor>
     <Iteration_increase_factor> 2 </Iteration_increase_factor>
-    <Iterations_before_damping> 40 </Iterations_before_damping>
-    <Max_damping_resets> 5 </Max_damping_resets>
+    <Iterations_before_damping> 50 </Iterations_before_damping>
+    <Max_damping_resets> 6 </Max_damping_resets>
     <Max_thermal_iterations_per_stage> 10000 </Max_thermal_iterations_per_stage>
   </SOLVER>
   

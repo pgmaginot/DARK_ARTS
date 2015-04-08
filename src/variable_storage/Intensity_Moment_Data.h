@@ -55,6 +55,8 @@ public:
   void update_phi_and_norms(const Intensity_Data& i_old);
   
   void add_from_array_pointer( double *update_array  , const int cell, const int group);
+  
+  void update_error_cutoff(void);
 private:  
   /// total number of cells in the problem
   const int m_cells;

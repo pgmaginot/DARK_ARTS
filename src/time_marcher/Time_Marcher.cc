@@ -106,23 +106,40 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   /// use some extra things to see if we are just slowly converging before damping
 
-  
-  for( ; t_step < max_step; t_step++)
-  // for( ; t_step < 1; t_step++)
+  bool need_to_cut_dt = false;
+  while( true )
   {
-    if( (t_step % 20) == 0)
-      m_err_temperature.set_small_number( 1.0E-6*t_old.calculate_average() );  
+    if( (t_step % 10) == 0)
+    {
+      m_err_temperature.set_small_number( 1.0E-3*t_old.calculate_average() );  
+      m_ard_phi.update_error_cutoff();
+    }
+    if( need_to_cut_dt)
+    {
+      dt *= m_damping_decrease_factor;
+    }
+    else
+    {
+      dt = time_data.get_dt(t_step,time,dt);
+    }
     
-    dt = time_data.get_dt(t_step,time,dt);
+    need_to_cut_dt = false;
     
     /// initial temperature iterate guess is t_old
     m_t_star = t_old;
     
-    for(int stage = 0; stage < m_n_stages ; stage++)
-    {
-      /// variables to control non-linear thermal iteration
-      bool converged_thermal = false;
-      /// damping factor, time damped, reset threshold to apply damping
+    /// this variable can be used to cut time step    
+    for( int stage = 0 ; stage < m_n_stages ; stage++)
+    {      
+      if(need_to_cut_dt)
+      {
+        /// get out of this loop, and out to the time step loop
+        break;
+      }
+      
+      /// variables to control thermal iteration
+      /// damping factor, time damped, reset threshold to apply damping     
+      bool converged_thermal = false;      
       m_damping = 1.; 
       times_damped = 0;
       m_iters_before_damping = m_damp_trigger_initial;
@@ -142,7 +159,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       // if( (time_stage < time_data.get_t_start()) || (time_stage > time_data.get_t_end() ) )
         // throw Dark_Arts_Exception(TIME_MARCHER, "time_stage outside of plausible range");
       
-      for(int therm_iter = 0; therm_iter < m_max_thermal_iter; therm_iter++)
+      for(int therm_iter = 0;  ; therm_iter++)
       {
         
         /// converge the thermal linearization
@@ -157,6 +174,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         double norm_relative_change = 0.;
         if(intensity_update_success)
         {
+          
           /// then update temperature given the new intensity
           /// give a damping coefficient to possibly control this Newton (like) iteration)
           /// automatically overrwrite m_t_star, delta / error info tracked in m_temperature_err
@@ -173,9 +191,11 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         else
         {
           /// restart this time step, with a smaller dt
-          // std::cout << "Intensity Update Needing to cut dt" << std::endl;
-          
-          break;
+          std::cout << "Intensity Update Needing to cut dt" << std::endl;
+          std::cout << "Converged_thermal is: " << converged_thermal << std::endl;
+          converged_thermal = false;
+          need_to_cut_dt = true;
+          break; /// break into the stage loop.  Really want to break into the time loop
         }
         /// check convergence of temperature
         if( norm_relative_change < m_thermal_tolerance)
@@ -194,8 +214,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
             }
             else
             {
-              // std::cout << "Damping thermal iteration\n" ;
-              
+              // std::cout << "Damping thermal iteration\n" ;              
               therm_iter = 0;
               m_iters_before_damping = int( ceil( m_iteration_increase_factor*double(m_iters_before_damping) ) );
               // std::cout << "iters before damping again: " << m_iters_before_damping << std::endl;
@@ -205,28 +224,19 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
               m_t_star = t_old;
               if(times_damped > m_max_damps) 
               {
-                std::stringstream err;
-                err << "Failing to converge thermal iteration.  Exiting now.  Saving Last iterates";
-                m_output_generator.write_xml(false,t_step,i_old);
-                m_output_generator.write_xml(false,t_step,t_old);
-                m_output_generator.write_xml(false,t_step,m_ard_phi);
-                throw Dark_Arts_Exception(TIME_MARCHER, err);
+                std::cout << "Damped too many times" << std::endl;
+                std::cout << "Cutting dt and restarting time step" << std::endl;
+                need_to_cut_dt = true;
               }
             }
           }          
-        }       
-      }    
+        } // check of thermal iteration convergence       
+      } // bottom of thermal iteration (of this stage) loop    
       
-      if(!converged_thermal)
+      if(need_to_cut_dt)
       {
-        /// get out of here. Get to the top of the stage loop
-        /// use a smaller dt
-        /// restart with the last temperature we accepted
-        // std::cout << "Cutting time step size" << std::endl;
-        stage = 0;
-        dt *= m_damping_decrease_factor;
-        m_t_star = t_old;
-        continue;
+        /// exit stage loop, better have a test immediately after to get back to the top of the time loop
+        break;
       }
       
       /** calculate k_I and k_T
@@ -242,7 +252,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       if(m_calculate_space_time_error)
         m_space_time_error_calculator->record_error(dt, stage, time_stage, m_ard_phi, m_t_star);
       
-    }
+    } // bottom of stage loop
+    
+    if(need_to_cut_dt)
+      continue;
 
     /// advance to the next time step, overwrite t_old
     time += dt;
@@ -264,7 +277,9 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       /// check to see if we are at the end of the time marching scheme
     if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-4)
       break;
-  }
+      
+    t_step++;
+  } /// bottom of time step loop (outermost)
   m_intensity_update->kill_petsc_objects();
   
   /// call for end spatial error only

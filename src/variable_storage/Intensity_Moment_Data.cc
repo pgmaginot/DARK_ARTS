@@ -16,7 +16,7 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const A
   m_el_times_l_mom_times_group{m_el_times_l_mom*m_groups},   
   m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell},
   m_norm_for_err(reference_phi_norm),
-  m_small_ratio{1.0E-6},
+  m_small_ratio{1.0E-2},
   m_sum_dfem_wts(fem_quad.get_sum_of_dfem_interpolation_weights()),
   m_n_dir(ang_quad.get_number_of_dir() ),
   m_phi(m_phi_length,0.)
@@ -48,7 +48,7 @@ Intensity_Moment_Data::Intensity_Moment_Data(const Cell_Data& cell_data, const A
   m_el_times_l_mom_times_group{m_el_times_l_mom*m_groups},   
   m_phi_length{m_cells*m_groups*m_leg*m_el_per_cell},
   m_norm_for_err(m_groups,0.),
-  m_small_ratio{1.0E-6},
+  m_small_ratio{1.0E-2},
   m_sum_dfem_wts(fem_quad.get_sum_of_dfem_interpolation_weights()),
   m_n_dir(ang_quad.get_number_of_dir() ),
   m_phi(m_phi_length,0.)
@@ -336,6 +336,25 @@ void Intensity_Moment_Data::update_phi_and_norms(const Intensity_Data& i_old)
   for(int g=0; g<m_groups; g++)
     m_norm_for_err[g] = fabs(m_norm_for_err[g])*div;
 
+  return;
+}
+
+void Intensity_Moment_Data::update_error_cutoff(void)
+{
+  Eigen::VectorXd phi_loc = Eigen::VectorXd::Zero(m_el_per_cell);
+  for(int cell = 0; cell < m_cells; cell++)
+  {
+    for(int grp = 0; grp < m_groups ; grp++)
+    {
+      get_cell_angle_integrated_intensity(cell,grp,0,phi_loc);
+      for(int el = 0 ; el < m_el_per_cell; el++)
+        m_norm_for_err[grp] += m_dfem_wts[el]*phi_loc(el);        
+    }
+  }
+  
+  for(int g = 0 ; g < m_groups ; g++)
+    m_norm_for_err[g] /= (2. * double(m_cells) * m_small_ratio);
+    
   return;
 }
 

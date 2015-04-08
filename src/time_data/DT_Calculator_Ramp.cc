@@ -22,5 +22,8 @@ double DT_Calculator_Ramp::calculate_dt(const int step, const double dt_old)
     dt = m_dt_max;
   }
   
+  if(dt > (3.*dt_old))
+    dt = 3.* dt_old;
+  
   return dt;
 }

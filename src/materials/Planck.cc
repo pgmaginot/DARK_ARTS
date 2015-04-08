@@ -80,7 +80,7 @@ double Planck::integrate_B_grey(double T) const
 
 double Planck::integrate_dBdT_grey(double T) const
 {
-  return 4.0*a*c*pow(T,3)/m_sn_weight;
+  return 4.0*a*c*pow( T ,3)/m_sn_weight;
   // return fabs(4.0*a*c*pow(T,3)/m_sn_weight); // Note that this is a per steradian quantity
   // return fabs(T)/T*4.0*a*c*pow(T,3)/m_sn_weight; // Note that this is a per steradian quantity
 }
