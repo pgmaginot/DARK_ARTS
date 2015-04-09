@@ -27,15 +27,15 @@
     <Units> Unity </Units>
     <Material> 0
       <Scattering_opacity_type> Constant_xs 
-        <Constant_value> 0.1 </Constant_value>
+        <Constant_value> 0.5 </Constant_value>
       </Scattering_opacity_type>      
       
       <Absorption_opacity_type> Constant_xs
-        <Constant_value> 2.5 </Constant_value>
+        <Constant_value> 10 </Constant_value>
       </Absorption_opacity_type>      
       
       <Cv_type> Constant_CV 
-         <Cv_constant> 0.2 </Cv_constant>        
+         <Cv_constant> 0.1 </Cv_constant>        
       </Cv_type>
       
       <Radiation_fixed_source_type> MMS_source 
@@ -58,10 +58,10 @@
         </Temperature_space>
         
         <Temporal> COS_TIME 
-          <MMS_cos_a> 4 </MMS_cos_a>
+          <MMS_cos_a> 99 </MMS_cos_a>
           <MMS_cos_b> 1 </MMS_cos_b>
           <MMS_cos_c> 0 </MMS_cos_c>
-          <MMS_cos_d> 5 </MMS_cos_d>
+          <MMS_cos_d> 100 </MMS_cos_d>
         </Temporal>
         
       </Radiation_fixed_source_type>
