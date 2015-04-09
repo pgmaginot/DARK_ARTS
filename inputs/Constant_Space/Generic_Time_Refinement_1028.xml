@@ -4,7 +4,7 @@
   <Data_dump_path> /scratch/pmaginot/Constant_Space_Results/ </Data_dump_path>
   <Restart_type> MESH_REFINEMENT 
     <Refinement_factor> 1 </Refinement_factor>
-    <Time_refinement_factor> 2 </Time_refinement_factor>
-    <Initial_inputfile> /scratch/pmaginot/dark_arts_local/inputs/Constant_Space/Implicit_Euler_Base.xml </Initial_inputfile>
+    <Time_refinement_factor> 3 </Time_refinement_factor>
+    <Initial_inputfile> /scratch/pmaginot/dark_arts_local/build/Constant_Space_Base.xml </Initial_inputfile>
   </Restart_type>
 </RESTART_FILE>
