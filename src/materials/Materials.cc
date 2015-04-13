@@ -412,13 +412,18 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     {
       case NO_SOURCE:
       {
-        m_source_i[mat_num] = std::make_shared<Source_I_Constant>( input_reader, mat_num)   ;
+        m_source_i[mat_num] = std::make_shared<Source_I_None>( input_reader, mat_num)   ;
         break;
       }
       case MMS_SOURCE:
       {
         m_source_i[mat_num] = std::make_shared<Source_I_MMS>( input_reader , 
           angular_quadrature , m_abs_opacities , m_scat_opacities, mat_num , m_planck)   ;
+        break;
+      }
+      case CONSTANT_SOURCE:
+      {
+        m_source_i[mat_num] = std::make_shared<Source_I_Constant>( input_reader, mat_num)   ;
         break;
       }
       case INVALID_FIXED_SOURCE_TYPE:
@@ -432,6 +437,12 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
     switch(temp_src_type)
     {
       case NO_SOURCE:
+      {
+      /// default is to set source to 0
+        m_source_t[mat_num] = std::make_shared<Source_T_None>( input_reader, mat_num)   ;
+        break;
+      }
+      case CONSTANT_SOURCE:
       {
       /// default is to set source to 0
         m_source_t[mat_num] = std::make_shared<Source_T_Constant>( input_reader, mat_num)   ;

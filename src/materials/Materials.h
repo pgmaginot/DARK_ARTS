@@ -21,6 +21,8 @@
 #include "Scattering_Opacity_Polynomial_Space.h"
 #include "Source_I_Constant.h"
 #include "Source_T_Constant.h"
+#include "Source_I_None.h"
+#include "Source_T_None.h"
 #include "Source_I_MMS.h"
 #include "Source_T_MMS.h"
 #include "Cv_Constant.h"

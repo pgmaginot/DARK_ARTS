@@ -8,18 +8,25 @@
 Source_I_Constant::Source_I_Constant(
   const Input_Reader& input_reader, const int mat_num) :
     VSource_I(),
-    m_const{ 0. }
+    m_t_start( input_reader.get_rad_source_start(mat_num) ),
+    m_t_end( input_reader.get_rad_source_end(mat_num) ),
+    m_isotropic_output(input_reader.get_rad_source_output(mat_num) )
 {
-  if(m_const < 0. )
-  {
-    std::stringstream err;
-    err    << "Invalid radiation source in material " << mat_num ;
-    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
-  }
+
 }
 
 double  Source_I_Constant::get_intensity_source(const double position, 
   const int group, const int dir, const double time)
 {
-  return m_const;
+  double val=0.;
+  if( ( (time > m_t_start) && (time < m_t_end)) || ( fabs( (time-m_t_end)/(m_t_end - m_t_start)) < 0.000)  )
+  {
+    val = m_isotropic_output;
+  }
+  else
+  {
+    val  =0.;
+  }
+  
+  return val;
 }

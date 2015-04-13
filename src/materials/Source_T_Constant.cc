@@ -7,19 +7,23 @@
 
 Source_T_Constant::Source_T_Constant(
   const Input_Reader& input_reader, const int mat_num) :
-    VSource_T(),
-    m_const{ 0. }
+    VSource_T(),    
+    m_t_start( input_reader.get_temp_source_start(mat_num) ),
+    m_t_end( input_reader.get_temp_source_end(mat_num) ),
+    m_output(input_reader.get_temp_source_output(mat_num) )
 {
-  if(m_const < 0. )
-  {
-    std::stringstream err;
-    err    << "Invalid temperature source in material " << mat_num ;
-    throw Dark_Arts_Exception( SUPPORT_OBJECT , err.str() );
-  }
+
 }
 
 
 double  Source_T_Constant::get_temperature_source(const double position, const double time)
 {
-  return m_const;
+  double val=0.;
+  
+  if( (time >= m_t_start) && (time <= m_t_end))
+    val = m_output;
+  else
+    val  = 0.;
+    
+  return val;
 }

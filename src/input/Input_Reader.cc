@@ -45,139 +45,12 @@ void Input_Reader::read_xml(std::string xmlFile)
 // ##########################################################
 // Const (get) Public functions 
 // ##########################################################
-
-GRID_SPACING Input_Reader::get_region_spacing(int reg_num) const
-{   
-  return m_region_spacing_type[reg_num];
-}
-
-int Input_Reader::get_region_material_number(int reg_num) const
-{    
-  return m_region_material_numbers[reg_num];
-}
-
-double Input_Reader::get_region_left_bound(int reg_num) const
-{
-  return m_region_left_bounds[reg_num];
-}
-
-double Input_Reader::get_region_right_bound(int reg_num) const
-{
-  return m_region_right_bounds[reg_num];
-}
-
-double Input_Reader::get_min_cell_size(int reg_num) const
-{
-  return m_region_min_size[reg_num];
-}
-
-double Input_Reader::get_r_factor(int reg_num) const
-{
-  return m_region_spacing_constant[reg_num];
-}
-
-double Input_Reader::get_t_start(void) const
-{
-  return m_t_start;
-}
-
-double Input_Reader::get_t_end(void) const
-{
-  return m_t_end;
-}
-
-double Input_Reader::get_dt_min(void) const
-{
-  return m_dt_min;
-}
-
-double Input_Reader::get_dt_max(void) const
-{
-  return m_dt_max;
-}
-
-TIME_SOLVER Input_Reader::get_time_solver(void) const
-{
-  return m_time_step_scheme;
-}
-
-STARTING_METHOD Input_Reader::get_starting_time_method(void) const
-{
-  return m_time_starting_method;
-}
-
-double Input_Reader::get_time_start_exponential_ratio(void) const
-{
-  return m_exponential_ratio;
-}
   
 void Input_Reader::get_time_start_vectors(std::vector<double>& step_size_in_vector_stage, std::vector<int>& steps_in_vector_stage) const
 {
   step_size_in_vector_stage = m_vector_start_sizes;
   steps_in_vector_stage = m_vector_start_step_numbers;
   return;
-}
-
-int Input_Reader::get_number_of_vector_stages(void) const
-{
-  return m_num_vec_stages;
-}
-
-int Input_Reader::get_number_of_ramp_steps(void) const
-{
-  return m_ramp_steps;
-}
-
-int Input_Reader::get_number_of_groups(void) const
-{
-  return m_number_groups;
-}
-
-int Input_Reader::get_number_of_angles(void) const
-{
-  return m_number_angles;
-}
-
-ANGULAR_QUADRATURE_TYPE Input_Reader::get_angular_quadrature_type(void) const
-{
-  return m_angular_quadrature_type;
-}
-
-int Input_Reader::get_number_of_legendre_moments(void) const
-{
-  return m_n_leg_moments;
-}
-
-void Input_Reader::get_lower_energy_bounds(std::vector<double>& low_bounds) const
-{
-  low_bounds = m_group_lower_bounds;
-  return;
-}
-
-void Input_Reader::get_upper_energy_bounds(std::vector<double>& upper_bounds) const
-{
-  upper_bounds = m_group_upper_bounds;
-  return;
-}
-
-int Input_Reader::get_number_of_materials(void) const
-{
-  return m_number_regions;
-}
-
-OPACITY_TYPE Input_Reader::get_abs_opacity_type(const int mat_num) const
-{
-  return m_material_absorption_opacity_type[mat_num];
-}
-
-OPACITY_TYPE Input_Reader::get_scat_opacity_type(const int mat_num) const
-{
-  return m_material_scattering_opacity_type[mat_num];
-}
-
-CV_TYPE Input_Reader::get_cv_type(const int mat_num) const
-{
-  return m_material_cv_type[mat_num];
 }
 
 double Input_Reader::get_abs_double_constant_1(const int mat_num) const
@@ -728,6 +601,16 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   m_cv_polynomial_coeff.resize(m_number_materials);
   m_cv_poly_max_power.resize(m_number_materials,0);
   
+  m_rad_source_start_time.resize(m_number_materials,0.);
+  m_rad_source_end_time.resize(m_number_materials,0.);
+  m_rad_source_output.resize(m_number_materials,0.);
+  
+  m_temp_source_start_time.resize(m_number_materials,0.);
+  m_temp_source_end_time.resize(m_number_materials,0.);
+  m_temp_source_output.resize(m_number_materials,0.);
+  
+  std::cout << "Starting to read materials block" << std::endl;
+  
   TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
   if(!units_elem)
   {
@@ -763,10 +646,11 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   
   TiXmlElement* mat_descr = mat_elem->FirstChildElement("Material");
   for(int mat_cnt = 0; mat_cnt < m_number_materials ; mat_cnt++)
-  {    
+  { 
+    std::cout << "Loading material: " << mat_cnt << std::endl;
+    std::stringstream err;
     if(!mat_descr)
     {      
-      std::stringstream err;
       err << "Missing Material element in MATERIALS block.  Expected: " << m_number_materials  << "found: " << mat_cnt;
       throw Dark_Arts_Exception( INPUT , err );
     }    
@@ -781,31 +665,26 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     TiXmlElement* temp_source_type = mat_descr->FirstChildElement( "Temperature_fixed_source_type");
     if(!scat_opacity_type)
     {
-      std::stringstream err;
       err      << "In MATERIALS block: Missing scattering opacity type in material " << mat_num;
       throw Dark_Arts_Exception( INPUT , err );
     }
     if(!abs_opacity_type)
     {
-      std::stringstream err;
       err      << "In MATERIALS block: Missing absorption opacity type in material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err );
     }
     if(!cv_type)
     {
-      std::stringstream err;
       err      << "In MATERIALS block: Missing cv type in material " << mat_num;
       throw Dark_Arts_Exception( INPUT , err );
     }
     if(!rad_source_type)
     {
-      std::stringstream err;
       err      << "In MATERIALS block: Missing radiation source type in material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err );
     }
     if(!temp_source_type)
     {
-      std::stringstream err;
       err      << "In MATERIALS block: Missing temperautre source type in material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err );
     }
@@ -822,6 +701,8 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     transform(rad_source_str.begin() , rad_source_str.end() , rad_source_str.begin() , toupper);
     transform(temp_source_str.begin() , temp_source_str.end() , temp_source_str.begin() , toupper);
     
+    std::cout << "Have checked all required tags and changed strings" << std::endl;
+    
     /// set-up / scan for absorption opacity data
     if(abs_opacity_str == "CONSTANT_XS")
     {
@@ -829,7 +710,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* const_val = abs_opacity_type->FirstChildElement( "Constant_value" );
       if(!const_val)
       {
-        std::stringstream err;
         err      << "In MATERIALS block:Missing constant_value tag for material: " << mat_num << " absorption opacity" ;
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -843,19 +723,16 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* denom_offset_val = abs_opacity_type->FirstChildElement( "Denominator_offset" );
       if(!mult_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Multiplier tag for material " << mat_num << " RATIONAL absorption opacity";
         throw Dark_Arts_Exception( INPUT , err );
       }
       if(!denom_power_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Denominator_power tag for material " << mat_num << " RATIONAL absorption opacity";
         throw Dark_Arts_Exception( INPUT , err );
       }
       if(!denom_offset_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Denominator_offset tag for material " << mat_num << " RATIONAL absorption opacity";
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -869,7 +746,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* abs_op_file = abs_opacity_type->FirstChildElement( "File_name" );
       if(!abs_op_file)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing File_name tag for material " << mat_num << " TABLE_LOOKUP absorption opacity " ;
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -881,14 +757,12 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* abs_poly = abs_opacity_type->FirstChildElement( "Highest_polynomial_degree" );
       if(!abs_poly)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE absorption opacity " ;
         throw Dark_Arts_Exception( INPUT , err );
       }
       m_abs_opacity_integer_constants[mat_num] = atoi( abs_poly->GetText() );
       if(m_abs_opacity_integer_constants[mat_num] < 1)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE absorption opacity less than 1" ;
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -900,14 +774,12 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       {
         if(!poly_coeff)
         {
-          std::stringstream err;
           err << "In MATERIALS block, missing polynomial coefficent for degree " << p << " term in material " << mat_num;
           throw Dark_Arts_Exception( INPUT , err );
         }
         
         if( atoi( poly_coeff->GetText() ) != p)
         {
-          std::stringstream err;
           err << "In MATERIALS block, missing polynomial coefficents for material " << mat_num << "absorption opacity out of order";
           throw Dark_Arts_Exception( INPUT , err );
         }
@@ -916,7 +788,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
           TiXmlElement* poly_val = poly_coeff->FirstChildElement( "Coefficient_value" );
           if(!poly_val)
           {
-            std::stringstream err;
             err << "Missing value element in " << mat_num << " Polynomial aborption opactity term " << p << " Degree_coefficient block";
             throw Dark_Arts_Exception(INPUT, err );
           }
@@ -932,10 +803,11 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     
     if(m_material_absorption_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
     {
-      std::stringstream err;
       err  << "In MATERIALS block: Invalid absorption opacity type for material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err ); 
     }
+    
+    std::cout << "Absorption opacity loaded" << std::endl;
     
     /// set-up / scan for scattering opacity data
     if(scat_opacity_str == "CONSTANT_XS")
@@ -944,7 +816,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* const_val = scat_opacity_type->FirstChildElement( "Constant_value" );
       if(!const_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing constant_value tag for material: " << mat_num << " scattering opacity" ;
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -958,19 +829,16 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* denom_offset_val = scat_opacity_type->FirstChildElement( "Denominator_offset" );
       if(!mult_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Multiplier tag for material " << mat_num << " RATIONAL scattering opacity";
         throw Dark_Arts_Exception( INPUT , err );
       }
       if(!denom_power_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Denominator_power tag for material " << mat_num << " RATIONAL scattering opacity";
         throw Dark_Arts_Exception( INPUT , err );
       }
       if(!denom_offset_val)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Denominator_offset tag for material " << mat_num << " RATIONAL scattering opacity";
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -980,7 +848,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     }
     else if(scat_opacity_str == "TABLE_LOOKUP")
     {
-      std::stringstream err;
       err  << "In MATERIALS block: Scattering opacities cannot be table look-up.  In material " << mat_num << " TABLE_LOOKUP scattering opacity " ;
       throw Dark_Arts_Exception( INPUT , err );      
     }
@@ -990,14 +857,12 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* scat_poly = scat_opacity_type->FirstChildElement( "Highest_polynomial_degree" );
       if(!scat_poly)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Missing Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE scattering opacity " ;
         throw Dark_Arts_Exception( INPUT , err );
       }
       m_scat_opacity_integer_constants[mat_num] = atoi( scat_poly->GetText() );
       if(m_scat_opacity_integer_constants[mat_num] < 1)
       {
-        std::stringstream err;
         err  << "In MATERIALS block: Highest_polynomial_degree tag for material " << mat_num << " POLYNOMIAL_SPACE scattering less than 1" ;
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -1009,14 +874,12 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       {
         if(!poly_coeff)
         {
-          std::stringstream err;
           err << "In MATERIALS block, missing polynomial coefficent for degree " << p << " term in material " << mat_num << " scattering opacity";
           throw Dark_Arts_Exception( INPUT , err );
         }
         
         if( atoi( poly_coeff->GetText() ) != p)
         {
-          std::stringstream err;
           err << "In MATERIALS block, missing polynomial coefficients for material " << mat_num << "scattering opacity out of order";
           throw Dark_Arts_Exception( INPUT , err );
         }
@@ -1025,7 +888,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
           TiXmlElement* poly_val = poly_coeff->FirstChildElement( "Coefficient_value" );
           if(!poly_val)
           {
-            std::stringstream err;
             err << "Missing value element in " << mat_num << " Polynomial scattering opactity term " << p << " Degree_coefficient block";
             throw Dark_Arts_Exception(INPUT, err );
           }
@@ -1041,18 +903,32 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     
     if(m_material_scattering_opacity_type[mat_num] == INVALID_OPACITY_TYPE)
     {
-      std::stringstream err;
       err  << "In MATERIALS block:  Invalid absorption opacity type for material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err );   
     }
     
+    std::cout << "Scattering opacity loaded " << std::endl;
+    
     if(rad_source_str == "NO_SOURCE")
+    {
       m_material_radiation_source_type[mat_num] = NO_SOURCE;
+    }
     else if(rad_source_str == "MMS_SOURCE")
     {
       m_material_radiation_source_type[mat_num] = MMS_SOURCE;
     }
+    else if(rad_source_str == "CONSTANT_SOURCE")
+    {
+      m_material_radiation_source_type[mat_num] = CONSTANT_SOURCE;
+    }
     
+    /// check that we have a valid source type
+    if(m_material_radiation_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
+    {
+      err  << "In MATERIALS block: Invalid radiation source type for material " << mat_num ;
+      throw Dark_Arts_Exception( INPUT , err );   
+    }
+        
     if(m_material_radiation_source_type[mat_num] == MMS_SOURCE)
     {
       /// restrictions on MMS simulations
@@ -1201,13 +1077,59 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       
       
     }
-    if(m_material_radiation_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
+    else if(m_material_radiation_source_type[mat_num] == CONSTANT_SOURCE)
     {
-      std::stringstream err;
-      err  << "In MATERIALS block: Invalid radiation source type for material " << mat_num ;
-      throw Dark_Arts_Exception( INPUT , err );   
-    }
+      std::cout << "Trying to load constant source data" << std::endl;
+      TiXmlElement* t_start = rad_source_type->FirstChildElement("Time_start");
+      TiXmlElement* t_end = rad_source_type->FirstChildElement("Time_end");
+      TiXmlElement* rad_output = rad_source_type->FirstChildElement("Isotropic_output");
+      
+      if(!t_start)
+      {
+        err << "In Material: " << mat_num << " radiation source type CONSTANT_SOURCE requires Time_start element";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      
+      if(!t_end)
+      {
+        err << "In Material: " << mat_num << " radiation source type CONSTANT_SOURCE requires Time_end element";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      
+      if(!rad_output)
+      {
+        err << "In Material: " << mat_num << " radiation source type CONSTANT_SOURCE requires Isotropic_output element";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      
+      // std::cout << "Checked for tags" << std::endl;
+      
+      // std::cout << "Data1: " << t_start->GetText() << std::endl;
+      // std::cout << "Data2: " << t_end->GetText() << std::endl;
+      // std::cout << "Data3: " << rad_output->GetText() << std::endl;
+      
+      m_rad_source_start_time[mat_num] = atof( t_start->GetText() );
+      m_rad_source_end_time[mat_num] = atof( t_end->GetText() );
+      m_rad_source_output[mat_num] = atof( rad_output->GetText() );
+      
+      // std::cout << "Loaded data" << std::endl;
+      
+      if(m_rad_source_start_time[mat_num] > m_rad_source_end_time[mat_num])
+      {
+        err << "Material: " << mat_num << " constant rad source start time must be less than end time";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      if(m_rad_source_output[mat_num] < 0.)
+      {
+        err << "Material: " << mat_num << " constant rad source Isotropic output must be positive";
+        throw Dark_Arts_Exception(INPUT , err);
+      }      
+      
+      // std::cout << "Checked data" << std::endl;
+    }    
     
+    // std::cout << "Radiation source loaded" << std::endl;
+
     if(temp_source_str == "NO_SOURCE")
     {
       m_material_temperature_source_type[mat_num] = NO_SOURCE;
@@ -1218,32 +1140,73 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       if( m_material_radiation_source_type[mat_num] != MMS_SOURCE )
         throw Dark_Arts_Exception(INPUT, "For MMS_Source must be defined for temperature and radiation fixed source");
     }
+    else if(temp_source_str == "CONSTANT_SOURCE")
+    {
+      m_material_temperature_source_type[mat_num] = CONSTANT_SOURCE;
+      TiXmlElement* t_start = temp_source_type->FirstChildElement( "Time_start");
+      TiXmlElement* t_end = temp_source_type->FirstChildElement( "Time_end");
+      TiXmlElement* temp_output = temp_source_type->FirstChildElement( "Source_output");
+      
+      if(!t_start)
+      {
+        err << "In Material: " << mat_num << " temperature source type CONSTANT_SOURCE requires Time_start element";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      
+      if(!t_end)
+      {
+        err << "In Material: " << mat_num << " temperature source type CONSTANT_SOURCE requires Time_end element";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      
+      if(!temp_output)
+      {
+        err << "In Material: " << mat_num << " temperature source type CONSTANT_SOURCE requires Source_output element";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      
+      m_temp_source_start_time[mat_num] = atof(t_start->GetText() );
+      m_temp_source_end_time[mat_num] = atof(t_end->GetText() );
+      m_temp_source_output[mat_num] = atof(temp_output->GetText() );
+      
+      if(m_temp_source_start_time[mat_num] >= m_temp_source_end_time[mat_num])
+      {
+        err << "Material: " << mat_num << " constant temperature source start time must be less than end time";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
+      if(m_temp_source_output[mat_num] < 0.)
+      {
+        err << "Material: " << mat_num << " constant temperature source must be positive";
+        throw Dark_Arts_Exception(INPUT , err);
+      }      
+    }    
+    
+    std::cout << "Sources loaded" << std::endl;   
     
     if(m_material_radiation_source_type[mat_num] == MMS_SOURCE)
-      if( m_material_temperature_source_type[mat_num] != MMS_SOURCE)
+    {
+      if( m_material_temperature_source_type[mat_num] != MMS_SOURCE)      
         throw Dark_Arts_Exception(INPUT, "Must specify MMS_SOURCE for temperature and radiation or neither");
+    }
     
     if(m_material_temperature_source_type[mat_num] == INVALID_FIXED_SOURCE_TYPE)
     {
-      std::stringstream err;
       err  << "In MATERIALS block: Invalid temperature source type for material " << mat_num;
       throw Dark_Arts_Exception( INPUT , err );   
     }
-    
+       
     if(cv_str == "CONSTANT_CV")
     {
       m_material_cv_type[mat_num] = CONSTANT_CV;
       TiXmlElement* cv_const = cv_type->FirstChildElement( "Cv_constant" );
       if(!cv_const)
       {
-        std::stringstream err;
         err  << "In MATERIALS block:   Missing Cv_constant tag in material " << mat_num;
         throw Dark_Arts_Exception( INPUT , err );
       }
       m_cv_constants[mat_num] = atof(cv_const->GetText() );
       if(m_cv_constants[mat_num] < 0. )
       {
-        std::stringstream err;
         err  << "In MATERIALS block:  Invalid Cv in material "<< mat_num << " values must be positive floats";
         throw Dark_Arts_Exception( INPUT , err );
       }
@@ -1257,7 +1220,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       
       if(!cv_const_rat || !cv_offset || !cv_power)
       {
-        std::stringstream err;
         err << "In material: " << mat_num << " Rational_Cv must have Rational_cv_constant, Rational_cv_offset, and Rational_cv_power elements";
         throw Dark_Arts_Exception(INPUT, err );
       }
@@ -1268,21 +1230,18 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       
       if( m_cv_constants[mat_num]  < 0.)
       {
-        std::stringstream err;
         err << "In material: " << mat_num << " Rational_Cv must have positive Rational_cv_constant";
         throw Dark_Arts_Exception(INPUT, err );
       }
       
       if( m_cv_rational_powers[mat_num]  < 1)
       {
-        std::stringstream err;
         err << "In material: " << mat_num << " Rational_Cv must have positive integer Rational_cv_power";
         throw Dark_Arts_Exception(INPUT, err );
       }
       
       if( m_cv_rational_offsets[mat_num]  < 0.)
       {
-        std::stringstream err;
         err << "In material: " << mat_num << " Rational_Cv must have positive Rational_cv_offset";
         throw Dark_Arts_Exception(INPUT, err );
       }      
@@ -1295,7 +1254,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       m_cv_poly_max_power[mat_num] = atoi(cv_poly_degree_elem->GetText() );
       if( m_cv_poly_max_power[mat_num] < 0)
       {
-        std::stringstream err;
         err << "In material: " << mat_num << " polynomial Cv requires degree >=0 ";
         throw Dark_Arts_Exception(INPUT, err );      
       }
@@ -1304,13 +1262,11 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       {
         if(!cv_coeff)
         {
-          std::stringstream err;
           err << "Missing coefficent of polynomial degree: " << i << " in material: " << mat_num<< " Cv_polynomial"; 
           throw Dark_Arts_Exception(INPUT, err ) ; 
         }
         if(i != atoi(cv_coeff->GetText() ) )
         {
-          std::stringstream err;
           err << "Coefficents of Cv polynomial do not match input labeling for degree: " << i << " in material: " << mat_num<< " Cv_polynomial"; 
           throw Dark_Arts_Exception(INPUT, err ) ; 
         }
@@ -1318,25 +1274,21 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         TiXmlElement* val_elem = cv_coeff->FirstChildElement( "Value" );
         if(!val_elem)
         {
-          std::stringstream err;
           err << "Coefficient: " << i << " in material " << mat_num << " Cv_Polynomial is missinng Value element";
           throw Dark_Arts_Exception(INPUT, err );
         }
         m_cv_polynomial_coeff[mat_num][i] = atof(val_elem->GetText() );
         
         cv_coeff = cv_coeff->NextSiblingElement("Polynomial_cv_coefficient");
-      }
-      
-      
+      }      
     }
     
     if(m_material_cv_type[mat_num] == INVALID_CV_TYPE)
     {
-      std::stringstream err;
       err  << "In MATERIALS block:  Invalid cv type for material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err );  
     }
-    
+     
     mat_descr = mat_descr->NextSiblingElement("Material");
   }
   
@@ -1578,8 +1530,7 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   
   /// if not using self lumping treatment, need to get degree of opacity spatial treatment
   if(m_opacity_treatment != SLXS)
-  { 
-  
+  {   
     if(m_opacity_treatment == INTERPOLATING)
     {
       TiXmlElement* opacity_interp_point_type_elem = opacity_treatment_elem->FirstChildElement( "Opacity_interpolation_point_type");
@@ -1616,7 +1567,6 @@ int Input_Reader::load_spatial_discretization_data(TiXmlElement* spatial_element
   TiXmlElement* n_group_elem = angle_element->FirstChildElement( "Number_of_groups");
   TiXmlElement* quad_type_elem = angle_element->FirstChildElement( "Quadrature_type");
   TiXmlElement* n_legendre_mom_elem = angle_element->FirstChildElement( "Number_of_legendre_moments");
-  
   
   if(!n_angle_elem)
     throw Dark_Arts_Exception( INPUT, "In ANGULAR_DISCRETIZATION block:  Missing Number_of_angles element" );
@@ -1739,8 +1689,7 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     
   if(!n_thermals_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element, must provide a Max_thermal_iterations_per_stage element");
-    
-    
+  
   m_max_damps = atoi(n_damps_elem->GetText() );
   m_iters_before_damp = atoi(iter_before_damp_elem->GetText() );
   m_damping_factor = atof(damping_factor_elem->GetText() );

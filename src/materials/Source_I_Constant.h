@@ -15,7 +15,9 @@ public:
   double get_intensity_source(const double position, 
     const int group, const int dir, const double time) override;
 private:
-  double m_const=-1.0;
+  const double m_t_start;
+  const double m_t_end;
+  const double m_isotropic_output;
 };
 
 #endif

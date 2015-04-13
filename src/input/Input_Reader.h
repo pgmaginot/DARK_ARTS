@@ -44,41 +44,41 @@ public:
   /// Functions called by Cell_Data class to access input data
   int get_n_regions(void) const { return m_number_regions; }
   void get_cells_per_region_vector(std::vector<int>& cells_per_region) const {cells_per_region = m_cells_per_region; return;}
-  double get_region_left_bound(int reg_num) const;
-  double get_region_right_bound(int reg_num) const;
-  GRID_SPACING get_region_spacing(int reg_num) const;
-  int get_region_material_number(int reg_num) const;
-  double get_min_cell_size(int reg_num) const;
-  double get_r_factor(int reg_num) const;
+  double get_region_left_bound(int reg_num) const { return m_region_left_bounds[reg_num];}
+  double get_region_right_bound(int reg_num) const { return m_region_right_bounds[reg_num];}
+  GRID_SPACING get_region_spacing(int reg_num) const { return m_region_spacing_type[reg_num]; }
+  int get_region_material_number(int reg_num) const { return m_region_material_numbers[reg_num]; }
+  double get_min_cell_size(int reg_num) const { return m_region_min_size[reg_num];} 
+  double get_r_factor(int reg_num) const { return m_region_spacing_constant[reg_num]; }
   
   /// called by Time_Data class
-  double get_t_start(void) const;
-  double get_t_end(void) const;
-  double get_dt_min(void) const;
-  double get_dt_max(void) const;
-  TIME_SOLVER get_time_solver(void) const;
-  STARTING_METHOD get_starting_time_method(void) const;
+  double get_t_start(void) const {return m_t_start;}
+  double get_t_end(void) const { return m_t_end;}
+  double get_dt_min(void) const { return m_dt_min;}
+  double get_dt_max(void) const { return m_dt_max; }
+  TIME_SOLVER get_time_solver(void) const {return m_time_step_scheme;}
+  STARTING_METHOD get_starting_time_method(void) const {return m_time_starting_method;}
   /// if STARTING_METHOD==EXPONENTIAL, need to know the ratio between time step sizes
-  double get_time_start_exponential_ratio(void) const;
+  double get_time_start_exponential_ratio(void) const {return m_exponential_ratio;}
   /// if STARTING_METHOD == VECTOR, need vector of time step sizes and vector of the number of steps for each time step size
   void get_time_start_vectors(std::vector<double>& step_size_in_vector_stage, std::vector<int>& steps_in_vector_stage) const;
-  int get_number_of_vector_stages(void) const;
+  int get_number_of_vector_stages(void) const {return m_num_vec_stages;}
   /// if STARTING_METHOD == RAMP, need number of time steps to do before hitting full time step
-  int get_number_of_ramp_steps(void) const;
+  int get_number_of_ramp_steps(void) const {return m_ramp_steps;}
   
   /// Additional functions needed by Angular_Quadrature
-  int get_number_of_groups(void) const;
-  int get_number_of_angles(void) const;
-  ANGULAR_QUADRATURE_TYPE get_angular_quadrature_type(void) const;
-  int get_number_of_legendre_moments(void) const;
-  void get_lower_energy_bounds(std::vector<double>& low_bounds) const;
-  void get_upper_energy_bounds(std::vector<double>& upper_bounds) const;
+  int get_number_of_groups(void) const {return m_number_groups;}
+  int get_number_of_angles(void) const { return m_number_angles;}
+  ANGULAR_QUADRATURE_TYPE get_angular_quadrature_type(void) const {return m_angular_quadrature_type;}
+  int get_number_of_legendre_moments(void) const {return m_n_leg_moments;}
+  void get_lower_energy_bounds(std::vector<double>& low_bounds) const {low_bounds = m_group_lower_bounds; return; }
+  void get_upper_energy_bounds(std::vector<double>& upper_bounds) const {upper_bounds = m_group_upper_bounds; return; }
   
   /// Functions for the Materials class and related objects
-  int get_number_of_materials(void) const;
-  OPACITY_TYPE get_abs_opacity_type(const int mat_num) const;
-  OPACITY_TYPE get_scat_opacity_type(const int mat_num) const;
-  CV_TYPE get_cv_type(const int mat_num) const;
+  int get_number_of_materials(void) const {return m_number_materials;}
+  OPACITY_TYPE get_abs_opacity_type(const int mat_num) const { return m_material_absorption_opacity_type[mat_num];}
+  OPACITY_TYPE get_scat_opacity_type(const int mat_num) const { return m_material_scattering_opacity_type[mat_num];}
+  CV_TYPE get_cv_type(const int mat_num) const {   return m_material_cv_type[mat_num];}
   FIXED_SOURCE_TYPE get_temperature_source_type(const int mat_num) const {return m_material_temperature_source_type[mat_num];  }
   FIXED_SOURCE_TYPE get_radiation_source_type(const int mat_num) const { return m_material_radiation_source_type[mat_num];   }
   double get_abs_double_constant_1(const int mat_num) const;
@@ -90,6 +90,12 @@ public:
   void get_abs_file_str(const int mat_num, std::string& filename) const;
   void get_scat_file_str(const int mat_num, std::string& filename) const;  
   double get_cv_constant(const int mat_num) const;  
+  double get_rad_source_start(const int mat_num) const { return m_rad_source_start_time[mat_num]; }
+  double get_rad_source_end(const int mat_num) const { return m_rad_source_end_time[mat_num]; }
+  double get_rad_source_output(const int mat_num) const { return m_rad_source_output[mat_num]; }  
+  double get_temp_source_start(const int mat_num) const { return m_temp_source_start_time[mat_num]; }
+  double get_temp_source_end(const int mat_num) const { return m_temp_source_end_time[mat_num]; }
+  double get_temp_source_output(const int mat_num) const { return m_temp_source_output[mat_num]; }
 
   void get_cv_poly_coefficients(const int mat_num, std::vector<double>& poly_coeff) const{ poly_coeff = m_cv_polynomial_coeff[mat_num]; return;}
   int get_cv_poly_power(const int mat_num) const { return m_cv_poly_max_power[mat_num]; }
@@ -223,6 +229,13 @@ protected:
   std::vector<double> m_cv_constants;
   std::vector<int> m_cv_poly_max_power;
   std::vector< std::vector<double> > m_cv_polynomial_coeff;
+  std::vector<double> m_rad_source_start_time;
+  std::vector<double> m_rad_source_end_time;
+  std::vector<double> m_rad_source_output;
+  
+  std::vector<double> m_temp_source_start_time;
+  std::vector<double> m_temp_source_end_time;
+  std::vector<double> m_temp_source_output;
 
   bool m_weird_units = false;
   UNITS_TYPE m_units_type = INVALID_UNITS_TYPE;

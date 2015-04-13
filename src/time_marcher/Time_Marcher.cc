@@ -91,6 +91,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
 
 void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Data& time_data)
 {
+  
   double time = time_data.get_t_start();
   
   int max_step = int( (time_data.get_t_end() - time_data.get_t_start() )/time_data.get_dt_min() );
@@ -99,6 +100,8 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   double time_stage = 0.;
   
   int times_damped = 0;
+  int total_inners = 0;
+  int total_thermals = 0;
   int inners = 0;
   int t_step = 0;
   
@@ -168,7 +171,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         bool intensity_update_success = false;
         m_ard_phi.clear_angle_integrated_intensity();
         inners = m_intensity_update->update_intensity(m_ard_phi,intensity_update_success);
-        
+        total_inners += inners;
         // m_ard_phi.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader,m_angular_quadrature);
         
         double norm_relative_change = 0.;
@@ -190,6 +193,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         }
         else
         {
+          total_thermals += therm_iter;
           /// restart this time step, with a smaller dt
           std::cout << "Intensity Update Needing to cut dt" << std::endl;
           std::cout << "Converged_thermal is: " << converged_thermal << std::endl;
@@ -200,6 +204,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         /// check convergence of temperature
         if( norm_relative_change < m_thermal_tolerance)
         {
+          total_thermals += therm_iter;
           converged_thermal = true;
           break;
         }     
@@ -214,7 +219,8 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
             }
             else
             {
-              // std::cout << "Damping thermal iteration\n" ;              
+              // std::cout << "Damping thermal iteration\n" ;    
+              total_thermals += therm_iter;              
               therm_iter = 0;
               m_iters_before_damping = int( ceil( m_iteration_increase_factor*double(m_iters_before_damping) ) );
               // std::cout << "iters before damping again: " << m_iters_before_damping << std::endl;
@@ -280,6 +286,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       
     t_step++;
   } /// bottom of time step loop (outermost)
+  
+  std::cout << "Needed: " << total_thermals << " thermal iterations" << std::endl;
+  std::cout << "Needed: " << total_inners << " transport iterations" << std::endl;
+  
   m_intensity_update->kill_petsc_objects();
   
   /// call for end spatial error only
