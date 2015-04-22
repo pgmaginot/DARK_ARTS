@@ -134,6 +134,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     /// this variable can be used to cut time step    
     for( int stage = 0 ; stage < m_n_stages ; stage++)
     {      
+      // m_t_star.make_non_zero_guess();
       if(need_to_cut_dt)
       {
         /// get out of this loop, and out to the time step loop

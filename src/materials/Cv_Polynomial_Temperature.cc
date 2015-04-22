@@ -24,6 +24,5 @@ double  Cv_Polynomial_Temperature::get_cv(
     val += m_poly_coeff[p]*t;
     t *= temperature;
   }
-  
   return val;
 }

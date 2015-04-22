@@ -608,9 +608,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   m_temp_source_start_time.resize(m_number_materials,0.);
   m_temp_source_end_time.resize(m_number_materials,0.);
   m_temp_source_output.resize(m_number_materials,0.);
-  
-  std::cout << "Starting to read materials block" << std::endl;
-  
+    
   TiXmlElement* units_elem = mat_elem->FirstChildElement("Units");
   if(!units_elem)
   {
@@ -647,7 +645,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
   TiXmlElement* mat_descr = mat_elem->FirstChildElement("Material");
   for(int mat_cnt = 0; mat_cnt < m_number_materials ; mat_cnt++)
   { 
-    std::cout << "Loading material: " << mat_cnt << std::endl;
     std::stringstream err;
     if(!mat_descr)
     {      
@@ -700,9 +697,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     transform(cv_str.begin() , cv_str.end() , cv_str.begin() , toupper);
     transform(rad_source_str.begin() , rad_source_str.end() , rad_source_str.begin() , toupper);
     transform(temp_source_str.begin() , temp_source_str.end() , temp_source_str.begin() , toupper);
-    
-    std::cout << "Have checked all required tags and changed strings" << std::endl;
-    
+        
     /// set-up / scan for absorption opacity data
     if(abs_opacity_str == "CONSTANT_XS")
     {
@@ -807,8 +802,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       throw Dark_Arts_Exception( INPUT , err ); 
     }
     
-    std::cout << "Absorption opacity loaded" << std::endl;
-    
     /// set-up / scan for scattering opacity data
     if(scat_opacity_str == "CONSTANT_XS")
     {
@@ -906,8 +899,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       err  << "In MATERIALS block:  Invalid absorption opacity type for material " << mat_num ;
       throw Dark_Arts_Exception( INPUT , err );   
     }
-    
-    std::cout << "Scattering opacity loaded " << std::endl;
     
     if(rad_source_str == "NO_SOURCE")
     {
@@ -1079,7 +1070,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     }
     else if(m_material_radiation_source_type[mat_num] == CONSTANT_SOURCE)
     {
-      std::cout << "Trying to load constant source data" << std::endl;
       TiXmlElement* t_start = rad_source_type->FirstChildElement("Time_start");
       TiXmlElement* t_end = rad_source_type->FirstChildElement("Time_end");
       TiXmlElement* rad_output = rad_source_type->FirstChildElement("Isotropic_output");
@@ -1181,8 +1171,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       }      
     }    
     
-    std::cout << "Sources loaded" << std::endl;   
-    
     if(m_material_radiation_source_type[mat_num] == MMS_SOURCE)
     {
       if( m_material_temperature_source_type[mat_num] != MMS_SOURCE)      
@@ -1258,7 +1246,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         throw Dark_Arts_Exception(INPUT, err );      
       }
       m_cv_polynomial_coeff[mat_num].resize(m_cv_poly_max_power[mat_num] + 1, 0.);
-      for( int i = 0 ; i < m_cv_poly_max_power[mat_num]  ; i++)
+      for( int i = 0 ; i <= m_cv_poly_max_power[mat_num]  ; i++)
       {
         if(!cv_coeff)
         {
@@ -2021,8 +2009,6 @@ int Input_Reader::load_bc_ic_data(TiXmlElement* bc_ic_element)
       break;
     }
   }
-  
-  std::cout << "Finished Radiation IC.  Starting material temperature" << std::endl;
   
   /// Get temperature initial conditions
   switch(m_temperature_ic_type)

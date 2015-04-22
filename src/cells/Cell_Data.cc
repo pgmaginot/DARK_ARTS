@@ -22,14 +22,7 @@ Cell_Data::Cell_Data(Input_Reader&  input_reader)
   m_material_num.resize(m_total_cells,0);
     
   try{
-    // if(input_reader.is_mesh_refinement() )
-    // {
-      // read_mesh_and_refine(input_reader);
-    // }
-    // else
-    // {
       determine_cell_properties(n_region, cells_per_region, input_reader);
-    // }
   }
   catch(const Dark_Arts_Exception& da_exception )
   { 
@@ -170,7 +163,7 @@ void Cell_Data::determine_cell_properties(const int n_reg, const std::vector<int
       double min_size = input_reader.get_min_cell_size(i);
       
       double dx_leftmost = (x_r - x_l)*(1. - r)/(1. - pow(r,n_cell)) ;
-      double dx_rightmost = pow(dx_leftmost , n_cell);
+      double dx_rightmost = dx_leftmost* pow(r , n_cell-1);
       
       double x_l_cell = x_l;
       
@@ -181,8 +174,9 @@ void Cell_Data::determine_cell_properties(const int n_reg, const std::vector<int
         throw Dark_Arts_Exception(SUPPORT_OBJECT , "Calculated a negative cell width in log spacing");
       
       /// enforce minimum cell width condition
-      if( (dx_leftmost < min_size) && (dx_rightmost < min_size))
+      if( (dx_leftmost < min_size) && (dx_rightmost < min_size) )
       {
+        std::cout << "dx_left: " << dx_leftmost << "\n dx_right: " << dx_rightmost << std::endl;
         throw Dark_Arts_Exception(SUPPORT_OBJECT ,  "Minimum cell size is too large for the desired number of cells");        
       }
       else if( dx_leftmost < min_size) 

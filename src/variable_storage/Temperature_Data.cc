@@ -19,7 +19,7 @@ Temperature_Data::Temperature_Data(const int n_cells, const Fem_Quadrature& fem_
   
 /// initial condition constructor
 Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_Reader& input_reader, const Cell_Data& cell_data)
-  /// initilaize range members
+  /// initialize range members
   : m_cells{ cell_data.get_total_number_of_cells() } ,     
     m_el_per_cell{fem_quad.get_number_of_interpolation_points() },
     m_t_length{ m_cells*m_el_per_cell} ,
@@ -173,7 +173,6 @@ Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_R
             }
             set_cell_temperature( cell , local_t);
           }
-          cell_cnt += n_cell_reg;
         }    
         break;
       }
@@ -184,6 +183,14 @@ Temperature_Data::Temperature_Data(const Fem_Quadrature& fem_quad, const Input_R
       }
     }  
   }
+}
+
+void Temperature_Data::make_non_zero_guess(void)
+{
+  for(int i=0; i < m_t_length ; i++)
+    m_t[i] = 0.1;
+  
+  return;
 }
 
 void Temperature_Data::mms_cheat(const double time_stage, const Cell_Data& cell_data, const std::vector<double>& dfem_interp_points, const Input_Reader& input_reader)
