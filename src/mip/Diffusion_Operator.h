@@ -95,6 +95,8 @@ protected:
   PetscReal *m_pointer_to_m_c;
   PetscReal *m_pointer_to_m_cp1;
   
+  const double m_wg_tol;
+  
   PetscInt *m_col_destination;
   
   PetscErrorCode m_petsc_err;  

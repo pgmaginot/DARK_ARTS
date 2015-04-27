@@ -44,7 +44,8 @@ Diffusion_Operator::Diffusion_Operator(const Input_Reader& input_reader, const F
   m_pointer_to_eigen_m_rhs( &m_rhs_local(0) ),
   m_pointer_to_m_cm1( &m_cell_cm1(0,0) ),
   m_pointer_to_m_c( &m_cell_c(0,0) ),
-  m_pointer_to_m_cp1( &m_cell_cp1(0,0) )
+  m_pointer_to_m_cp1( &m_cell_cp1(0,0) ),
+  m_wg_tol( input_reader.get_within_group_solve_tolerance() )
 {    
   m_row_destination = new PetscInt[m_np];
   m_col_destination = new PetscInt[m_np];
@@ -359,6 +360,11 @@ void Diffusion_Operator::update(Intensity_Moment_Data& phi_new , const Intensity
 {
   /// build the driving source (rhs)
   build_rhs(phi_new,phi_old);
+  // double l2_rhs =0.;
+  // VecNorm(m_mip_rhs , NORM_2 , &l2_rhs);
+  // // m_mip_rhs
+  // KSPSetTolerances(m_krylov_solver, m_wg_tol , 1.0E-14*l2_rhs , 1.0, 10*m_n_mip_blocks*m_np);
+  
   /// invert the diffusion operator
   solve_system();
   /// map the solution back into phi_new
