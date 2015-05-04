@@ -81,10 +81,10 @@
   
   <TIME>
     <Dt_min> 0.00001 </Dt_min>
-    <Dt_max> 0.1 </Dt_max>
+    <Dt_max> 0.001 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 2.0 </T_end>
-     <Time_solver> Implicit_euler </Time_solver>
+     <Time_solver> Alexander_2_2 </Time_solver>
     <!--
       <Starting_method> Exponential </Starting_method>
     <Increase_factor> 1.25 </Increase_factor>
@@ -100,7 +100,7 @@
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
-    <DFEM_degree> 2 </DFEM_degree>
+    <DFEM_degree> 1 </DFEM_degree>
     <Integration_type> self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Gauss </DFEM_interpolation_point_type>
     <Opacity_treatment> SLXS

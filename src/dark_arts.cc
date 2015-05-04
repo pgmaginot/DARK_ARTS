@@ -13,10 +13,13 @@ static char help[] = "A character array that PETSc might be expecting";
 #include "Status_Generator.h"
 
 #include "Dark_Arts_Exception.h"
+#include <chrono>
 
 
 int main(int argc, char** argv)
 {
+  auto t1 = std::chrono::high_resolution_clock::now();
+  
   int val = 0;
   /**
     Initialize PETSc
@@ -126,6 +129,12 @@ int main(int argc, char** argv)
     val = -1;
     da_exception.message() ;
   }
+  
+  auto t2 = std::chrono::high_resolution_clock::now();
+  
+   std::cout << "DARK_ARTS took "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+              << " milliseconds\n";
  
   return val;
 }
