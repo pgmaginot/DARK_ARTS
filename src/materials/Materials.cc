@@ -70,7 +70,7 @@ Materials::Materials( const Input_Reader& input_reader,
     fem_quadrature.get_dfem_at_xs_eval_points(m_dfem_at_xs);    
     fem_quadrature.get_dfem_at_edges(m_dfem_at_left_edge,m_dfem_at_right_edge);  
     fem_quadrature.get_dfem_at_source_points(m_dfem_at_source);
-    
+        
     /// allocate space for physical position and temperature at material property evaluation points
     m_xs_position.resize(m_n_xs_quad,0.);  
     m_t_at_xs_eval_points.resize(m_n_xs_quad,0.);

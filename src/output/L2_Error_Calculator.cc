@@ -16,15 +16,22 @@ L2_Error_Calculator::L2_Error_Calculator(const Angular_Quadrature& angular_quadr
 :
  m_n_dfem( fem_quadrature.get_number_of_interpolation_points() ) , 
  m_n_cells( cell_data.get_total_number_of_cells() ),
- m_n_quad_pts(fem_quadrature.get_number_of_integration_points() ),
+ /// m_n_quad_pts(fem_quadrature.get_number_of_integration_points() ),
+ m_n_quad_pts(fem_quadrature.get_number_of_source_points() ),
  m_cell_data( cell_data ),
  m_fem_quadrature( fem_quadrature ),
  m_analytic_temperature(input_reader) , 
  m_analytic_intensity(input_reader, angular_quadrature)
 {
-  fem_quadrature.get_dfem_integration_points( m_integration_quadrature_pts );
-  fem_quadrature.get_integration_weights( m_integration_quadrature_wts );
-  fem_quadrature.get_dfem_at_integration_points( m_dfem_at_integration_pts );
+  /// old way
+  // fem_quadrature.get_dfem_integration_points( m_integration_quadrature_pts );
+  // fem_quadrature.get_integration_weights( m_integration_quadrature_wts );
+  // fem_quadrature.get_dfem_at_integration_points( m_dfem_at_integration_pts );
+  
+  /// more correct way  
+  fem_quadrature.get_source_points(m_integration_quadrature_pts);  
+  fem_quadrature.get_source_weights(m_integration_quadrature_wts);
+  fem_quadrature.get_dfem_at_source_points(m_dfem_at_integration_pts); 
 }
 
 
