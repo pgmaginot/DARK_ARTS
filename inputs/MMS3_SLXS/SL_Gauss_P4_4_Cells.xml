@@ -3,7 +3,7 @@
 <INPUT_FILE>
   <OUTPUT>
     <Output_type> END_SPACE_ERROR 
-      <Results_filename_base> MMS3_Constant_XS_SL_Gauss </Results_filename_base>
+      <Results_filename_base> MMS3_SLXS_Gauss_New </Results_filename_base>
     </Output_type>
     <Checkpoint_frequency> 100 </Checkpoint_frequency>
     <Output_directory> /scratch/pmaginot/Radtran_Results/ </Output_directory>
