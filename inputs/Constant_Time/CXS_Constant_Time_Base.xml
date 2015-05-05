@@ -3,10 +3,11 @@
 <INPUT_FILE>
   <OUTPUT>
     <Output_type> END_SPACE_ERROR 
-      <Results_filename_base> MMS_Constant_Space_Exact </Results_filename_base>
+      <Results_filename_base> MMS_Constant_Time_CXS    </Results_filename_base>
     </Output_type>
     <Checkpoint_frequency> 10000 </Checkpoint_frequency>
-    <Output_directory> /scratch/pmaginot/Constant_Space_Results/ </Output_directory>
+    <Output_directory> /scratch/pmaginot/Constant_Time_Results/ </Output_directory> 
+    <!-- <Output_directory> /home/pmaginot/Research/dark_arts_local/output_files/Constant_Time_Results/ </Output_directory> -->
     <Suppress_data_dumps> doesnt_matter </Suppress_data_dumps>
   </OUTPUT>
   
@@ -14,7 +15,7 @@
     <Number_of_regions> 1 </Number_of_regions>
     <Number_of_materials> 1 </Number_of_materials>
     <Region> 0 
-      <N_cells> 10 </N_cells>
+      <N_cells> 4 </N_cells>
       <Left_bound> 0.0 </Left_bound>
       <Right_bound> 10.0  </Right_bound>
       <Spacing> Equal   </Spacing>
@@ -27,41 +28,52 @@
     <Units> Unity </Units>
     <Material> 0
       <Scattering_opacity_type> Constant_xs 
-        <Constant_value> 0.1 </Constant_value>
+        <Constant_value> 0.01 </Constant_value>
       </Scattering_opacity_type>      
       
-      <Absorption_opacity_type> Constant_xs
-        <Constant_value> 2.5 </Constant_value>
-      </Absorption_opacity_type>      
+      <Absorption_opacity_type> Rational
+        <Multiplier> 5 </Multiplier>
+        <Denominator_power> 2</Denominator_power>
+        <Denominator_offset> 0</Denominator_offset>
+      </Absorption_opacity_type> 
       
-      <Cv_type> Constant_CV 
-         <Cv_constant> 0.2 </Cv_constant>        
+      <Cv_type> POLYNOMIAL_CV 
+        <Polynomial_cv_degree> 2 </Polynomial_cv_degree>
+        <Polynomial_cv_coefficient> 0 
+          <Value> 0.1 </Value>
+        </Polynomial_cv_coefficient>
+        <Polynomial_cv_coefficient> 1 
+          <Value> 0.0 </Value>
+        </Polynomial_cv_coefficient>
+        <Polynomial_cv_coefficient> 2 
+          <Value> 0.2</Value>
+        </Polynomial_cv_coefficient>        
       </Cv_type>
       
       <Radiation_fixed_source_type> MMS_source 
       
-        <Radiation_space> RAD_Poly_SPACE 
-          <MMS_polynomial_degree> 0 </MMS_polynomial_degree>
-          <MMS_poly_coefficient> 0 
-              <Coefficient> 10.0 </Coefficient>
-          </MMS_poly_coefficient>
+        <Radiation_space> RAD_COS_SPACE 
+          <MMS_cos_a> 19 </MMS_cos_a>
+          <MMS_cos_b> 2 </MMS_cos_b>
+          <MMS_cos_c> 0 </MMS_cos_c>
+          <MMS_cos_d> 20 </MMS_cos_d>
         </Radiation_space>
         
         <Radiation_angle> MMS_ISOTROPIC
         </Radiation_angle>
         
-        <Temperature_space> TEMP_Poly_SPACE
+        <Temperature_space> TEMP_COS_SPACE
+          <MMS_cos_a> 15 </MMS_cos_a>
+          <MMS_cos_b> 2 </MMS_cos_b>
+          <MMS_cos_c> 0 </MMS_cos_c>
+          <MMS_cos_d> 20 </MMS_cos_d>
+        </Temperature_space>
+        
+        <Temporal> Poly_TIME 
           <MMS_polynomial_degree> 0 </MMS_polynomial_degree>
           <MMS_poly_coefficient> 0 
               <Coefficient> 10.0 </Coefficient>
           </MMS_poly_coefficient>
-        </Temperature_space>
-        
-        <Temporal> COS_TIME 
-          <MMS_cos_a> 45</MMS_cos_a>
-          <MMS_cos_b> 1 </MMS_cos_b>
-          <MMS_cos_c> 0 </MMS_cos_c>
-          <MMS_cos_d> 46 </MMS_cos_d>
         </Temporal>
         
       </Radiation_fixed_source_type>
@@ -72,10 +84,10 @@
   
   <TIME>
     <Dt_min> 0.000001 </Dt_min>
-    <Dt_max> 0.5 </Dt_max>
+    <Dt_max> 0.1 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 1.0 </T_end>
-     <Time_solver> Implicit_Euler </Time_solver>
+     <Time_solver> Alexander_2_2 </Time_solver>
     <!--
       <Starting_method> Exponential </Starting_method>
     <Increase_factor> 1.25 </Increase_factor>
@@ -91,10 +103,11 @@
   </TIME>
   
   <SPATIAL_DISCRETIZATION>
-    <DFEM_degree> 4 </DFEM_degree>
+    <DFEM_degree> 1 </DFEM_degree>
     <Integration_type> Self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Gauss </DFEM_interpolation_point_type>
-    <Opacity_treatment> SLXS
+    <Opacity_treatment> Moment_PReserving
+      <Opacity_polynomial_degree> 0 </Opacity_polynomial_degree>
     </Opacity_treatment>    
   </SPATIAL_DISCRETIZATION>
   
@@ -107,20 +120,20 @@
   
   <SOLVER>
     <!-- Valid options are FP_SWEEPS, FP_DSA, KRYLOV_SWEEPS, KRYLOV_DSA   -->
-       <WG_solver_type> FP_DSA
-      <Max_within_group_sweeps> 10000 </Max_within_group_sweeps>
+    <WG_solver_type> FP_DSA
+      <Max_within_group_sweeps> 1000 </Max_within_group_sweeps>
       <MIP_solve_options>
         <Z_mip> 2.0 </Z_mip>
       </MIP_solve_options>
     </WG_solver_type>
     
-    <WG_tolerance> 1.0E-13 </WG_tolerance>
-    <Thermal_tolerance> 1.0E-11 </Thermal_tolerance>
-    <Damping_factor> 0.7 </Damping_factor>
+    <WG_tolerance> 1.0E-12 </WG_tolerance>
+    <Thermal_tolerance> 1.0E-10 </Thermal_tolerance>
+    <Damping_factor> 0.75 </Damping_factor>
     <Iteration_increase_factor> 3 </Iteration_increase_factor>
     <Iterations_before_damping> 100 </Iterations_before_damping>
     <Max_damping_resets> 7 </Max_damping_resets>
-    <Max_thermal_iterations_per_stage> 20000 </Max_thermal_iterations_per_stage>
+    <Max_thermal_iterations_per_stage> 5000 </Max_thermal_iterations_per_stage>
   </SOLVER>
   
   <BC_IC>
