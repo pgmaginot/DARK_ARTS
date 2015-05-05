@@ -74,8 +74,8 @@
   </MATERIALS>
   
   <TIME>
-    <Dt_min> 0.001 </Dt_min>
-    <Dt_max> 0.01 </Dt_max>
+    <Dt_min> 0.0001 </Dt_min>
+    <Dt_max> 0.001 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 1.0 </T_end>
      <Time_solver> Alexander_2_2 </Time_solver>
