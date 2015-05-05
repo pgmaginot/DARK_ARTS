@@ -3,7 +3,7 @@
 <INPUT_FILE>
   <OUTPUT>
     <Output_type> END_SPACE_ERROR 
-      <Results_filename_base> MMS3_SLXS_Lobatto </Results_filename_base>
+      <Results_filename_base> MMS3_Constant_XS_SL_Lobatto </Results_filename_base>
     </Output_type>
     <Checkpoint_frequency> 100 </Checkpoint_frequency>
     <Output_directory> /scratch/pmaginot/Radtran_Results/ </Output_directory>
@@ -93,7 +93,7 @@
     <Dt_max> 0.001 </Dt_max>
     <T_start> 0.0 </T_start>
     <T_end> 2.0 </T_end>
-     <Time_solver> Alexander_2_2 </Time_solver>
+     <Time_solver> Alexander_3_3 </Time_solver>
     <!--
       <Starting_method> Exponential </Starting_method>
     <Increase_factor> 1.25 </Increase_factor>
@@ -112,8 +112,9 @@
     <DFEM_degree> 2 </DFEM_degree>
     <Integration_type> Self_lumping </Integration_type>
     <DFEM_interpolation_point_type> Lobatto </DFEM_interpolation_point_type>
-    <Opacity_treatment> SLXS 
-    </Opacity_treatment>    
+    <Opacity_treatment> SLXS
+      <Opacity_polynomial_degree> 0 </Opacity_polynomial_degree>
+    </Opacity_treatment>       
   </SPATIAL_DISCRETIZATION>
   
   <ANGULAR_DISCRETIZATION>
