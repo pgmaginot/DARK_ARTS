@@ -101,6 +101,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
   
   int times_damped = 0;
   int total_inners = 0;
+  
   int total_thermals = 0;
   int inners = 0;
   int t_step = 0;
@@ -133,7 +134,9 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     
     /// this variable can be used to cut time step    
     for( int stage = 0 ; stage < m_n_stages ; stage++)
-    {      
+    {    
+      int stage_inners = 0;
+      int stage_thermals = 0;
       // m_t_star.make_non_zero_guess();
       if(need_to_cut_dt)
       {
@@ -173,6 +176,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         m_ard_phi.clear_angle_integrated_intensity();
         inners = m_intensity_update->update_intensity(m_ard_phi,intensity_update_success);
         total_inners += inners;
+        stage_inners += inners;
         // m_ard_phi.mms_cheat(time_stage,m_cell_data,dfem_interp_points,m_input_reader,m_angular_quadrature);
         
         double norm_relative_change = 0.;
@@ -190,11 +194,13 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
           std::cout << " Time step: " << t_step << " Stage: " << stage << " Thermal iteration: " << therm_iter <<
             " Number of Transport solves: " << inners << " Thermal error: " << norm_relative_change << std::endl;
           /// write to iteration status file
-          m_status_generator.write_iteration_status(t_step, stage, therm_iter, dt , inners , norm_relative_change, m_damping);
+          // m_status_generator.write_iteration_status(t_step, stage, therm_iter, dt , inners , norm_relative_change, m_damping);
         }
         else
         {
           total_thermals += therm_iter;
+          
+          stage_thermals += therm_iter;
           /// restart this time step, with a smaller dt
           std::cout << "Intensity Update Needing to cut dt" << std::endl;
           std::cout << "Converged_thermal is: " << converged_thermal << std::endl;
@@ -206,6 +212,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         if( norm_relative_change < m_thermal_tolerance)
         {
           total_thermals += therm_iter;
+          stage_thermals += therm_iter;
           converged_thermal = true;
           break;
         }     
@@ -221,7 +228,8 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
             else
             {
               // std::cout << "Damping thermal iteration\n" ;    
-              total_thermals += therm_iter;              
+              total_thermals += therm_iter;    
+              stage_thermals +=therm_iter;
               therm_iter = 0;
               m_iters_before_damping = int( ceil( m_iteration_increase_factor*double(m_iters_before_damping) ) );
               // std::cout << "iters before damping again: " << m_iters_before_damping << std::endl;
@@ -259,6 +267,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       if(m_calculate_space_time_error)
         m_space_time_error_calculator->record_error(dt, stage, time_stage, m_ard_phi, m_t_star);
       
+      m_status_generator.write_iteration_status(t_step, stage, stage_thermals, dt , stage_inners , 0.0 , m_damping);
     } // bottom of stage loop
     
     if(need_to_cut_dt)

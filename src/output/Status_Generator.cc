@@ -31,11 +31,11 @@ void Status_Generator::write_iteration_status(const int step, const int stage, c
   
   m_status_stream <<  "Time_step: " << std::setw(6) << step  << 
                       " Stage: " << std::setw(2) << stage <<     
-                      " Thermal_iter: " << std::setw(4) << therm_iter << 
+                      " Thermal_iter: " << std::setw(5) << therm_iter << 
                       " dt: " ;
-  m_status_stream << std::scientific << std::setprecision(15) << dt ;
+  m_status_stream << std::scientific << std::setprecision(5) << dt ;
   m_status_stream << " number_of_inner_solves: " << inners ;
-  m_status_stream << " Relative_Error: " << std::scientific << std::setprecision(15) << err ;
+  m_status_stream << " Relative_Error: " << std::scientific << std::setprecision(5) << err ;
   m_status_stream << " Damping: " << damp << std::endl;
   return;
 }  
