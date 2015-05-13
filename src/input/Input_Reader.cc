@@ -385,6 +385,36 @@ int Input_Reader::load_output_data(TiXmlElement* output_element)
   if(type_str == "DUMP")
   {
     m_output_type = DUMP;
+    
+    TiXmlElement* multi_time_elem = type_elem->FirstChildElement("Multi_time");
+    if(multi_time_elem)
+    {
+      m_n_data_outputs = atoi(multi_time_elem->GetText() );
+      if(m_n_data_outputs < 2)
+      {
+        throw Dark_Arts_Exception(INPUT , "In Multi_time element number of dumps must be >= 2");
+      }
+      m_times_to_dump.resize(m_n_data_outputs,0.);
+      TiXmlElement* dump_time_elem = multi_time_elem->FirstChildElement("Dump_time");
+      for(int i = 0; i < m_n_data_outputs ; i++)
+      {
+        if(!dump_time_elem)
+        {
+          std::stringstream err;
+          err << "Missing Dump_time: " << i << " in Multi_time dump";
+          throw Dark_Arts_Exception(INPUT , err );
+        }
+        m_times_to_dump[i] = atof( dump_time_elem->GetText() );
+        dump_time_elem = dump_time_elem->NextSiblingElement("Dump_time");
+      }      
+      
+      for(int i = 0 ; i < (m_n_data_outputs-1) ; i++)
+      {
+        if( m_times_to_dump[i] >= m_times_to_dump[i+1] )
+          throw Dark_Arts_Exception(INPUT , "Dump_time elements must be in ascending order");
+      }
+    }
+        
   }
   else if(type_str =="SPACE_TIME_ERROR")
   {

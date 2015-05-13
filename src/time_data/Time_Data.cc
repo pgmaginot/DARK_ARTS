@@ -10,7 +10,10 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   m_dt_min{input_reader.get_dt_min() },
   m_dt_max{input_reader.get_dt_max() },
   m_t_end{input_reader.get_t_end() },
-  m_t_start{input_reader.get_t_start() }
+  m_t_start{input_reader.get_t_start() },
+  m_current_dump_goal(0),
+  m_n_extra_dumps(input_reader.get_n_data_dumps() ) , 
+  m_times_to_dump(input_reader.get_dump_times_vector() )
 {  
   if(m_time_solver == INVALID_TIME_SOLVER)
     throw Dark_Arts_Exception( SUPPORT_OBJECT , "Bad time solver in Time_Stepper constructor");
@@ -52,6 +55,10 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   {
     m_calculate_dt = std::shared_ptr<V_DT_Calculator> (new DT_Calculator_Vector( input_reader ) );
   }
+  
+  /// put t_end at the end of dump times vector
+  m_times_to_dump.push_back(m_t_end);
+  
 }
 
 
@@ -151,10 +158,11 @@ double Time_Data::get_c(const int stage) const
 double Time_Data::get_dt(const int step, const double time_now, const double dt_old)
 {
   double dt = m_calculate_dt->calculate_dt(step,dt_old);
-  if( (time_now + dt ) > m_t_end)
+  if( (time_now + dt ) > m_times_to_dump[m_current_dump_goal] )
   {
     /// taking full time step suggested by starting method will end time past desired t_end
-    dt = m_t_end - time_now;
+    dt = m_times_to_dump[m_current_dump_goal] - time_now;
+    m_current_dump_goal++;
   }
   if( dt < 0. )
     throw Dark_Arts_Exception(TIME_MARCHER , "calculating negative dt");

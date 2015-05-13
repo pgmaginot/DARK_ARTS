@@ -118,7 +118,7 @@ int main(int argc, char** argv)
   
   /// this is the entire time loop !
 
-    time_marcher.solve(intensity_old, temperature_old, time_data);
+    time_marcher.solve(intensity_old, temperature_old);
     /**
       End PETSc
     */

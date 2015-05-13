@@ -50,6 +50,10 @@ protected:
         y_s &=& y^n + \Delta t \sum_{j=1}^{s-1}{a_{s,j} k_j } + \Delta t a_{s,s} k_s 
    \f}
   */
+  int m_current_dump_goal;
+  const int m_n_extra_dumps;
+  std::vector<double> m_times_to_dump;
+  
   
   /// vector of length n_stages
   std::vector<double> m_b;

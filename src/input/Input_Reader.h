@@ -178,6 +178,9 @@ public:
   std::string get_short_input_filename(void) const{return m_short_input_file; }
   std::string get_filename_base_for_results(void) const{ return m_results_file_base; }
   std::string get_initial_input_filename(void) const {return m_initial_input_str;}
+  
+  int get_n_data_dumps(void) const {return m_n_data_outputs; }
+  std::vector<double> get_dump_times_vector(void) const { return m_times_to_dump ; }
 protected:
   /** variables that will be used to store data from input file
     this data will then be used by other class initializers **/
@@ -191,6 +194,8 @@ protected:
   std::string m_output_directory;
   std::string m_short_input_file;
   bool m_suppress_output_dumps = false;
+  int m_n_data_outputs = -1;
+  std::vector<double> m_times_to_dump;
   
   /// Restart type
   RESTART_TYPE m_restart_type = INVALID_RESTART_TYPE;

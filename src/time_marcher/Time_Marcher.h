@@ -19,15 +19,15 @@ public:
   Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data, std::string& stat_file);
+    Time_Data& time_data, std::string& stat_file);
     
   virtual ~Time_Marcher(){}
   
-  void solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Data& time_data);
+  void solve(Intensity_Data& i_old, Temperature_Data& t_old);
 private:
   const int m_n_stages;
 
-  const Time_Data& m_time_data;
+  Time_Data& m_time_data;
   
   const double m_thermal_tolerance;
   
@@ -65,6 +65,14 @@ private:
   const Input_Reader& m_input_reader;
   const Cell_Data& m_cell_data;
   const Angular_Quadrature& m_angular_quadrature;
+  
+  const double m_time_end;
+  const bool m_dump_data;
+  
+  int m_dump_target;
+  int m_n_data_dumps;
+  
+  std::vector<double> m_time_dumps;
   
   std::vector<double> dfem_interp_points;
   

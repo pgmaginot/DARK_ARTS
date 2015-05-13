@@ -3,7 +3,7 @@
 Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quadrature& angular_quadrature,
     const Fem_Quadrature& fem_quadrature, const Cell_Data& cell_data, Materials& materials,  
     Temperature_Data& t_old, Intensity_Data& i_old,
-    const Time_Data& time_data, std::string& stat_filename)
+    Time_Data& time_data, std::string& stat_filename)
     :
     m_n_stages(time_data.get_number_of_stages()),
     m_time_data( time_data),
@@ -30,6 +30,9 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_input_reader(input_reader),
     m_cell_data(cell_data),
     m_angular_quadrature(angular_quadrature),
+    m_time_end(time_data.get_t_end() ),
+    m_dump_data( (m_input_reader.get_output_type() == DUMP) ),
+    m_dump_target(0),
     recent_iteration_errors(5,0.)
 {       
   try{
@@ -81,7 +84,11 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         fem_quadrature, cell_data,  input_reader, time_data,  output_directory);
     }
     
-    fem_quadrature.get_dfem_interpolation_point(dfem_interp_points);
+    fem_quadrature.get_dfem_interpolation_point(dfem_interp_points);    
+    
+    m_time_dumps = input_reader.get_dump_times_vector();
+    m_n_data_dumps = input_reader.get_n_data_dumps() ;
+    
   }
   catch(const Dark_Arts_Exception& da_exception)
   {
@@ -89,14 +96,13 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
   }
 }
 
-void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Data& time_data)
+void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old)
 {
   
-  double time = time_data.get_t_start();
+  double time = m_time_data.get_t_start();
   
-  int max_step = int( (time_data.get_t_end() - time_data.get_t_start() )/time_data.get_dt_min() );
   
-  double dt = time_data.get_dt_min();
+  double dt = m_time_data.get_dt_min();
   double time_stage = 0.;
   
   int times_damped = 0;
@@ -124,7 +130,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     }
     else
     {
-      dt = time_data.get_dt(t_step,time,dt);
+      dt = m_time_data.get_dt(t_step,time,dt);
     }
     
     need_to_cut_dt = false;
@@ -151,13 +157,13 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
       times_damped = 0;
       m_iters_before_damping = m_damp_trigger_initial;
       
-      time_stage = time + dt*time_data.get_c(stage);
+      time_stage = time + dt*m_time_data.get_c(stage);
       
       
       // std::cout << "Time: " << time << " dt_full: " << dt << " stage: " << stage << " Time stage: " << time_stage << std::endl;
             
       for(int i = 0; i<= stage; i++)
-        rk_a_of_stage_i[i] = time_data.get_a(stage,i);
+        rk_a_of_stage_i[i] = m_time_data.get_a(stage,i);
         
       // // /// set time (of this stage), dt (of the whole time step), rk_a for this stage
       m_intensity_update->set_time_data( dt, time_stage, rk_a_of_stage_i, stage );
@@ -288,10 +294,24 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
         m_output_generator.write_xml(false,t_step,t_old);
         m_output_generator.write_xml(false,t_step,m_ard_phi);    
       }
+      
+      if(m_n_data_dumps > 0)
+      {
+        if(fabs( (time - m_time_dumps[m_dump_target])/time) < 1.0E-4 )
+        {
+          
+          m_output_generator.write_txt(false,t_step,i_old);
+          m_output_generator.write_txt(false,t_step,t_old);
+          m_output_generator.write_txt(false,t_step,m_ard_phi);
+          
+           if( m_dump_target != (m_n_data_dumps - 1) )
+              m_dump_target++;
+        }
+      }
     }
       
       /// check to see if we are at the end of the time marching scheme
-    if( fabs( (time - time_data.get_t_end() )/time) < 1.0E-4)
+    if( fabs( (time - m_time_end )/time) < 1.0E-8)
       break;
       
     t_step++;
@@ -321,7 +341,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old, Time_Da
     m_output_generator.write_xml(true,0,t_old);
     m_output_generator.write_xml(true,0,m_ard_phi);
     
-    if(m_input_reader.get_output_type() == DUMP)
+    if(m_dump_data)
     {
       m_output_generator.write_txt(true,0,i_old);
       m_output_generator.write_txt(true,0,t_old);
