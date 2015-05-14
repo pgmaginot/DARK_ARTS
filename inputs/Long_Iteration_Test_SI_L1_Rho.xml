@@ -75,7 +75,7 @@
   
   <SOLVER>
     <!-- Valid options are FP_SWEEPS, FP_DSA, KRYLOV_SWEEPS, KRYLOV_DSA   -->
-    <WG_solver_type> FP_SI
+    <WG_solver_type> FP_Sweeps
       <Max_within_group_sweeps> 2000000 </Max_within_group_sweeps>
       <MIP_solve_options>
         <Z_mip> 2.0 </Z_mip>
