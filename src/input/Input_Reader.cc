@@ -1687,6 +1687,8 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
   TiXmlElement* n_damps_elem = solver_element->FirstChildElement("Max_damping_resets");
   TiXmlElement* n_thermals_elem = solver_element->FirstChildElement("Max_thermal_iterations_per_stage");
   
+  TiXmlElement* phi_norm_type_elem = solver_element->FirstChildElement("Convergence_norm_type");
+  
   if(!solver_type_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element: Missing WG_Solver_type element") ;
   
@@ -1707,7 +1709,34 @@ int Input_Reader::load_solver_data(TiXmlElement* solver_element)
     
   if(!n_thermals_elem)
     throw Dark_Arts_Exception(INPUT, "In SOLVER element, must provide a Max_thermal_iterations_per_stage element");
-  
+    
+  /// default to pointwise error norm
+  if(!phi_norm_type_elem)
+  {
+    m_err_norm_type = POINTWISE;
+  }
+  else
+  {
+    std::string norm_str = phi_norm_type_elem->GetText();
+    transform(norm_str.begin() , norm_str.end() , norm_str.begin() , toupper);
+    if(norm_str == "L1")
+    {
+      m_err_norm_type = L1;
+    }
+    else if( norm_str =="L1_RHO" )
+    {
+      m_err_norm_type = L1_RHO;
+    }
+    else if( norm_str == "POINTWISE" )
+    {
+      m_err_norm_type = POINTWISE;
+    }
+    else
+    {
+      throw Dark_Arts_Exception(INPUT, "Convergence_norm_type element found, but invalid convergence norm type given");
+    }
+  }
+      
   m_max_damps = atoi(n_damps_elem->GetText() );
   m_iters_before_damp = atoi(iter_before_damp_elem->GetText() );
   m_damping_factor = atof(damping_factor_elem->GetText() );

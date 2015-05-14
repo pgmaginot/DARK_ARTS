@@ -127,6 +127,7 @@ public:
   ARD_SOLVE_TYPE get_ard_solve_type(void) const {return m_ard_solve_type;}
   double get_thermal_tolerance(void) const {return m_thermal_tolerance;}
   double get_wg_z_mip(void) const {return m_wg_z_mip;}
+  ERR_NORM_TYPE get_phi_norm_type(void) const { return m_err_norm_type;}
   
   
   /// IC_BC block
@@ -291,6 +292,7 @@ protected:
   
   /// radiation solver type data
   /// within group solve type
+  ERR_NORM_TYPE m_err_norm_type = INVALID_ERR_NORM_TYPE;
   WG_SOLVE_TYPE m_wg_solve_type = INVALID_WG_SOLVE_TYPE;
   LMFGA_STRUCTURE m_lmfga_structure = INVALID_LMFGA_STRUCTURE;
   LMFGA_ORDERING m_lmfga_ordering = INVALID_LMFGA_ORDERING;

@@ -20,9 +20,6 @@ public:
 protected:
   const int m_max_iterations;
   Intensity_Moment_Data m_ard_old;
-  Err_Phi m_ard_err;
-
-
 };
 
 #endif

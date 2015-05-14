@@ -44,7 +44,7 @@ public:
     
   void clear_angle_integrated_intensity(void);
   
-  void normalized_difference(const Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const;
+  // void normalized_difference(const Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const;
   
   void add_contribution(const int cell, const int grp, const int l_mom, Eigen::VectorXd& contrib);
   

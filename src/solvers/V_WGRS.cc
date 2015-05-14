@@ -13,10 +13,30 @@ V_WGRS::V_WGRS(const Input_Reader& input_reader,
   const Temperature_Data& t_star,
   std::vector<double>& phi_ref_norm)
   :
-  m_transport_sweep(fem_quadrature, cell_data, materials,angular_quadrature,n_stages, t_old, i_old, kt, ki,t_star,input_reader) ,
-  m_phi_ref_norm(phi_ref_norm)
+  m_transport_sweep(fem_quadrature, cell_data, materials,angular_quadrature,n_stages, t_old, i_old, kt, ki,t_star,input_reader) 
 {
-
+  switch(input_reader.get_phi_norm_type() )
+  {
+    case L1:
+    {
+      m_convergence_calculator = std::make_shared<L1_Phi_Error_Calculator>(fem_quadrature, cell_data, angular_quadrature);
+      break;
+    }
+    case L1_RHO:
+    {
+      m_convergence_calculator = std::make_shared<L1_Rho_Phi_Error_Calculator>(fem_quadrature, cell_data, angular_quadrature);
+      break;
+    } 
+    case POINTWISE:
+    {
+      m_convergence_calculator = std::make_shared<Pointwise_Phi_Error_Calculator>(fem_quadrature, cell_data, angular_quadrature);
+      break;   
+    }
+    case INVALID_ERR_NORM_TYPE:
+    {
+      break;
+    }
+  }
 }
 
 void V_WGRS::set_time_data( const double dt, const double time_stage, const std::vector<double>& rk_a_of_stage_i, const int stage )

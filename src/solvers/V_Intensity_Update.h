@@ -39,7 +39,6 @@ public:
   /// ard_phi won't change, but can't be labeled as const if it is to use the same transport sweep (and we use V_Solution_Saver as a interface template)
   void calculate_k_i(K_Intensity& k_i, Intensity_Moment_Data& ard_phi);
 protected:
-  
   std::shared_ptr<V_WGRS> m_within_group_radiation_solver;
 };
 

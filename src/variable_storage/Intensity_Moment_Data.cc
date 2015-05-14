@@ -230,62 +230,62 @@ void Intensity_Moment_Data::clear_angle_integrated_intensity(void)
   return;
 }
 
-void Intensity_Moment_Data::normalized_difference(const Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const
-{
-  /**
-    Find the maximum, normalized difference between this iterate and another Intensity_Moment_Data object
+// void Intensity_Moment_Data::normalized_difference(const Intensity_Moment_Data& phi_compare, Err_Phi& err_phi) const
+// {
+  // /**
+    // Find the maximum, normalized difference between this iterate and another Intensity_Moment_Data object
     
-    tol = small_num*\norm{\phi(t=0) 
-    norm = avg?
+    // tol = small_num*\norm{\phi(t=0) 
+    // norm = avg?
     
-    if( phi < tol)
-    {
-      loc_err = abs( phi_compare - phi)
-    }
-    else
-    {
-      loc_err = abs( (phi_compare - phi)/phi ) 
-    }
+    // if( phi < tol)
+    // {
+      // loc_err = abs( phi_compare - phi)
+    // }
+    // else
+    // {
+      // loc_err = abs( (phi_compare - phi)/phi ) 
+    // }
     
-  */
+  // */
   
-  Eigen::VectorXd phi_this = Eigen::VectorXd::Zero(m_el_per_cell);
-  Eigen::VectorXd phi_other =  Eigen::VectorXd::Zero(m_el_per_cell);
-  double loc_err;
-  for(int cell = 0; cell < m_cells; cell++)
-  {
-    for(int grp = 0; grp < m_groups ; grp++)
-    {
-      for(int l_mom = 0; l_mom < m_leg ; l_mom++)
-      {
-        get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_this);
-        phi_compare.get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_other);
+  // Eigen::VectorXd phi_this = Eigen::VectorXd::Zero(m_el_per_cell);
+  // Eigen::VectorXd phi_other =  Eigen::VectorXd::Zero(m_el_per_cell);
+  // double loc_err;
+  // for(int cell = 0; cell < m_cells; cell++)
+  // {
+    // for(int grp = 0; grp < m_groups ; grp++)
+    // {
+      // for(int l_mom = 0; l_mom < m_leg ; l_mom++)
+      // {
+        // get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_this);
+        // phi_compare.get_cell_angle_integrated_intensity(cell,grp,l_mom,phi_other);
         
-        for(int el = 0; el < m_el_per_cell ; el++)
-        {
-          if(fabs(phi_this(el)) > m_norm_for_err[grp])
-          {
-            /// not dividing by a near zero
-            loc_err = fabs( (phi_this(el) - phi_other(el) )/phi_this(el) );
-          }
-          else
-          {
-            loc_err = fabs( phi_this(el) - phi_other(el) );
-          }
+        // for(int el = 0; el < m_el_per_cell ; el++)
+        // {
+          // if(fabs(phi_this(el)) > m_norm_for_err[grp])
+          // {
+            // /// not dividing by a near zero
+            // loc_err = fabs( (phi_this(el) - phi_other(el) )/phi_this(el) );
+          // }
+          // else
+          // {
+            // loc_err = fabs( phi_this(el) - phi_other(el) );
+          // }
           
-          if(loc_err > err_phi.get_worst_err() )
-          {
-            err_phi.set_error(cell, grp, l_mom, loc_err);
-          }          
-        }
-      }
-    }
-  }
+          // if(loc_err > err_phi.get_worst_err() )
+          // {
+            // err_phi.set_error(cell, grp, l_mom, loc_err);
+          // }          
+        // }
+      // }
+    // }
+  // }
   
   
 
-  /// Err_Phi.err , Err_Phi.el_num , Err_Phi.cell_num, Err_Phi.group_num, Err_Phi.l_mom_num
-}
+  // /// Err_Phi.err , Err_Phi.el_num , Err_Phi.cell_num, Err_Phi.group_num, Err_Phi.l_mom_num
+// }
 
 void Intensity_Moment_Data::get_all_moments(
   std::vector<Eigen::VectorXd>& local_phi, const int cell, const int grp) const

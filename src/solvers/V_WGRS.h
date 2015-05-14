@@ -3,6 +3,9 @@
 
 #include "Input_Reader.h"
 #include "Transport_Sweep.h"
+#include "L1_Rho_Phi_Error_Calculator.h"
+#include "L1_Phi_Error_Calculator.h"
+#include "Pointwise_Phi_Error_Calculator.h"
 
 /** @file   V_WGRS.h
   *   @author pmaginot
@@ -45,7 +48,8 @@ public:
 protected:
   Transport_Sweep m_transport_sweep;
   
-  std::vector<double>& m_phi_ref_norm;
+  std::shared_ptr<V_Phi_Error_Calculator> m_convergence_calculator;
+  
 };
 
 #endif

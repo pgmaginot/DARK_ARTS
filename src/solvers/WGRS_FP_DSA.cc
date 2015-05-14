@@ -47,6 +47,7 @@ int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new, bool& update_success)
        
    /** perform sweeps until convergence is reaced */   
   int n_sweep = 0;
+  double err = 0.;
   for(n_sweep = 0; n_sweep < m_max_sweeps ; n_sweep++)
   {
     /// perform a transport sweep, updating phi_new
@@ -60,9 +61,8 @@ int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new, bool& update_success)
     /// if reflective, need to send some data to diffusion operator !!!!! (this is not yet coded...) 
     m_diffusion_operator.update(phi_new,m_phi_old);
     /// calculate the error, normalize to phi_new
-    m_err.clear();
-    phi_new.normalized_difference(m_phi_old,m_err);    
-    if( (m_err.get_worst_err() < m_wg_tolerance) )
+    err = m_convergence_calculator->calculate_phi_error_norm(phi_new,m_phi_old,n_sweep);
+    if( err < m_wg_tolerance) 
     {
       /// converged !  stop the iteration
       break;
@@ -73,7 +73,7 @@ int WGRS_FP_DSA::solve(Intensity_Moment_Data& phi_new, bool& update_success)
     }
   }
   
-  if( (m_err.get_worst_err() < m_wg_tolerance) )
+  if( err < m_wg_tolerance) 
     update_success = true;
   else
     update_success = false;
