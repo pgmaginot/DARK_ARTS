@@ -27,12 +27,12 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_calculate_space_time_error( input_reader.record_space_time_error() ),
     m_calculate_final_space_error( input_reader.record_final_space_error() ),
     m_temperature_update(fem_quadrature, cell_data, materials, angular_quadrature, m_n_stages, t_old, m_ard_phi),
-    m_input_reader(input_reader),
     m_cell_data(cell_data),
     m_angular_quadrature(angular_quadrature),
     m_time_end(time_data.get_t_end() ),
-    m_dump_data( (m_input_reader.get_output_type() == DUMP) ),
+    m_dump_data( (input_reader.get_output_type() == DUMP) ),
     m_dump_target(0),
+    m_adapt_criteria(0.),
     recent_iteration_errors(5,0.)
 {       
   try{
@@ -89,6 +89,22 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_time_dumps = input_reader.get_dump_times_vector();
     m_n_data_dumps = input_reader.get_n_data_dumps() ;
     
+    if( input_reader.get_starting_time_method() == ADAPTIVE )
+    {
+      if(input_reader.get_adaptive_time_method() == CHANGE_IN_T )
+      {
+        m_adaptive_check = std::make_shared<Adaptive_Check_T_Change>(t_old, m_k_t ,
+          m_n_stages, cell_data.get_total_number_of_cells(), fem_quadrature.get_number_of_interpolation_points() );
+      }
+    }
+    else
+    {
+      m_adaptive_check = std::make_shared<Adaptive_Check_None>();
+    }
+    
+    if(!m_adaptive_check)
+      throw Dark_Arts_Exception(SUPPORT_OBJECT , "No Adaptive object declared in time marcher");
+    
   }
   catch(const Dark_Arts_Exception& da_exception)
   {
@@ -130,7 +146,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old)
     }
     else
     {
-      dt = m_time_data.get_dt(t_step,time,dt);
+      dt = m_time_data.get_dt(t_step,time,dt, m_adapt_criteria);
     }
     
     need_to_cut_dt = false;
@@ -269,6 +285,14 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old)
       m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       m_temperature_update.calculate_k_t(m_t_star, m_k_t);
       
+      /// verify that we do not need to cut the time step now
+      /// check at each stage to avoid unnecesary computation if possible
+      /// though this does require an extra loop through all unknowns ....
+      if( m_adaptive_check->adaptive_check(stage,dt) ) 
+      {
+        need_to_cut_dt = true;
+        break;
+      }
       /// m_ard_phi and m_t_star are the radiation and temperature profiles at this time stage
       if(m_calculate_space_time_error)
         m_space_time_error_calculator->record_error(dt, stage, time_stage, m_ard_phi, m_t_star);

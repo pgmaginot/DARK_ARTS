@@ -9,7 +9,7 @@ DT_Calculator_Exponential::DT_Calculator_Exponential(const Input_Reader& input_r
 
 }
 
-double DT_Calculator_Exponential::calculate_dt(const int step, const double dt_old)
+double DT_Calculator_Exponential::calculate_dt(const int step, const double dt_old, const double adapt_criteria)
 {
   double dt;
   if(step ==0)

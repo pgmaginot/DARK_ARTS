@@ -11,6 +11,8 @@
 #include "Output_Generator.h"
 #include "Final_Space_Error_Calculator.h"
 #include "Space_Time_Error_Calculator.h"
+#include "Adaptive_Check_T_Change.h"
+#include "Adaptive_Check_None.h"
 
 class Time_Marcher
 {
@@ -35,7 +37,6 @@ private:
   K_Temperature m_k_t;
   Temperature_Data m_t_star;
   Intensity_Moment_Data m_ard_phi;
-
   
   /// damping variable, and temperature update err object used to track thermal iteration progress
   double m_damping;  
@@ -62,7 +63,6 @@ private:
   std::shared_ptr<V_Intensity_Update> m_intensity_update;
   Temperature_Update m_temperature_update;
   
-  const Input_Reader& m_input_reader;
   const Cell_Data& m_cell_data;
   const Angular_Quadrature& m_angular_quadrature;
   
@@ -71,6 +71,11 @@ private:
   
   int m_dump_target;
   int m_n_data_dumps;
+  
+  double m_adapt_criteria;
+  
+  
+  std::shared_ptr<V_Adaptive_Check> m_adaptive_check;
   
   std::vector<double> m_time_dumps;
   

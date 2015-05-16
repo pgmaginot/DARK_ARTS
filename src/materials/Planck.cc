@@ -25,26 +25,29 @@ Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader, cons
 {
   accuracy = accuracy_parameter;
   pi = PI;
-  if(input_reader.use_weird_units() )
+  switch( input_reader.get_units_type() )
   {
-    if( input_reader.get_units_type() == UNITY )
+    case UNITY:
     {
       c = 1.;   
       a = 1.;   
       h = 1.;
       k = 1.;
+      break;
     }
-    else
+    case CM_SH_KEV:
     {
-      throw Dark_Arts_Exception( SUPPORT_OBJECT , "Other Unit Types Not coded in Planck.cc");
+      /// [cm/shake] = [cm/sec] * [cm/m] * [sec/shake]
+      c = SPEED_OF_LIGHT*SEC2SHAKE;
+      /// [jerk / cm^3 / keV^4] = [eV/cm^3-K^4] * [ev/K]^(-4) * [ev/kev]^4 * [J/ev] * [erg/J] * [jerk/erg]
+      a = RADIATION_CONSTANT_A/pow(BOLTZMANN_CONSTANT,4)*1.0E12*EV2J*J2ERG*ERG2JERK;
+      break;
     }
-  }
-  else
-  {
-    h = PLANCK_CONSTANT;     // ev s
-    k = BOLTZMANN_CONSTANT;  // eV K^-1
-    c = SPEED_OF_LIGHT; // cm s^-1    
-    a = RADIATION_CONSTANT_A; // eV/cm^3-K^4
+    case INVALID_UNITS_TYPE:
+    {
+      throw Dark_Arts_Exception(SUPPORT_OBJECT , "Invalid Unit type request in Planck class");
+      break;
+    }    
   }
   gauss_quad();
 }

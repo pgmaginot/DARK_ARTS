@@ -15,7 +15,7 @@ public:
     
   virtual ~DT_Calculator_Ramp(){}
 
-  double calculate_dt(const int step, const double dt_old) override;
+  double calculate_dt(const int step, const double dt_old, const double adapt_criteria) override;
   
 protected:
   const int m_n_ramp_steps;

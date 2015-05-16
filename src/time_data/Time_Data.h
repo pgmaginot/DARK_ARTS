@@ -7,6 +7,7 @@
 #include "DT_Calculator_Ramp.h"
 #include "DT_Calculator_Exponential.h"
 #include "DT_Calculator_Vector.h"
+#include "DT_Calculator_Temperature_Change.h"
 #include <memory>
 
 class Time_Data
@@ -26,7 +27,7 @@ public:
   double get_b(const int stage) const;
   double get_c(const int stage) const;
   
-  double get_dt(const int step, const double time_now, const double dt_old);
+  double get_dt(const int step, const double time_now, const double dt_old, const double adapt_criteria);
   
   double get_t_start(void) const;
   double get_t_end(void) const;

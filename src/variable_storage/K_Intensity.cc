@@ -25,7 +25,10 @@ K_Intensity::K_Intensity(const int n_cells, const int n_stages,
 {  
   m_ki.resize(m_k_length,0.0) ;
   m_rk_b.resize(m_el_per_cell,0.0);
+  
 }
+
+
 void K_Intensity::clear_ki(void)
 {
   for(int i = 0 ; i < m_k_length ; i++)

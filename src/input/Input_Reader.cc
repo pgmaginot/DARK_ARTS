@@ -112,16 +112,6 @@ double Input_Reader::get_cv_constant(const int mat_num) const
   return m_cv_constants[mat_num];
 } 
 
-bool Input_Reader::use_weird_units(void) const
-{
-  return m_weird_units;
-}
-
-UNITS_TYPE Input_Reader::get_units_type(void) const
-{
-  return m_units_type;
-}
-
 double Input_Reader::get_region_temperature(const int reg_num) const
 {
   if(reg_num > m_number_regions)
@@ -652,7 +642,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     if( units_str == "CM_SH_KEV")
     {
       m_units_type = CM_SH_KEV;
-      m_weird_units = false;
       std::cout << "Not using any funny units. \n";
       std::cout << "Lengths in cm \n";
       std::cout << "Time in shakes \n";
@@ -662,7 +651,6 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
     else if( units_str == "UNITY" )
     {
       m_units_type = UNITY;
-      m_weird_units = true;
       std::cout << "Using unity / dimensionless numbers\n";
       std::cout << "a=c=1" << std::endl;
     }
@@ -1321,7 +1309,8 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   TiXmlElement* t_start_elem = time_elem->FirstChildElement( "T_start");
   TiXmlElement* t_end_elem = time_elem->FirstChildElement( "T_end");
   TiXmlElement* solver_elem = time_elem->FirstChildElement( "Time_solver");
-  TiXmlElement* start_meth_elem = time_elem->FirstChildElement( "Starting_method");
+  TiXmlElement* start_meth_elem = time_elem->FirstChildElement( "Starting_method");  
+  TiXmlElement* adaptive_time_step_elem = time_elem->FirstChildElement( "Adaptive_time_step" );
   
   if(!dt_min_elem)
     throw Dark_Arts_Exception( INPUT , "In TIME block: Missing Dt_min element in TIME input block" );
@@ -1340,6 +1329,34 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     
   if(!start_meth_elem)
     throw Dark_Arts_Exception( INPUT , "In TIME block:  Missing Starting_method element in TIME input block" );
+    
+   if(!adaptive_time_step_elem)
+   {
+    m_adaptive_time_method = NO_ADAPTIVE_CONTROL;
+   }
+   else
+   {
+    m_adaptive_time_method = INVALID_ADAPTIVE_TIME_STEP_CONTROL;
+    std::string adaptive_str = adaptive_time_step_elem->GetText() ;
+    transform(adaptive_str.begin() , adaptive_str.end() , adaptive_str.begin() , toupper);
+    if( adaptive_str == "NO_ADAPTIVE_CONTROL" )
+    {
+      m_adaptive_time_method = NO_ADAPTIVE_CONTROL;
+    }
+    else if( adaptive_str == "CHANGE_IN_T" )
+    {
+      m_adaptive_time_method = CHANGE_IN_T;
+      TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
+      m_change_in_t_goal = atof( target_change_elem->GetText() );
+      if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
+        throw Dark_Arts_Exception(INPUT , "Change_in_t adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
+      
+    }
+    
+    if( m_adaptive_time_method == INVALID_ADAPTIVE_TIME_STEP_CONTROL)
+      throw Dark_Arts_Exception(INPUT, "Valid Adaptive_time_step control not given");
+    
+   }
   
   m_dt_min = atof(dt_min_elem->GetText() );
   m_dt_max = atof(dt_max_elem->GetText() );
@@ -1388,6 +1405,10 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
   else if(starter_str == "RAMP")
   {
     m_time_starting_method = RAMP;
+   }
+   else if(starter_str == "ADAPTIVE")
+  {   
+      m_time_starting_method = ADAPTIVE;
   }
   
   if(m_time_step_scheme == INVALID_TIME_SOLVER)
@@ -1471,6 +1492,10 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
         
         vector_stage = vector_stage->NextSiblingElement( "Vector_stage");
       }
+      break;
+    }
+    case ADAPTIVE:
+    {
       break;
     }
   }

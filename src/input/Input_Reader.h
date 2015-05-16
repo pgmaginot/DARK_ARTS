@@ -65,6 +65,8 @@ public:
   int get_number_of_vector_stages(void) const {return m_num_vec_stages;}
   /// if STARTING_METHOD == RAMP, need number of time steps to do before hitting full time step
   int get_number_of_ramp_steps(void) const {return m_ramp_steps;}
+  ADAPTIVE_TIME_STEP_CONTROL get_adaptive_time_method(void) const {return m_adaptive_time_method;}  
+  double get_t_change_adaptive_goal(void) const {return m_change_in_t_goal;}
   
   /// Additional functions needed by Angular_Quadrature
   int get_number_of_groups(void) const {return m_number_groups;}
@@ -99,8 +101,8 @@ public:
 
   void get_cv_poly_coefficients(const int mat_num, std::vector<double>& poly_coeff) const{ poly_coeff = m_cv_polynomial_coeff[mat_num]; return;}
   int get_cv_poly_power(const int mat_num) const { return m_cv_poly_max_power[mat_num]; }
-  bool use_weird_units(void) const;
-  UNITS_TYPE get_units_type(void) const;
+  UNITS_TYPE get_units_type(void) const {return m_units_type;}
+  
   void get_scattering_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
   void get_absorption_poly_coeff(const int mat_num , std::vector<double>& coeff) const;
   int  get_rational_cv_power(const int mat_num) const { return m_cv_rational_powers[mat_num] ; }
@@ -243,7 +245,6 @@ protected:
   std::vector<double> m_temp_source_end_time;
   std::vector<double> m_temp_source_output;
 
-  bool m_weird_units = false;
   UNITS_TYPE m_units_type = INVALID_UNITS_TYPE;
   std::vector< std::vector<double> > m_scat_opacity_poly;
   std::vector< std::vector<double> > m_abs_opacity_poly;
@@ -289,6 +290,8 @@ protected:
   double m_exponential_ratio = -1.;
   int m_ramp_steps = -1;
   int m_num_vec_stages = -1;
+  ADAPTIVE_TIME_STEP_CONTROL m_adaptive_time_method = INVALID_ADAPTIVE_TIME_STEP_CONTROL;
+  double m_change_in_t_goal = -1.;
   
   /// radiation solver type data
   /// within group solve type

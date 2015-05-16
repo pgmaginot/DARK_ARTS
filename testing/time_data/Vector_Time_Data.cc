@@ -137,7 +137,7 @@ int main(int argc, char** argv)
   try{
     for(int ts = 0; ts < too_many_steps; ts++)
     {
-      dt = time_data.get_dt(ts,time_now,dt);
+      dt = time_data.get_dt(ts,time_now,dt,-1.);
       
       if( fabs(dt - expected_dt[ts]) > tol)
         throw Dark_Arts_Exception(TIME_MARCHER , "Not calculating correct vector dt");

@@ -18,7 +18,7 @@ public:
     
   virtual ~V_DT_Calculator(){}
 
-  virtual double calculate_dt(const int step, const double dt_old) = 0;
+  virtual double calculate_dt(const int step, const double dt_old, const double adapt_criteria) = 0;
   
 protected:
   const double m_dt_min;

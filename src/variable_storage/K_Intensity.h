@@ -10,7 +10,10 @@
 #include <vector>
 #include <stdlib.h>
 
+#include "Adaptive_Check_None.h"
+
 #include "Eigen/Dense"
+
 
 class K_Intensity
 {
@@ -29,6 +32,7 @@ public:
   void advance_intensity(Intensity_Data& i_old, const double dt, const Time_Data& time_data);
   
   void clear_ki(void) ;
+  
 private:
   
   /// total number of cells in the problem
