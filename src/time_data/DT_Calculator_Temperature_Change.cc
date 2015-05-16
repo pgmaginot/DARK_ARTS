@@ -10,9 +10,16 @@ DT_Calculator_Temperature_Change::DT_Calculator_Temperature_Change(const Input_R
 
 double DT_Calculator_Temperature_Change::calculate_dt(const int step, const double dt_old, const double delta_temperature_last)
 {
-  double dt = m_goal_delta_temperature/delta_temperature_last*dt_old;
-  
+  double dt = 0.;
+  if(step==0)
+  {
+    dt = m_dt_min;
+  }
+  else 
+  {
+    dt = std::min( m_goal_delta_temperature/delta_temperature_last*dt_old , dt_old*1.5) ;
+  }
   check_dt(dt, step);
-  
+  // std::cout << "dt: " << dt << std::endl;
   return dt;
 }

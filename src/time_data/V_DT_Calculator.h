@@ -24,7 +24,7 @@ protected:
   const double m_dt_min;
   const double m_dt_max;  
   
-  void check_dt(const double dt , const int step);
+  void check_dt(double& dt , const int step);
 };
 
 #endif

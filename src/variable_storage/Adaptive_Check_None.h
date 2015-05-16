@@ -14,7 +14,7 @@ public:
     
   virtual ~Adaptive_Check_None(){}
 
-  bool adaptive_check(const int stage, const double dt) override { return false;}
+  bool adaptive_check(const int stage, const double dt, double& adapt_criteria) override { return false;}
   
 private:
 };

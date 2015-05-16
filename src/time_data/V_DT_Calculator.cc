@@ -8,7 +8,7 @@ V_DT_Calculator::V_DT_Calculator(const Input_Reader& input_reader)
 
 }
 
-void V_DT_Calculator::check_dt(const double dt , const int step)
+void V_DT_Calculator::check_dt(double& dt , const int step)
 {
   if(dt < m_dt_min)
   {
@@ -19,10 +19,7 @@ void V_DT_Calculator::check_dt(const double dt , const int step)
   }
   if(dt > m_dt_max)
   {
-    std::stringstream err;
-    err << "Calculated dt= : " << dt << "for step: " << step << std::endl;
-    err << "Maximum dt= " << m_dt_max;
-    throw Dark_Arts_Exception(SUPPORT_OBJECT, err.str() ) ;
+    dt = m_dt_max;
   }
   
   return;
