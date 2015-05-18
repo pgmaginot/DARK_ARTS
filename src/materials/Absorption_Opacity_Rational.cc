@@ -38,7 +38,13 @@ Absorption_Opacity_Rational::~Absorption_Opacity_Rational()
 
 double Absorption_Opacity_Rational::get_absorption_opacity(const int group, const double temperature, const double position)
 {
-  // return  m_const/(m_offset + pow( fabs(temperature) + 1.0E-4 ,m_p));
-  return  m_const/(m_offset + pow( fabs(temperature)  ,m_p));
+  if( temperature < 0.01)
+  {
+    return m_const/(m_offset + pow(0.01  ,m_p) );
+  }
+  else{
+    return m_const/(m_offset + pow( temperature  ,m_p) );
+  }
+  
 }
 

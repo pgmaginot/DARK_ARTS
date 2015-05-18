@@ -61,6 +61,9 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
       m_calculate_dt = std::make_shared<DT_Calculator_Temperature_Change>( input_reader ) ;
   }
   
+  if(!m_calculate_dt)
+    throw Dark_Arts_Exception( SUPPORT_OBJECT, "DT_Calculator not initilaized in Time_Data");
+  
   /// put t_end at the end of dump times vector
   m_times_to_dump.push_back(m_t_end);
   
@@ -162,6 +165,8 @@ double Time_Data::get_c(const int stage) const
 
 double Time_Data::get_dt(const int step, const double time_now, const double dt_old, const double adapt_criteria)
 {
+
+  // std::cout << "Time_data adaptive criterion: " << adapt_criteria << std::endl;
   double dt = m_calculate_dt->calculate_dt(step,dt_old,adapt_criteria);
   if( (time_now + dt ) > m_times_to_dump[m_current_dump_goal] )
   {

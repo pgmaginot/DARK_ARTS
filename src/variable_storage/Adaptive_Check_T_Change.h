@@ -11,6 +11,7 @@
 #include "K_Temperature.h"
 #include "Time_Data.h"
 #include <algorithm>
+#include <iomanip>
 
 
 class Adaptive_Check_T_Change : public V_Adaptive_Check
@@ -22,7 +23,7 @@ public:
     
   virtual ~Adaptive_Check_T_Change(){}
 
-  bool adaptive_check(const int stage, const double dt, double& adapt_criteria) override;
+  bool adaptive_check(const double dt, double& adapt_criteria) override;
   
 private:  
   const Temperature_Data& m_t_old;

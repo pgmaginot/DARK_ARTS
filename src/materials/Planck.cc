@@ -70,20 +70,20 @@ double Planck::getTempForEnergy(double E) const
 
 double Planck::integrate_B_grey(double T) const
 {
-  if( T < 0 )
-  {
-    stringstream str;
-    str << "Planckian integration requires temperature to be positive.";
-    // throw Dark_Arts_Exception(TIME_MARCHER , str);
-    //throw CommonException(str, CET_INTERNAL_ERROR);
-  }
+  // if( T < 0 )
+  // {
+    // stringstream str;
+    // str << "Planckian integration requires temperature to be positive.";
+    // // throw Dark_Arts_Exception(TIME_MARCHER , str);
+    // //throw CommonException(str, CET_INTERNAL_ERROR);
+  // }
   // return fabs(T)/T*a*c*pow(T,4)/m_sn_weight; /// Note this is a per steradian quantity
-  return a*c*pow(T,4)/m_sn_weight; /// Note this is a per steradian quantity
+  return T/fabs(T)*a*c*pow(T,4)/m_sn_weight; /// Note this is a per steradian quantity
 }
 
 double Planck::integrate_dBdT_grey(double T) const
 {
-  return 4.0*a*c*pow( T ,3)/m_sn_weight;
+  return 4.0*a*c*pow( fabs(T) ,3)/m_sn_weight;
   // return fabs(4.0*a*c*pow(T,3)/m_sn_weight); // Note that this is a per steradian quantity
   // return fabs(T)/T*4.0*a*c*pow(T,3)/m_sn_weight; // Note that this is a per steradian quantity
 }

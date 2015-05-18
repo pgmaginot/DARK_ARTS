@@ -91,8 +91,10 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     
     if( input_reader.get_starting_time_method() == ADAPTIVE )
     {
+      // std::cout << "Adaptive time stepping\n" ;
       if(input_reader.get_adaptive_time_method() == CHANGE_IN_T )
       {
+        // std::cout << "Change in Temperature adaptivity" << std::endl;
         m_adaptive_check = std::make_shared<Adaptive_Check_T_Change>(t_old, m_k_t , m_time_data,
           m_n_stages, cell_data.get_total_number_of_cells(), fem_quadrature.get_number_of_interpolation_points() , input_reader.get_t_change_adaptive_goal() );
       }
@@ -142,11 +144,10 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old)
     }
     if( need_to_cut_dt)
     {
-      dt *= m_damping_decrease_factor;
+      dt *= 0.5;
     }
     else
-    {
-      
+    {      
       dt = m_time_data.get_dt(t_step,time,dt, m_adapt_criteria);
     }
     
@@ -285,24 +286,20 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old)
       /// give the converged \f$ \Phi \f$ so that all we have to do is sweep once to get m_k_i
       m_intensity_update->calculate_k_i(m_k_i, m_ard_phi);
       m_temperature_update.calculate_k_t(m_t_star, m_k_t);
-      
-      /// verify that we do not need to cut the time step now
-      /// check at each stage to avoid unnecesary computation if possible
-      /// though this does require an extra loop through all unknowns ....
-      if(t_step > 4)
-      {
-        if( m_adaptive_check->adaptive_check(stage,dt,m_adapt_criteria) ) 
-        {
-          need_to_cut_dt = true;
-          break;
-        }
-      }
+
       /// m_ard_phi and m_t_star are the radiation and temperature profiles at this time stage
       if(m_calculate_space_time_error)
         m_space_time_error_calculator->record_error(dt, stage, time_stage, m_ard_phi, m_t_star);
       
       m_status_generator.write_iteration_status(t_step, stage, stage_thermals, dt , stage_inners , 0.0 , m_damping);
     } // bottom of stage loop
+    
+    m_adapt_criteria = 0.;
+    bool adaptive_result = m_adaptive_check->adaptive_check(dt,m_adapt_criteria);
+    if( adaptive_result ) 
+    {
+      need_to_cut_dt = true;
+    }
     
     if(need_to_cut_dt)
       continue;

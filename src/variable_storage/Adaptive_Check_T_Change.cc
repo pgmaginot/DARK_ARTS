@@ -13,6 +13,7 @@ Adaptive_Check_T_Change::Adaptive_Check_T_Change(const Temperature_Data& t_old ,
   m_t_old_vec(Eigen::VectorXd::Zero(m_n_el) ),
   m_t_change_goal( 1.2*goal )
 {
+  // std::cout << "Adaptive_Check_T_Change created" << std::endl;
   m_sdirk_b.resize(m_n_stages,0.);
 
   for(int s=0 ; s< m_n_stages ; s++)
@@ -20,13 +21,8 @@ Adaptive_Check_T_Change::Adaptive_Check_T_Change(const Temperature_Data& t_old ,
 }
 
 
-bool Adaptive_Check_T_Change::adaptive_check(const int stage, const double dt, double& adapt_criteria) 
-{
-  if( stage < (m_n_stages -1) )
-  {
-    return false;
-  }
-  
+bool Adaptive_Check_T_Change::adaptive_check(const double dt, double& adapt_criteria) 
+{ 
   adapt_criteria = 0.;
   Eigen::VectorXd sum_k_t = Eigen::VectorXd::Zero(m_n_el);
   
@@ -46,7 +42,7 @@ bool Adaptive_Check_T_Change::adaptive_check(const int stage, const double dt, d
     /// have t_old, and the difference between t_old and t_next
     for(int el = 0 ; el < m_n_el ; el++)
     {
-      double err = fabs( sum_k_t(el) )/( 2.*m_t_old_vec(el) +  sum_k_t(el) );
+      double err = fabs( sum_k_t(el) )/( std::max( fabs(m_t_old_vec(el)) +  fabs(m_t_old_vec(el) + sum_k_t(el) )   , 2.0E-3) );
       // std::cout << "err: " << err << std::endl;
       adapt_criteria = std::max(adapt_criteria , err ) ;    
     }
@@ -60,7 +56,8 @@ bool Adaptive_Check_T_Change::adaptive_check(const int stage, const double dt, d
     m_sdirk_b[s] /= dt;
   }
     
-  // std::cout << "Adapt criteria: " << adapt_criteria << std::endl;
+  
+  // std::cout << "Adapt criteria after being calculated: " << std::scientific << std::setprecision(5) << adapt_criteria << std::endl;
   bool too_big = (adapt_criteria > m_t_change_goal);
   return too_big;
 }

@@ -16,7 +16,7 @@ public:
     
   virtual ~V_Adaptive_Check(){}
 
-  virtual bool adaptive_check(const int stage, const double dt, double& adapt_criteria) = 0;  
+  virtual bool adaptive_check(const double dt, double& adapt_criteria) = 0;  
 protected:
   
 };

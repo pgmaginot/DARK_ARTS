@@ -1348,6 +1348,7 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
       m_adaptive_time_method = CHANGE_IN_T;
       TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
       m_change_in_t_goal = atof( target_change_elem->GetText() );
+      std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
       if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
         throw Dark_Arts_Exception(INPUT , "Change_in_t adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
       
