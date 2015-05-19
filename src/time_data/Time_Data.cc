@@ -176,7 +176,7 @@ double Time_Data::get_dt(const int step, const double time_now, const double dt_
 
   // std::cout << "Time_data adaptive criterion: " << adapt_criteria << std::endl;
   double dt = m_calculate_dt->calculate_dt(step,dt_old,adapt_criteria);
-  if( (time_now + dt ) > m_times_to_dump[m_current_dump_goal] )
+  if( (time_now + dt + m_dt_min) > m_times_to_dump[m_current_dump_goal] )
   {
     /// taking full time step suggested by starting method will end time past desired t_end
     dt = m_times_to_dump[m_current_dump_goal] - time_now;

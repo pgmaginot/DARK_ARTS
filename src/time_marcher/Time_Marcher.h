@@ -68,6 +68,7 @@ private:
   const Angular_Quadrature& m_angular_quadrature;
   
   const double m_time_end;
+  const double m_dt_min;
   const bool m_dump_data;
   
   int m_dump_target;

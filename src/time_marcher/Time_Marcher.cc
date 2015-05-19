@@ -30,6 +30,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
     m_cell_data(cell_data),
     m_angular_quadrature(angular_quadrature),
     m_time_end(time_data.get_t_end() ),
+    m_dt_min(time_data.get_dt_min() ),
     m_dump_data( (input_reader.get_output_type() == DUMP) ),
     m_dump_target(0),
     m_adapt_criteria(0.),
@@ -98,7 +99,7 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_adaptive_check = std::make_shared<Adaptive_Check_T_Change>(t_old, m_k_t , m_time_data,
           m_n_stages, cell_data.get_total_number_of_cells(), fem_quadrature.get_number_of_interpolation_points() , input_reader.get_t_change_adaptive_goal() );
       }
-      else if(input_reader.get_adaptive_time_method() == CHANGE_IN_T )
+      else if(input_reader.get_adaptive_time_method() == CHANGE_IN_T_VOLUMETRIC )
       {
         m_adaptive_check = std::make_shared<Adaptive_Check_T_Change_Volumetric>(t_old, m_k_t , 
           m_time_data , cell_data , fem_quadrature , input_reader);
@@ -341,7 +342,7 @@ void Time_Marcher::solve(Intensity_Data& i_old, Temperature_Data& t_old)
     }
       
       /// check to see if we are at the end of the time marching scheme
-    if( fabs( (time - m_time_end )/time) < 1.0E-8)
+    if( fabs(time - m_time_end )  < m_dt_min)
       break;
       
     t_step++;
