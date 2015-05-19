@@ -426,6 +426,11 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
         m_source_i[mat_num] = std::make_shared<Source_I_Constant>( input_reader, mat_num)   ;
         break;
       }
+      case TEMPERATURE_SOURCE:
+      {
+        m_source_i[mat_num] = std::make_shared<Source_I_Temperature>( input_reader, mat_num, m_planck.get_a() , m_planck.get_c() , angular_quadrature.get_sum_w() );
+        break;
+      }
       case INVALID_FIXED_SOURCE_TYPE:
       {
         throw Dark_Arts_Exception(INPUT, "Trying to create an invalid radiation source for Materials object");
@@ -447,6 +452,10 @@ void Materials::load_materials(const Input_Reader& input_reader, const Angular_Q
       /// default is to set source to 0
         m_source_t[mat_num] = std::make_shared<Source_T_Constant>( input_reader, mat_num)   ;
         break;
+      }
+      case TEMPERATURE_SOURCE:
+      {
+        throw Dark_Arts_Exception(SUPPORT_OBJECT , "Temperature source undefined for S_T in Materials class");
       }
       case MMS_SOURCE:
       {

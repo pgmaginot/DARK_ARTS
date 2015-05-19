@@ -67,6 +67,8 @@ public:
   int get_number_of_ramp_steps(void) const {return m_ramp_steps;}
   ADAPTIVE_TIME_STEP_CONTROL get_adaptive_time_method(void) const {return m_adaptive_time_method;}  
   double get_t_change_adaptive_goal(void) const {return m_change_in_t_goal;}
+  int get_cells_per_adaptive_grouping(void) const {return m_cells_per_adaptive_group;}
+  double get_t_change_floor(void) const {return m_adaptive_temperature_floor;}
   
   /// Additional functions needed by Angular_Quadrature
   int get_number_of_groups(void) const {return m_number_groups;}
@@ -292,6 +294,8 @@ protected:
   int m_num_vec_stages = -1;
   ADAPTIVE_TIME_STEP_CONTROL m_adaptive_time_method = INVALID_ADAPTIVE_TIME_STEP_CONTROL;
   double m_change_in_t_goal = -1.;
+  int m_cells_per_adaptive_group = -1;
+  double m_adaptive_temperature_floor = -1.;
   
   /// radiation solver type data
   /// within group solve type

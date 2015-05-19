@@ -1091,6 +1091,7 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
       TiXmlElement* t_start = rad_source_type->FirstChildElement("Time_start");
       TiXmlElement* t_end = rad_source_type->FirstChildElement("Time_end");
       TiXmlElement* rad_output = rad_source_type->FirstChildElement("Isotropic_output");
+      TiXmlElement* temperature_output = rad_source_type->FirstChildElement( "Temperature_source" ); 
       
       if(!t_start)
       {
@@ -1104,39 +1105,50 @@ int Input_Reader::load_material_data(TiXmlElement* mat_elem)
         throw Dark_Arts_Exception(INPUT , err);
       }
       
-      if(!rad_output)
+      if( (!rad_output) && (!temperature_output) )
       {
-        err << "In Material: " << mat_num << " radiation source type CONSTANT_SOURCE requires Isotropic_output element";
+        err << "In Material: " << mat_num << " radiation source type CONSTANT_SOURCE requires Isotropic_output element or Temperature_source";
         throw Dark_Arts_Exception(INPUT , err);
       }
       
-      // std::cout << "Checked for tags" << std::endl;
+      if( rad_output && temperature_output )
+      {
+        err << "In Material: " << mat_num << " radiation source type CONSTANT_SOURCE requires Isotropic_output element or Temperature_source, not both";
+        throw Dark_Arts_Exception(INPUT , err);
+      }
       
-      // std::cout << "Data1: " << t_start->GetText() << std::endl;
-      // std::cout << "Data2: " << t_end->GetText() << std::endl;
-      // std::cout << "Data3: " << rad_output->GetText() << std::endl;
+      std::cout << "Checked for all tags" << std::endl;
       
       m_rad_source_start_time[mat_num] = atof( t_start->GetText() );
       m_rad_source_end_time[mat_num] = atof( t_end->GetText() );
-      m_rad_source_output[mat_num] = atof( rad_output->GetText() );
-      
-      // std::cout << "Loaded data" << std::endl;
-      
+            
       if(m_rad_source_start_time[mat_num] > m_rad_source_end_time[mat_num])
       {
         err << "Material: " << mat_num << " constant rad source start time must be less than end time";
         throw Dark_Arts_Exception(INPUT , err);
-      }
-      if(m_rad_source_output[mat_num] < 0.)
-      {
-        err << "Material: " << mat_num << " constant rad source Isotropic output must be positive";
-        throw Dark_Arts_Exception(INPUT , err);
-      }      
+      }    
       
-      // std::cout << "Checked data" << std::endl;
-    }    
-    
-    // std::cout << "Radiation source loaded" << std::endl;
+      if( rad_output)
+      {
+        m_rad_source_output[mat_num] = atof( rad_output->GetText() );
+        if(m_rad_source_output[mat_num] < 0.)
+        {
+          err << "Material: " << mat_num << " constant rad source Isotropic_output must be positive";
+          throw Dark_Arts_Exception(INPUT , err);
+        }      
+      }
+      
+      if( temperature_output)
+      {
+        m_rad_source_output[mat_num] = atof( temperature_output->GetText() ) ;
+        if(m_rad_source_output[mat_num] < 0.)
+        {
+          err << "Material: " << mat_num << " constant rad source Temperature_source must be positive";
+          throw Dark_Arts_Exception(INPUT , err);
+        }      
+      }
+      
+    }
 
     if(temp_source_str == "NO_SOURCE")
     {
@@ -1347,11 +1359,45 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     {
       m_adaptive_time_method = CHANGE_IN_T;
       TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
+      if(!target_change_elem)
+        throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T requires Target_increase_fraction tag");
+        
       m_change_in_t_goal = atof( target_change_elem->GetText() );
       std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
       if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
         throw Dark_Arts_Exception(INPUT , "Change_in_t adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
+    }
+    else if( adaptive_str == "CHANGE_IN_T_VOLUMETRIC")
+    {
+      m_adaptive_time_method = CHANGE_IN_T_VOLUMETRIC;
+      TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
+      if(!target_change_elem)
+        throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T_VOLUMETRIC requires Target_increase_fraction tag");
+        
+      m_change_in_t_goal = atof( target_change_elem->GetText() );
+      std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
+      if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
+        throw Dark_Arts_Exception(INPUT , "Change_in_t_volumetric adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
       
+      TiXmlElement* cells_per_grouping_elem = adaptive_time_step_elem->FirstChildElement( "Cells_per_grouping" );
+      if(!cells_per_grouping_elem)
+        throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T_VOLUMETRIC requires Cells_per_grouping element");
+        
+      m_cells_per_adaptive_group = atoi( cells_per_grouping_elem->GetText() );
+      if(m_cells_per_adaptive_group < 1 )
+        throw Dark_Arts_Exception(INPUT , "Cells_per_grouping must be an integer greater than 0 for CHANGE_IN_T_VOLUMETRIC scheme");
+    
+      TiXmlElement* offset_elem = adaptive_time_step_elem->FirstChildElement( "Offset_temperature");
+      if(!offset_elem)
+      {
+        m_adaptive_temperature_floor = 0.;
+      }
+      else
+      {
+        m_adaptive_temperature_floor = atof( offset_elem->GetText() );
+        if(m_adaptive_temperature_floor < 0.)
+          throw Dark_Arts_Exception(INPUT , "T_Change_Volumetric floor element requires positive temperature");
+      }
     }
     
     if( m_adaptive_time_method == INVALID_ADAPTIVE_TIME_STEP_CONTROL)

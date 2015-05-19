@@ -52,11 +52,6 @@ Planck::Planck(double accuracy_parameter, const Input_Reader& input_reader, cons
   gauss_quad();
 }
 
-double Planck::get_c(void) const
-{
-  return c;
-}
-
 double Planck::getTempForEnergy(double E) const
 {
   if( E < 0 )

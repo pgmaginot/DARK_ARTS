@@ -98,6 +98,11 @@ Time_Marcher::Time_Marcher(const Input_Reader&  input_reader, const Angular_Quad
         m_adaptive_check = std::make_shared<Adaptive_Check_T_Change>(t_old, m_k_t , m_time_data,
           m_n_stages, cell_data.get_total_number_of_cells(), fem_quadrature.get_number_of_interpolation_points() , input_reader.get_t_change_adaptive_goal() );
       }
+      else if(input_reader.get_adaptive_time_method() == CHANGE_IN_T )
+      {
+        m_adaptive_check = std::make_shared<Adaptive_Check_T_Change_Volumetric>(t_old, m_k_t , 
+          m_time_data , cell_data , fem_quadrature , input_reader);
+      }
     }
     else
     {

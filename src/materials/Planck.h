@@ -97,7 +97,9 @@ public:
   virtual ~Planck() {}; // empty destructor
   
   /// to access c constant
-  double get_c(void) const;
+  double get_c(void) const{ return c;}
+  
+  double get_a(void) const{ return a;}
 
   // to find the planck function B at a specific temperature and energy
   double get_B(double T, double E) const;

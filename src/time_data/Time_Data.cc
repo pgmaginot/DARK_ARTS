@@ -57,8 +57,16 @@ Time_Data::Time_Data(const Input_Reader&  input_reader)
   }
   else if(starting_method == ADAPTIVE)
   {    
-    if( input_reader.get_adaptive_time_method() == CHANGE_IN_T)
+    ADAPTIVE_TIME_STEP_CONTROL meth = input_reader.get_adaptive_time_method();
+    if(meth == CHANGE_IN_T)
+    {
       m_calculate_dt = std::make_shared<DT_Calculator_Temperature_Change>( input_reader ) ;
+    }
+    else if(meth == CHANGE_IN_T_VOLUMETRIC)
+    {
+      m_calculate_dt = std::make_shared<DT_Calculator_Temperature_Change>( input_reader ) ;
+     
+    }
   }
   
   if(!m_calculate_dt)
