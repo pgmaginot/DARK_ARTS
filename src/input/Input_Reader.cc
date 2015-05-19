@@ -1366,6 +1366,18 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
       std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
       if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
         throw Dark_Arts_Exception(INPUT , "Change_in_t adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
+        
+     TiXmlElement* offset_elem = adaptive_time_step_elem->FirstChildElement( "Offset_temperature");
+      if(!offset_elem)
+      {
+        m_adaptive_temperature_floor = 0.;
+      }
+      else
+      {
+        m_adaptive_temperature_floor = atof( offset_elem->GetText() );
+        if(m_adaptive_temperature_floor < 0.)
+          throw Dark_Arts_Exception(INPUT , "Change_in_T pointwise floor element requires positive temperature");
+      }
     }
     else if( adaptive_str == "CHANGE_IN_T_VOLUMETRIC")
     {

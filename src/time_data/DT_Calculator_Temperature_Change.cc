@@ -18,7 +18,7 @@ double DT_Calculator_Temperature_Change::calculate_dt(const int step, const doub
   else 
   {
     // std::cout << "delta t in dt calculator: " << std::scientific << std::setprecision(5) <<delta_temperature_last << std::endl;
-    dt = std::min( m_goal_delta_temperature/delta_temperature_last*dt_old , dt_old*1.5) ;
+    dt = std::min( m_goal_delta_temperature/delta_temperature_last*dt_old , dt_old*2.) ;
   }
   check_dt(dt, step);
   // std::cout << "dt: " << dt << std::endl;

@@ -1,7 +1,7 @@
 #include "Adaptive_Check_T_Change.h"
 
 Adaptive_Check_T_Change::Adaptive_Check_T_Change(const Temperature_Data& t_old , const K_Temperature& k_t ,  const Time_Data& time_data,
-  const int n_stages, const int n_cells, const int n_el_cell, const double goal)
+  const int n_stages, const int n_cells, const int n_el_cell, const double goal, const double denom_min)
   :
   V_Adaptive_Check() , 
   m_t_old(t_old),
@@ -9,6 +9,7 @@ Adaptive_Check_T_Change::Adaptive_Check_T_Change(const Temperature_Data& t_old ,
   m_n_stages(n_stages),
   m_n_cells(n_cells),
   m_n_el(n_el_cell),
+  m_denom_min(denom_min),
   m_k_t_vec(Eigen::VectorXd::Zero(m_n_el) ) , 
   m_t_old_vec(Eigen::VectorXd::Zero(m_n_el) ),
   m_t_change_goal( 1.2*goal )
@@ -42,7 +43,7 @@ bool Adaptive_Check_T_Change::adaptive_check(const double dt, double& adapt_crit
     /// have t_old, and the difference between t_old and t_next
     for(int el = 0 ; el < m_n_el ; el++)
     {
-      double err = fabs( sum_k_t(el) )/( std::max( fabs(m_t_old_vec(el)) +  fabs(m_t_old_vec(el) + sum_k_t(el) )   , 2.0E-3) );
+      double err = fabs( sum_k_t(el) )/( std::max( fabs(m_t_old_vec(el)) +  fabs(m_t_old_vec(el) + sum_k_t(el) )   , m_denom_min) );
       // std::cout << "err: " << err << std::endl;
       adapt_criteria = std::max(adapt_criteria , err ) ;    
     }

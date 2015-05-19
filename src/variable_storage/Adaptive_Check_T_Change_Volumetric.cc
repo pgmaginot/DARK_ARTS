@@ -50,12 +50,16 @@ bool Adaptive_Check_T_Change_Volumetric::adaptive_check(const double dt, double&
   for(int grp = 0 ; grp < m_n_groupings ; grp++)
   {
     double delta_grp = 0.;
-    double denom_grp = 0.;
+    double denom_grp_1 = 0.;
+    double denom_grp_2 = 0.;
+    double denom_grp_3 = 0.;
     for(int c = 0 ; c < m_n_cell_per_grouping ; c++)
     {
       
       double delta_cell = 0.;
-      double denom_cell = 0.;
+      double denom_cell_1 = 0.;
+      double denom_cell_2 = 0.;
+      double denom_cell_3 = 0.;
       int cell = grp*m_n_cell_per_grouping + c;
       
       m_sum_k_t = Eigen::VectorXd::Zero(m_n_el);
@@ -75,18 +79,25 @@ bool Adaptive_Check_T_Change_Volumetric::adaptive_check(const double dt, double&
       for(int q = 0 ; q < m_n_qp ; q++)
       {
         delta_cell += m_qp_w_at_dfem[q]*( m_t_new_evals[q] - m_t_old_evals[q])*( m_t_new_evals[q] - m_t_old_evals[q] )  ;
-        denom_cell += m_qp_w_at_dfem[q] * ( m_t_new_evals[q] + m_t_old_evals[q] + m_offset)*( m_t_new_evals[q] + m_t_old_evals[q] + m_offset);
+        denom_cell_1 += m_qp_w_at_dfem[q] *  m_t_new_evals[q] * m_t_new_evals[q];
+        denom_cell_2 += m_qp_w_at_dfem[q] * m_t_old_evals[q] * m_t_old_evals[q];
       }
       delta_cell *= dx/2.;
-      denom_cell *= dx/2.;
+      denom_cell_1 *= dx/2.;
+      denom_cell_2 *=dx/2.;
+      denom_cell_3 = m_offset*m_offset*dx;
       
       delta_grp += delta_cell;
-      denom_grp += denom_cell;
+      denom_grp_1 += denom_cell_1;
+      denom_grp_2 += denom_cell_2;
+      denom_grp_3 += denom_cell_3;
     }    
     
-    double err = sqrt(delta_grp)/sqrt(denom_grp);
+    double err = sqrt(delta_grp)/( sqrt(denom_grp_1) + sqrt(denom_grp_2) + sqrt(denom_grp_3)) ;
     adapt_criteria = std::max(adapt_criteria , err ) ;   
   }
+  
+  adapt_criteria *= 2.;
     
   for(int s=0 ; s< m_n_stages ; s++)
   {

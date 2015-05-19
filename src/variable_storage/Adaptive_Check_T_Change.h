@@ -19,7 +19,7 @@ class Adaptive_Check_T_Change : public V_Adaptive_Check
 public:
   Adaptive_Check_T_Change(
     const Temperature_Data& t_old , const K_Temperature& k_t , const Time_Data& time_data,
-    const int n_stages, const int n_cells, const int n_el_cell, const double goal);
+    const int n_stages, const int n_cells, const int n_el_cell, const double goal, const double denom_min);
     
   virtual ~Adaptive_Check_T_Change(){}
 
@@ -31,6 +31,7 @@ private:
   const int m_n_stages;
   const int m_n_cells;
   const int m_n_el;
+  const double m_denom_min;
   Eigen::VectorXd m_k_t_vec;
   Eigen::VectorXd m_t_old_vec;
   const double m_t_change_goal;
