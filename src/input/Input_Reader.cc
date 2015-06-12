@@ -1355,50 +1355,27 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
     {
       m_adaptive_time_method = NO_ADAPTIVE_CONTROL;
     }
+    else if( adaptive_str == "DUMB_POINTWISE_T" )
+    {
+      m_adaptive_time_method = DUMB_POINTWISE_T;
+    }
     else if( adaptive_str == "CHANGE_IN_T" )
     {
       m_adaptive_time_method = CHANGE_IN_T;
-      TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
-      if(!target_change_elem)
-        throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T requires Target_increase_fraction tag");
-        
-      m_change_in_t_goal = atof( target_change_elem->GetText() );
-      std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
-      if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
-        throw Dark_Arts_Exception(INPUT , "Change_in_t adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
-        
-     TiXmlElement* offset_elem = adaptive_time_step_elem->FirstChildElement( "Offset_temperature");
-      if(!offset_elem)
-      {
-        m_adaptive_temperature_floor = 0.;
-      }
-      else
-      {
-        m_adaptive_temperature_floor = atof( offset_elem->GetText() );
-        if(m_adaptive_temperature_floor < 0.)
-          throw Dark_Arts_Exception(INPUT , "Change_in_T pointwise floor element requires positive temperature");
-      }
     }
     else if( adaptive_str == "CHANGE_IN_T_VOLUMETRIC")
     {
       m_adaptive_time_method = CHANGE_IN_T_VOLUMETRIC;
-      TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
-      if(!target_change_elem)
-        throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T_VOLUMETRIC requires Target_increase_fraction tag");
-        
-      m_change_in_t_goal = atof( target_change_elem->GetText() );
-      std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
-      if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
-        throw Dark_Arts_Exception(INPUT , "Change_in_t_volumetric adaptive time step scheme requires Target_increase_fraction to be a decimal between 0 and 1");
-      
       TiXmlElement* cells_per_grouping_elem = adaptive_time_step_elem->FirstChildElement( "Cells_per_grouping" );
       if(!cells_per_grouping_elem)
         throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T_VOLUMETRIC requires Cells_per_grouping element");
         
       m_cells_per_adaptive_group = atoi( cells_per_grouping_elem->GetText() );
       if(m_cells_per_adaptive_group < 1 )
-        throw Dark_Arts_Exception(INPUT , "Cells_per_grouping must be an integer greater than 0 for CHANGE_IN_T_VOLUMETRIC scheme");
-    
+        throw Dark_Arts_Exception(INPUT , "Cells_per_grouping must be an integer greater than 0 for CHANGE_IN_T_VOLUMETRIC scheme"); 
+    }
+    if( (m_adaptive_time_method == CHANGE_IN_T_VOLUMETRIC) || (m_adaptive_time_method == CHANGE_IN_T) || (m_adaptive_time_method == DUMB_POINTWISE_T) )
+    {    
       TiXmlElement* offset_elem = adaptive_time_step_elem->FirstChildElement( "Offset_temperature");
       if(!offset_elem)
       {
@@ -1410,11 +1387,19 @@ int Input_Reader::load_time_stepping_data(TiXmlElement* time_elem)
         if(m_adaptive_temperature_floor < 0.)
           throw Dark_Arts_Exception(INPUT , "T_Change_Volumetric floor element requires positive temperature");
       }
+      
+      TiXmlElement* target_change_elem = adaptive_time_step_elem->FirstChildElement("Target_increase_fraction") ;
+      if(!target_change_elem)
+        throw Dark_Arts_Exception(INPUT , "CHANGE_IN_T, CHANGE_IN_T_VOLUMETRIC, and DUMB_POITNWISE_T require Target_increase_fraction tag");
+        
+      m_change_in_t_goal = atof( target_change_elem->GetText() );
+      std::cout << "Target increase fraction: " << m_change_in_t_goal << std::endl;
+      if( (m_change_in_t_goal < 0.) || ( m_change_in_t_goal > 1.) )
+        throw Dark_Arts_Exception(INPUT , "Target_increase_fraction for adaptive time step scheme must be a decimal between 0 and 1");    
     }
     
     if( m_adaptive_time_method == INVALID_ADAPTIVE_TIME_STEP_CONTROL)
       throw Dark_Arts_Exception(INPUT, "Valid Adaptive_time_step control not given");
-    
    }
   
   m_dt_min = atof(dt_min_elem->GetText() );

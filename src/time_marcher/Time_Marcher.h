@@ -14,6 +14,7 @@
 #include "Adaptive_Check_T_Change.h"
 #include "Adaptive_Check_T_Change_Volumetric.h"
 #include "Adaptive_Check_None.h"
+#include "Adaptive_Check_Dumb_Pointwise_T.h"
 
 class Time_Marcher
 {
